@@ -39,7 +39,7 @@ function Get-KeePassEntry {
       .PARAMETER Title
       The title of the entry to return. Must be unique.
 
-      .PARAMETER KPDBPath
+      .PARAMETER DBPath
       Alternative path of a KeePass Database File. 
       If no value is provieded, the default database defined with Set-KeePassConfiguration
       will be used.
@@ -103,7 +103,7 @@ function Get-KeePassEntry {
         ValueFromPipeline=$true,
         ValueFromPipelineByPropertyName=$true,
     Position=3)]
-    [string]$KPDBpath,
+    [string]$DBPath,
     [switch] $AsSecureStringCredential
 
 
@@ -113,14 +113,14 @@ function Get-KeePassEntry {
   #Read the global configuration
   [xml]$Configuration = (Get-Content $PSScriptRoot\KeePassConfiguration.xml)
   $KPProgramfolder = $Configuration.Settings.KeePassSettings.KPProgramFolder
-  $KPDBDefaultpath = $Configuration.Settings.KeePassSettings.KPDBDefaultpath
+  $DBDefaultpathPath = $Configuration.Settings.KeePassSettings.DBDefaultpathPath
 
   #Check if a KeePass Database File path has been provided. If not, set standardpath defined in KeePassConfiguration.xml
-  If (!($KPDBpath) ) {$KPDBPath = $KPDBDefaultpath}
+  If (!($DBPath) ) {$DBPath = $DBDefaultpathPath}
  
   #Check if KeePass Database exists
 
-  if(!(test-path $KPDBpath))
+  if(!(test-path $DBPath))
   {$Errorcode = 'The provided database path does not exist. Please check your settings. You can define a default Database with Set-KeePassConfiguration'
     Write-Output "$Errorcode"
   break}
@@ -153,7 +153,7 @@ function Get-KeePassEntry {
   ###########################################################################
  
   $IOConnectionInfo = New-Object KeePassLib.Serialization.IOConnectionInfo
-  $IOConnectionInfo.Path = $KPDBpath
+  $IOConnectionInfo.Path = $DBPath
  
   ###########################################################################
   # To open a KeePass database, an object is needed to record status info.
@@ -257,7 +257,7 @@ function New-KeePassEntry
       The title of the entry to add (mandatory). If an entry with the same title is already
       present in the provided TopLevelGroup, the new entry will not be created.
  
-      .PARAMETER KPDBPath
+      .PARAMETER DBPath
       Alternative path of a KeePass Database File. 
       If no value is provieded, the default database defined with Set-KeePassConfiguration
       will be used.
@@ -293,10 +293,10 @@ function New-KeePassEntry
 
       .EXAMPLE
 
-      New-KeePassEntry -DBcredential $mycred -TopLevelGroupName Internet -Title NewTestEntry -EntryCredential $NewEntryCred -KPDBpath C:\TEMP\Test-Database.kdbx
+      New-KeePassEntry -DBcredential $mycred -TopLevelGroupName Internet -Title NewTestEntry -EntryCredential $NewEntryCred -DBPath C:\TEMP\Test-Database.kdbx
 
       Description:
-      Creates a new entry with Username and password in the Internet TopLevelGroup in the KeePass Database provided with $KPDBpath. 
+      Creates a new entry with Username and password in the Internet TopLevelGroup in the KeePass Database provided with $DBPath. 
       $NewEntryCred has been created with get-credential.
 
       Output:
@@ -316,7 +316,7 @@ function New-KeePassEntry
         ValueFromPipelineByPropertyName=$true,
     Position=0)]
     [System.Management.Automation.PSCredential]$DBcredential,
-    [string]$KPDBpath,
+    [string]$DBPath,
     [Parameter(Mandatory=$true)] [String] $TopLevelGroupName,
     [Parameter(Mandatory=$true)] [String] $Title,
     [Parameter(Mandatory=$false)] [System.Management.Automation.PSCredential] $EntryCredential,
@@ -327,19 +327,19 @@ function New-KeePassEntry
 
   #Check if an entry with the same name already exists in the same database in the same TopLevelGroup
 
-  if ($KPDBpath)
-  {$Entryexists = (get-KeePassEntry -DBcredential $DBcredential -Title $Title -TopLevelGroupname $TopLevelGroupName -KPDBpath $KPDBpath) }
+  if ($DBPath)
+  {$Entryexists = (get-KeePassEntry -DBcredential $DBcredential -Title $Title -TopLevelGroupname $TopLevelGroupName -DBPath $DBPath) }
 
   else {$Entryexists = (get-KeePassEntry -DBcredential $DBcredential -Title $Title -TopLevelGroupname $TopLevelGroupName)}
   Try { 
     #Read the global configuration
     [xml]$Configuration = (Get-Content $PSScriptRoot\KeePassConfiguration.xml)
     $KPProgramfolder = $Configuration.Settings.KeePassSettings.KPProgramFolder
-    $KPDBDefaultpath = $Configuration.Settings.KeePassSettings.KPDBDefaultpath
+    $DBDefaultpathPath = $Configuration.Settings.KeePassSettings.DBDefaultpathPath
   
 
     #Check if a KeePass Database File path has been provided. If not, set standardpath defined in KeePassConfiguration.xml
-    If (!($KPDBpath) ) {$KPDBPath = $KPDBDefaultpath}
+    If (!($DBPath) ) {$DBPath = $DBDefaultpathPath}
  
     # Load the classes from KeePass.exe:
     $KeePassEXE = Join-Path -Path $KPProgramFolder -ChildPath 'KeePass.exe'
@@ -370,7 +370,7 @@ function New-KeePassEntry
     ###########################################################################
  
     $IOConnectionInfo = New-Object KeePassLib.Serialization.IOConnectionInfo
-    $IOConnectionInfo.Path = $KPDBpath
+    $IOConnectionInfo.Path = $DBPath
  
     ###########################################################################
     # To open a KeePass database, an object is needed to record status info.
@@ -489,7 +489,7 @@ function Set-KeePassEntry
       The title of the entry to add (mandatory). If an entry with the same title is already
       present in the provided TopLevelGroup, the new entry will not be created.
  
-      .PARAMETER KPDBPath
+      .PARAMETER DBPath
       Alternative path of a KeePass Database File. 
       If no value is provieded, the default database defined with Set-KeePassConfiguration
       will be used.
@@ -514,10 +514,10 @@ function Set-KeePassEntry
       Switch to decide if the provided notes should overwrite the existing entry or append the new notes to the 
 
       .EXAMPLE
-      Set-KeePassEntry -DBcredential $mycred -TopLevelGroupName Internet -Title NewTestEntry -EntryCredential $NewEntryCred -KPDBpath C:\TEMP\Test-Database.kdbx
+      Set-KeePassEntry -DBcredential $mycred -TopLevelGroupName Internet -Title NewTestEntry -EntryCredential $NewEntryCred -DBPath C:\TEMP\Test-Database.kdbx
 
       Description: Set´s new values for username and password that are provided as a PSCredential object in the NewTestEntry 
-      entry in the Internet TopLevelGroup of the KeePass database provided with the KPDBpath parameter.
+      entry in the Internet TopLevelGroup of the KeePass database provided with the DBPath parameter.
       $NewentryCred can be created with Get-Credential.
 
       Output:
@@ -566,7 +566,7 @@ function Set-KeePassEntry
         ValueFromPipelineByPropertyName=$true,
     Position=0)]
     [System.Management.Automation.PSCredential]$DBcredential,
-    [string]$KPDBpath,
+    [string]$DBPath,
     [Parameter(Mandatory=$true)] [String] $TopLevelGroupName,
     [Parameter(Mandatory=$true)] [String] $Title,
     [Parameter(Mandatory=$true)] [System.Management.Automation.PSCredential] $EntryCredential,
@@ -576,8 +576,8 @@ function Set-KeePassEntry
   )
 
   #Check if an entry with the same name already exists in the same database in the same TopLevelGroup
-  if ($KPDBpath)
-  {$Entryexists = (get-KeePassEntry -DBcredential $DBcredential -Title $Title -TopLevelGroupname $TopLevelGroupName -KPDBpath $KPDBpath) }
+  if ($DBPath)
+  {$Entryexists = (get-KeePassEntry -DBcredential $DBcredential -Title $Title -TopLevelGroupname $TopLevelGroupName -DBPath $DBPath) }
 
   else {$Entryexists = (get-KeePassEntry -DBcredential $DBcredential -Title $Title -TopLevelGroupname $TopLevelGroupName)}
     
@@ -593,11 +593,11 @@ function Set-KeePassEntry
       #Read the global configuration
       [xml]$Configuration = (Get-Content $PSScriptRoot\KeePassConfiguration.xml)
       $KPProgramfolder = $Configuration.Settings.KeePassSettings.KPProgramFolder
-      $KPDBDefaultpath = $Configuration.Settings.KeePassSettings.KPDBDefaultpath
+      $DBDefaultpathPath = $Configuration.Settings.KeePassSettings.DBDefaultpathPath
   
 
       #Check if a KeePass Database File path has been provided. If not, set standardpath defined in KeePassConfiguration.xml
-      If (!($KPDBpath) ) {$KPDBPath = $KPDBDefaultpath}
+      If (!($DBPath) ) {$DBPath = $DBDefaultpathPath}
  
       # Load the classes from KeePass.exe:
       $KeePassEXE = Join-Path -Path $KPProgramFolder -ChildPath 'KeePass.exe'
@@ -628,7 +628,7 @@ function Set-KeePassEntry
       ###########################################################################
  
       $IOConnectionInfo = New-Object KeePassLib.Serialization.IOConnectionInfo
-      $IOConnectionInfo.Path = $KPDBpath
+      $IOConnectionInfo.Path = $DBPath
  
       ###########################################################################
       # To open a KeePass database, an object is needed to record status info.
@@ -785,17 +785,17 @@ function Set-KeePassConfiguration
       .SYNOPSIS
       Sets the configuration for the PowerShell KeePass Module.
       .LONGDESCRIPTION
-      Adds the entries KPProgramfolder and KPDBDefaultpath to the KeePassConfiguration.xml
+      Adds the entries KPProgramfolder and DBDefaultpathPath to the KeePassConfiguration.xml
       located in the modules root folder.
-      .PARAMETER KPDBDefaultpath
+      .PARAMETER DBDefaultpathPath
       The path to the default KeePass Database file.
       e.g. C:\KeePassDBs\mytest.kdbx
       The default Databasfile can be overwritten by the Cmdlets
       Get-KeePassEntry, New-KeePassEntry, Set-KeePassEntry by defining the
-      KPDBPath parameter.
+      DBPath parameter.
 
       .EXAMPLE
-      Set-KeePassConfiguration -KPDBDefaultpath C:\TEMP\Test-Database.kdbx -KPProgramFolder 'C:\Program Files (x86)\KeePass Password Safe 2\'
+      Set-KeePassConfiguration -DBDefaultpathPath C:\TEMP\Test-Database.kdbx -KPProgramFolder 'C:\Program Files (x86)\KeePass Password Safe 2\'
       
       Description: Creates a new KeePassConfiguration.xml in the current PowerShell module folder if there is no existing KeePassConfiguration.xml.
       If the KeePassConfiguration.xml already exists it will be overwritten.
@@ -805,7 +805,7 @@ function Set-KeePassConfiguration
 
 
   #>
-  param([string]$KPDBDefaultpath,
+  param([string]$DBDefaultpathPath,
     [string]$KPProgramFolder
   )
 
@@ -814,7 +814,7 @@ function Set-KeePassConfiguration
   { 
 
     [xml]$XML = (Get-Content $PSScriptRoot\KeePassConfiguration.xml)
-    $xml.Settings.KeePassSettings.KPDBDefaultpath = $KPDBDefaultpath
+    $xml.Settings.KeePassSettings.DBDefaultpathPath = $DBDefaultpathPath
     $xml.Settings.KeePassSettings.KPProgramFolder = $KPProgramFolder
     $xml.Save("$PSScriptRoot\KeePassConfiguration.xml")
 
@@ -836,7 +836,7 @@ function Set-KeePassConfiguration
 
     $XML.WriteStartElement('Settings')
     $XML.WriteStartElement('KeePassSettings')
-    $XML.WriteElementString('KPDBDefaultpath',"$KPDBDefaultpath")
+    $XML.WriteElementString('DBDefaultpathPath',"$DBDefaultpathPath")
     $XML.WriteElementString('KPProgramFolder',"$KPProgramFolder")
     $XML.WriteEndElement()
     $XML.WriteEndElement()
@@ -854,9 +854,9 @@ function Get-KeePassConfiguration {
 
   <#
       .SYNOPSIS
-      Reads the current KeePassConfiguration and displays values for KPDBdefaultpath and KPProgramfolder for the PowerShell KeePass Module.
+      Reads the current KeePassConfiguration and displays values for DBDefaultpathPath and KPProgramfolder for the PowerShell KeePass Module.
       .LONGDESCRIPTION
-      Reads the current KeePassConfiguration and displays values for KPDBdefaultpath and KPProgramfolder for the PowerShell KeePass Module.
+      Reads the current KeePassConfiguration and displays values for DBDefaultpathPath and KPProgramfolder for the PowerShell KeePass Module.
       The KeePassConfiguration.xml is located in the PSKeePass module root folder.
       
   #>
@@ -866,8 +866,8 @@ function Get-KeePassConfiguration {
 
     [xml]$XML = (Get-Content $PSScriptRoot\KeePassConfiguration.xml)
   
-    $output = '' | Select-Object KPDBDefaultpath,KPProgramFolder 
-    $Output.KPDBDefaultpath = $xml.Settings.KeePassSettings.KPDBDefaultpath
+    $output = '' | Select-Object DBDefaultpathPath,KPProgramFolder 
+    $Output.DBDefaultpathPath = $xml.Settings.KeePassSettings.DBDefaultpathPath
     $Output.KPProgramFolder = $xml.Settings.KeePassSettings.KPProgramFolder
     $output
 
