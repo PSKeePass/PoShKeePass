@@ -878,7 +878,7 @@ function Get-KeePassConfiguration {
 
 ##New Code
 #load KeePassLib Sdk
-function Get-KpLib
+function Get-KeePassLibrary
 {
     <#
         .SYNOPSIS 
@@ -936,7 +936,7 @@ function Get-KpLib
 }
 
 #Create a KeePass Credential Object
-function Get-KpCred
+function Get-KeePassCredential
 {
 	<#
         .SYNOPSIS
@@ -945,15 +945,15 @@ function Get-KpCred
             This function Creates a Keepass Credential Object to be passed to the keepass module. This will be used to to validate passed 
             keepass database credentials and then open said database in a specific way based on passed credentials
         .EXAMPLE
-            PS> Get-KpCred -KpDBPath "\\mypath\database.kdbx" -KpKeyPath "\\mypath\database.key"
+            PS> Get-KeePassCredential -KpDBPath "\\mypath\database.kdbx" -KpKeyPath "\\mypath\database.key"
         
             This Example will create a keepass credential object to be used when opening a keepass database, using the database file and a keepass kee file.
         .EXAMPLE
-            PS> Get-KpCred -KpDBPath "\\mypath\database.kdbx" -KpKeyPath "\\mypath\database.key" -KpMasterKey "MyMasterKeyPassword"
+            PS> Get-KeePassCredential -KpDBPath "\\mypath\database.kdbx" -KpKeyPath "\\mypath\database.key" -KpMasterKey "MyMasterKeyPassword"
         
             This Example will create a keepass credential object to be used when opening a keepass database, using the database file, a keepass kee file, and a masterkey password.
         .EXAMPLE
-            PS> Get-KpCred -KpDBPath "\\mypath\database.kdbx" -KpMasterKey "MyMasterKeyPassword"
+            PS> Get-KeePassCredential -KpDBPath "\\mypath\database.kdbx" -KpMasterKey "MyMasterKeyPassword"
         
             This Example will create a keepass credential object to be used when opening a keepass database, using the database file and a masterkey password.
         .PARAMETER DatabaseFile
@@ -1012,7 +1012,7 @@ function Get-KpCred
 }
 
 #Open KeePass DB Connection
-function Get-KpConn
+function Get-KeePassConnection
 {
     <#
         .SYNOPSIS
@@ -1029,17 +1029,17 @@ function Get-KpConn
             
             Future Versions will support Windows User Authentication Types.
         .EXAMPLE
-            PS> Get-KpConn -KpCred $Creds
+            PS> Get-KeePassConnection -KpCred $Creds
             
             This Example will return an KeePass Database Connection using a pre-defined KeePass Credential Object.
         .EXAMPLE
-            PS> Get-KpCred -KpDBPath "c:\path\to\database.kdbx" -KpKeyPath "c:\path\to\keyfile.key" -KpMasterKey "masterpassword" | Get-KpConn
+            PS> Get-KeePassCredential -KpDBPath "c:\path\to\database.kdbx" -KpKeyPath "c:\path\to\keyfile.key" -KpMasterKey "masterpassword" | Get-KeePassConnection
             
             This Example will return an KeePass Database Connection using the Credential object passed from pipe.
         .PARAMETER KpCred
             This is the KeePass Credential Object, that is used to open a connection to the KeePass DB.
             
-            See Get-KpCred in order to generate this credential object.
+            See Get-KeePassCredential in order to generate this credential object.
     #>
     [CmdletBinding()]
     [OutputType('KeePassLib.PwDatabase')]
@@ -1107,7 +1107,7 @@ function Get-KpConn
 }
 
 #Close KeePass DB connection
-function Remove-KpConn
+function Remove-KeePassConnection
 {
     <#
         .SYNOPSIS
@@ -1115,7 +1115,7 @@ function Remove-KpConn
         .DESCRIPTION
             This Function Removes a Connection to a KeePass Database.
         .EXAMPLE
-            PS> Remove-KpConn -Connection $DB
+            PS> Remove-KeePassConnection -Connection $DB
             
             This Example will Remove/Close a KeePass Database Connection using a pre-defined KeePass DB connection.
         .PARAMETER Connection
@@ -1142,7 +1142,7 @@ function Remove-KpConn
 }
 
 #Fetch a KeePass entry
-function Get-KpEntry
+function Get-KeePassEntry
 {
     <#
         .SYNOPSIS
@@ -1150,21 +1150,21 @@ function Get-KpEntry
         .DESCRIPTION
             This function will lookup Return KeePass Entry(ies). It supports basic lookup filtering.
         .EXAMPLE
-            PS> Get-KpEntry -KpDB $DB -UserName "MyUser"
+            PS> Get-KeePassEntry -KpDB $DB -UserName "MyUser"
             
             This Example will return all entries that have the UserName "MyUser"
         .EXAMPLE
-            PS> Get-KpEntry -KpDB $DB -KpGroup $KpGroup
+            PS> Get-KeePassEntry -KpDB $DB -KpGroup $KpGroup
             
             This Example will return all entries that are in the specified group.
         .EXAMPLE
-            PS> Get-KpEntry -KpDB $DB -UserName "AUserName"
+            PS> Get-KeePassEntry -KpDB $DB -UserName "AUserName"
             
             This Example will return all entries have the UserName "AUserName"
         .PARAMETER Connection 
             This is the Open KeePass Database Connection
             
-            See Get-Kpconnection to Create the conneciton Object.
+            See Get-KeePassConnectionection to Create the conneciton Object.
         .PARAMETER KpGroup
             This is the KeePass Group Object in which to search for entries.
         .PARAMETER Title
@@ -1241,7 +1241,7 @@ function Get-KpEntry
 }
 
 #Add New KeePass Entry
-function Add-KpEntry
+function Add-KeePassEntry
 {
     <#
         .SYNOPSIS
@@ -1253,7 +1253,7 @@ function Add-KpEntry
         .PARAMETER Connection
             This is the Open KeePass Database Connection
             
-            See Get-KpConn to Create the conneciton Object.
+            See Get-KeePassConnection to Create the conneciton Object.
         .PARAMETER KpGroup
             This is the KeePass GroupObject to add the new Entry to.
         .PARAMETER Title
@@ -1302,7 +1302,7 @@ function Add-KpEntry
         }
         catch
         {
-            Write-Warning -Message '[BEGIN] An error occured in the Add-KpEntry Cmdlet.'
+            Write-Warning -Message '[BEGIN] An error occured in the Add-KeePassEntry Cmdlet.'
             if($ErrorNewPwGroupObject)
             { 
                 Write-Warning -Message '[BEGIN] An error occured while creating a new KeePassLib.PwEntry Object.'
@@ -1339,7 +1339,7 @@ function Add-KpEntry
         else
         {
             #get password based on default pattern
-            $KpPassword = Get-KpPass
+            $KpPassword = Get-KeePassPassword
             $Entry.Strings.Set("Password", $KpPassword)
         }
         
@@ -1362,7 +1362,7 @@ function Add-KpEntry
 }
 
 #Gets a KeePass Group object
-function Get-KpGroup
+function Get-KeePassGroup
 {
     <#
         .SYNOPSIS
@@ -1370,17 +1370,17 @@ function Get-KpGroup
         .DESCRIPTION
             Gets a KeePass Group Object. Type: KeePassLib.PwGroup
         .EXAMPLE
-            PS> Get-KpGroup -Connection $Conn -FullPath 'full/KPDatabase/pathtoGroup'
+            PS> Get-KeePassGroup -Connection $Conn -FullPath 'full/KPDatabase/pathtoGroup'
             
             This Example will return a KeePassLib.PwGroup array Object with the full group path specified.
         .EXAMPLE
-            PS> Get-KpGroup -Connection $Conn -GroupName 'Test Group'
+            PS> Get-KeePassGroup -Connection $Conn -GroupName 'Test Group'
             
             This Example will return a KeePassLib.PwGroup array Object with the groups that have the specified name.
         .PARAMETER Connection
             Specify the Open KeePass Database Connection
             
-            See Get-Kpconnection to Create the conneciton Object.
+            See Get-KeePassConnectionection to Create the conneciton Object.
         .PARAMETER FullPath
             Specify the FullPath of a Group or Groups in a KPDB
         .PARAMETER GroupName
@@ -1429,7 +1429,7 @@ function Get-KpGroup
         }
         catch
         {
-            Write-Warning -Message '[BEGIN] An error occured in the Get-KpGroup Cmdlet.'
+            Write-Warning -Message '[BEGIN] An error occured in the Get-KeePassGroup Cmdlet.'
             if($ErrorNewPwGroupObject)
             { 
                 Write-Warning -Message '[BEGIN] An error occured while creating a new KeePassLib.PwGroup Object.'
@@ -1478,7 +1478,7 @@ function Get-KpGroup
 }
 
 #Create a New KeePass Group
-function Add-KpGroup
+function Add-KeePassGroup
 {
     <#
         .SYNOPSIS
@@ -1486,13 +1486,13 @@ function Add-KpGroup
         .DESCRIPTION
             Creates a New KeePass Folder Group.
         .EXAMPLE
-            PS> Add-KpGroup -Connection $Conn -GroupName 'NewGroupName' -ParentGroupPath $KpGroup
+            PS> Add-KeePassGroup -Connection $Conn -GroupName 'NewGroupName' -ParentGroupPath $KpGroup
             
             This Example Create a New Group with the specified name in the specified ParentGroup.
         .PARAMETER Connection
             This is the Open KeePass Database Connection
             
-            See Get-KpConn to Create the conneciton Object.
+            See Get-KeePassConnection to Create the conneciton Object.
         .PARAMETER GroupName
             Specify the name of the new group(s).
         .PARAMETER ParentGroup
@@ -1532,7 +1532,7 @@ function Add-KpGroup
         }
         catch
         {
-            Write-Warning -Message '[BEGIN] An error occured in the Add-KpGroup Cmdlet.'
+            Write-Warning -Message '[BEGIN] An error occured in the Add-KeePassGroup Cmdlet.'
             if($ErrorNewPwGroupObject)
             { 
                 Write-Warning -Message '[BEGIN] An error occured while creating a new KeePassLib.PwGroup Object.'
@@ -1562,7 +1562,7 @@ function Add-KpGroup
 }
 
 #Generates a Password Using the KeePass Password Generator
-function Get-KpPass
+function Get-KeePassPassword
 {
     <#
         .SYNOPSIS
@@ -1580,16 +1580,16 @@ function Get-KpPass
             This Simply Applies the Rules specified and generates a new password that is returned in the form-
             of a KeePassLib.Security.ProtectedString.
         .EXAMPLE
-            PS> Get-KpPass
+            PS> Get-KeePassPassword
             
             This Example will generate a Password using the Default KeePass Password Profile.
             Which I believe is -UpperCase -LowerCase -Digites -Length 20
         .EXAMPLE
-            PS> Get-KpPass -UpperCase -LowerCase -Digits -Length 20
+            PS> Get-KeePassPassword -UpperCase -LowerCase -Digits -Length 20
             
             This Example will generate a 20 character password that contains Upper and Lower case letters ans numbers 0-9
         .EXAMPLE
-            PS> Get-KpPass -UpperCase -LowerCase -Digits -SpecialCharacters -ExcludeCharacters '"' -Length 20
+            PS> Get-KeePassPassword -UpperCase -LowerCase -Digits -SpecialCharacters -ExcludeCharacters '"' -Length 20
             
             This Example will generate a Password with the Specified Options and Exclude the Double Quote Character
         .PARAMETER UpperCase
@@ -1697,7 +1697,7 @@ function Get-KpPass
 }
 
 #reads string from KeePassLib.Security.ProtectedString
-function ConvertFrom-KpProtectedString
+function ConvertFrom-KeePassProtectedString
 {
     <#
         .SYNOPSIS
@@ -1728,7 +1728,7 @@ function ConvertFrom-KpProtectedString
 }
 
 #creates a powershell object from one or more keepass entries.
-function ConvertTo-KpPsObject
+function ConvertTo-KeePassPSObject
 {
     <#
         .SYNOPSIS 
@@ -1741,11 +1741,11 @@ function ConvertTo-KpPsObject
             It currently returns Most frequently used data about an entry and excludes extensive metadata such as-
             Foreground Color, Icon, ect.
         .EXAMPLE
-            PS> Convert-ToKpPsObject -KpEntry $Entry
+            PS> ConvertTo-KeePassPSObject -KpEntry $Entry
             
             This Example Converts one or more KeePass Entries to a defined Powershell Object.
         .EXAMPLE
-            PS> Get-KpEntry -Connection $DB -UserName "AUserName" | Convert-ToKpPsObject
+            PS> Get-KpEntry -Connection $DB -UserName "AUserName" | ConvertTo-KeePassPSObject
             
             This Example Converts one or more KeePass Entries to a defined Powershell Object.
         .PARAMETER Entry
