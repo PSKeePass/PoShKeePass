@@ -841,11 +841,11 @@ function Get-KeePassConfiguration {
 
 ##New Code
 #load KeePassLib Sdk
-function Get-KeePassLibrary
+function Get-KpLib
 {
     <#
         .SYNOPSIS 
-            Used o Load the KeePassLib DLL
+            Used to Load the KeePassLib DLL
         .DESCRIPTION
             Used to Load the KeePassLib DLL. Currently the pass is hardcoded-
             but will be updated to be dynamic.
@@ -869,15 +869,15 @@ function Get-KeePassLibrary
     (
         [Parameter(Position=0)]
         [ValidateNotNullOrEmpty()]
-        [string] $Lib
+        [string] $KpLib
     )
     begin
     {
-        if(!$Lib)
+        if(!$KpLib)
         {
             #$cwd = split-path $SCRIPT:MyInvocation.MyCommand.Path -parent
-            $Lib = Resolve-Path -Path "$PSScriptRoot\..\..\Installers\KeePassLib.dll"
-            Write-Verbose "Importing KeePassLib from:  $Lib"
+            $KpLib = Resolve-Path -Path "$PSScriptRoot\..\Installers\KeePassLib.dll"
+            Write-Verbose "Importing KeePassLib from:  $KpLib"
         }
     }
     process
@@ -885,7 +885,7 @@ function Get-KeePassLibrary
         try
         {
             Write-Verbose "Importing KeePassLib.dll"
-            [Reflection.Assembly]::LoadFile($Lib) > $null
+            [Reflection.Assembly]::LoadFile($KpLib) > $null
         }
         catch [Exception]
         {
@@ -908,15 +908,15 @@ function Get-KeePassCredential
             This function Creates a Keepass Credential Object to be passed to the keepass module. This will be used to to validate passed 
             keepass database credentials and then open said database in a specific way based on passed credentials
         .EXAMPLE
-            PS> Get-KeePassCredential -KpDBPath "\\mypath\database.kdbx" -KpKeyPath "\\mypath\database.key"
+            PS> Get-KpCred -KpDBPath "\\mypath\database.kdbx" -KpKeyPath "\\mypath\database.key"
         
             This Example will create a keepass credential object to be used when opening a keepass database, using the database file and a keepass kee file.
         .EXAMPLE
-            PS> Get-KeePassCredential -KpDBPath "\\mypath\database.kdbx" -KpKeyPath "\\mypath\database.key" -KpMasterKey "MyMasterKeyPassword"
+            PS> Get-KpCred -KpDBPath "\\mypath\database.kdbx" -KpKeyPath "\\mypath\database.key" -KpMasterKey "MyMasterKeyPassword"
         
             This Example will create a keepass credential object to be used when opening a keepass database, using the database file, a keepass kee file, and a masterkey password.
         .EXAMPLE
-            PS> Get-KeePassCredential -KpDBPath "\\mypath\database.kdbx" -KpMasterKey "MyMasterKeyPassword"
+            PS> Get-KpCred -KpDBPath "\\mypath\database.kdbx" -KpMasterKey "MyMasterKeyPassword"
         
             This Example will create a keepass credential object to be used when opening a keepass database, using the database file and a masterkey password.
         .PARAMETER DatabaseFile
@@ -992,17 +992,17 @@ function Get-KeePassConnection
             
             Future Versions will support Windows User Authentication Types.
         .EXAMPLE
-            PS> Get-KeePassConnection -KpCred $Creds
+            PS> Get-KpConn -KpCred $Creds
             
             This Example will return an KeePass Database Connection using a pre-defined KeePass Credential Object.
         .EXAMPLE
-            PS> Get-KeePassCredential -KpDBPath "c:\path\to\database.kdbx" -KpKeyPath "c:\path\to\keyfile.key" -KpMasterKey "masterpassword" | Get-KeePassConnection
+            PS> Get-KpCred -KpDBPath "c:\path\to\database.kdbx" -KpKeyPath "c:\path\to\keyfile.key" -KpMasterKey "masterpassword" | Get-KpConn
             
             This Example will return an KeePass Database Connection using the Credential object passed from pipe.
         .PARAMETER KpCred
             This is the KeePass Credential Object, that is used to open a connection to the KeePass DB.
             
-            See Get-KeePassCredential in order to generate this credential object.
+            See Get-KpCred in order to generate this credential object.
     #>
     [CmdletBinding()]
     [OutputType('KeePassLib.PwDatabase')]
@@ -1014,7 +1014,7 @@ function Get-KeePassConnection
             ValueFromPipelineByPropertyName
         )]
         [ValidateNotNullOrEmpty()]
-        [PSCustomObject] $Cred
+        [PSCustomObject] $KpCred
     )
     process
     {
@@ -1022,7 +1022,7 @@ function Get-KeePassConnection
         try
         {
             $IOConn = New-Object KeePassLib.Serialization.IOConnectionInfo
-            $IOConn.Path = $Cred.DatabaseFile
+            $IOConn.Path = $KpCred.DatabaseFile
             $CompKey = New-Object KeePassLib.Keys.CompositeKey  
         }
         catch [Exception]
@@ -1034,18 +1034,18 @@ function Get-KeePassConnection
         #Determine AuthenticationType and Create KPLib CompositeKey
         try
         {
-            if ($Cred.AuthenticationType -eq "Key")
+            if ($KpCred.AuthenticationType -eq "Key")
             {
-                $CompKey.AddUserKey((New-Object KeePassLib.Keys.KcpKeyFile($Cred.KeyFile)))
+                $CompKey.AddUserKey((New-Object KeePassLib.Keys.KcpKeyFile($KpCred.KeyFile)))
             }
-            elseif ($Cred.AuthenicationType -eq "KeyAndMaster")
+            elseif ($KpCred.AuthenicationType -eq "KeyAndMaster")
             {
-                $CompKey.AddUserKey((New-Object KeePassLib.Keys.KcpKeyFile($Cred.KeyFile)))
-                $CompKey.AddUserKey((New-Object KeePassLib.Keys.KcpPassword($Cred.MasterKey)))
+                $CompKey.AddUserKey((New-Object KeePassLib.Keys.KcpKeyFile($KpCred.KeyFile)))
+                $CompKey.AddUserKey((New-Object KeePassLib.Keys.KcpPassword($KpCred.MasterKey)))
             }
-            elseif ($Cred.AuthenticationType -eq "Master") 
+            elseif ($KpCred.AuthenticationType -eq "Master") 
             {
-                $CompKey.AddUserKey((New-Object KeePassLib.Keys.KcpPassword($Cred.MasterKey)))
+                $CompKey.AddUserKey((New-Object KeePassLib.Keys.KcpPassword($KpCred.MasterKey)))
             }
         }
         catch [Exception]
@@ -1078,7 +1078,7 @@ function Remove-KeePassConnection
         .DESCRIPTION
             This Function Removes a Connection to a KeePass Database.
         .EXAMPLE
-            PS> Remove-KeePassConnection -Connection $DB
+            PS> Remove-KpConn -Connection $DB
             
             This Example will Remove/Close a KeePass Database Connection using a pre-defined KeePass DB connection.
         .PARAMETER Connection
@@ -1105,7 +1105,7 @@ function Remove-KeePassConnection
 }
 
 #Fetch a KeePass entry
-function Get-KeePassEntry
+function Get-KeePassEntryBase
 {
     <#
         .SYNOPSIS
@@ -1113,21 +1113,21 @@ function Get-KeePassEntry
         .DESCRIPTION
             This function will lookup Return KeePass Entry(ies). It supports basic lookup filtering.
         .EXAMPLE
-            PS> Get-KeePassEntry -KpDB $DB -UserName "MyUser"
+            PS> Get-KpEntry -KpDB $DB -UserName "MyUser"
             
             This Example will return all entries that have the UserName "MyUser"
         .EXAMPLE
-            PS> Get-KeePassEntry -KpDB $DB -KpGroup $Group
+            PS> Get-KpEntry -KpDB $DB -KpGroup $KpGroup
             
             This Example will return all entries that are in the specified group.
         .EXAMPLE
-            PS> Get-KeePassEntry -KpDB $DB -UserName "AUserName"
+            PS> Get-KpEntry -KpDB $DB -UserName "AUserName"
             
             This Example will return all entries have the UserName "AUserName"
         .PARAMETER Connection 
             This is the Open KeePass Database Connection
             
-            See Get-KeePassConnectionection to Create the conneciton Object.
+            See Get-Kpconnection to Create the conneciton Object.
         .PARAMETER KpGroup
             This is the KeePass Group Object in which to search for entries.
         .PARAMETER Title
@@ -1150,7 +1150,7 @@ function Get-KeePassEntry
                 
         [Parameter(Position=1,Mandatory,ParameterSetName="Group")]
         [ValidateNotNullOrEmpty()]
-        [KeePassLib.PwGroup[]] $Group,
+        [KeePassLib.PwGroup[]] $KpGroup,
         
         [Parameter(Position=2,Mandatory=$false,ParameterSetName="Group")]
         [Parameter(Position=1,Mandatory,ParameterSetName="Title")]
@@ -1166,12 +1166,12 @@ function Get-KeePassEntry
     process
     { 
         #Get Entries and Filter
-        $Items = $Connection.RootGroup.GetEntries($true)
+        $KpItems = $Connection.RootGroup.GetEntries($true)
         
         #This a lame way of filtering.
         if ($Group)
         {
-            $Items = foreach($_kpItem in $Items)
+            $KpItems = foreach($_kpItem in $KpItems)
             {
                 if($Group.Contains($_kpItem.ParentGroup))
                 {
@@ -1181,7 +1181,7 @@ function Get-KeePassEntry
         }
         if ($Title)
         {
-            $Items = foreach($_kpItem in $Items)
+            $KpItems = foreach($_kpItem in $KpItems)
             {
                 if($_kpItem.Strings.ReadSafe("Title").ToLower().Equals($Title.ToLower()))
                 {
@@ -1191,7 +1191,7 @@ function Get-KeePassEntry
         }        
         if ($UserName)
         {
-             $Items = foreach($_kpItem in $Items)
+             $KpItems = foreach($_kpItem in $KpItems)
              {
                  if($_kpItem.Strings.ReadSafe("UserName").ToLower().Equals($UserName.ToLower()))
                  {
@@ -1199,7 +1199,7 @@ function Get-KeePassEntry
                  }
              }
         }        
-        $Items
+        $KpItems
     }
 }
 
@@ -1216,7 +1216,7 @@ function Add-KeePassEntry
         .PARAMETER Connection
             This is the Open KeePass Database Connection
             
-            See Get-KeePassConnection to Create the conneciton Object.
+            See Get-KpConn to Create the conneciton Object.
         .PARAMETER KpGroup
             This is the KeePass GroupObject to add the new Entry to.
         .PARAMETER Title
@@ -1240,7 +1240,7 @@ function Add-KeePassEntry
         [KeePassLib.PwDatabase] $Connection,
         [Parameter(Position=1,Mandatory)]
         [ValidateNotNullOrEmpty()]
-        [KeePassLib.PwGroup] $Group,
+        [KeePassLib.PwGroup] $KpGroup,
         [Parameter(Position=2,Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
         [string] $Title,
@@ -1249,7 +1249,7 @@ function Add-KeePassEntry
         [string] $UserName,
         [Parameter(Position=4,Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
-        [KeePassLib.Security.ProtectedString] $Password,
+        [KeePassLib.Security.ProtectedString] $KpPassword,
         [Parameter(Position=5,Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
         [string] $Notes,
@@ -1265,7 +1265,7 @@ function Add-KeePassEntry
         }
         catch
         {
-            Write-Warning -Message '[BEGIN] An error occured in the Add-KeePassEntry Cmdlet.'
+            Write-Warning -Message '[BEGIN] An error occured in the Add-KpEntry Cmdlet.'
             if($ErrorNewPwGroupObject)
             { 
                 Write-Warning -Message '[BEGIN] An error occured while creating a new KeePassLib.PwEntry Object.'
@@ -1295,15 +1295,15 @@ function Add-KeePassEntry
             $Entry.Strings.Set("UserName", $SecUser)    
         }
         
-        if($Password)
+        if($KpPassword)
         {            
-            $Entry.Strings.Set("Password", $Password)
+            $Entry.Strings.Set("Password", $KpPassword)
         }
         else
         {
             #get password based on default pattern
-            $Password = Get-KeePassPassword
-            $Entry.Strings.Set("Password", $Password)
+            $KpPassword = Get-KpPass
+            $Entry.Strings.Set("Password", $KpPassword)
         }
         
         if($Notes)
@@ -1319,7 +1319,7 @@ function Add-KeePassEntry
         }
         
         #Add to Group
-        $Group.AddEntry($Entry,$true)
+        $KpGroup.AddEntry($Entry,$true)
     }
     end{ $Connection.Save($null) }
 }
@@ -1333,17 +1333,17 @@ function Get-KeePassGroup
         .DESCRIPTION
             Gets a KeePass Group Object. Type: KeePassLib.PwGroup
         .EXAMPLE
-            PS> Get-KeePassGroup -Connection $Conn -FullPath 'full/KPDatabase/pathtoGroup'
+            PS> Get-KpGroup -Connection $Conn -FullPath 'full/KPDatabase/pathtoGroup'
             
             This Example will return a KeePassLib.PwGroup array Object with the full group path specified.
         .EXAMPLE
-            PS> Get-KeePassGroup -Connection $Conn -GroupName 'Test Group'
+            PS> Get-KpGroup -Connection $Conn -GroupName 'Test Group'
             
             This Example will return a KeePassLib.PwGroup array Object with the groups that have the specified name.
         .PARAMETER Connection
             Specify the Open KeePass Database Connection
             
-            See Get-KeePassConnectionection to Create the conneciton Object.
+            See Get-Kpconnection to Create the conneciton Object.
         .PARAMETER FullPath
             Specify the FullPath of a Group or Groups in a KPDB
         .PARAMETER GroupName
@@ -1386,13 +1386,13 @@ function Get-KeePassGroup
     {
         try
         {
-            [KeePassLib.PwGroup[]] $OutGroups = $null
-            [KeePassLib.PwGroup] $Group = New-Object KeePassLib.PwGroup -ErrorAction Stop -ErrorVariable ErrorNewPwGroupObject
-            $Groups = $Connection.RootGroup.GetFlatGroupList() 
+            [KeePassLib.PwGroup[]] $KpOutGroups = $null
+            [KeePassLib.PwGroup] $KpGroup = New-Object KeePassLib.PwGroup -ErrorAction Stop -ErrorVariable ErrorNewPwGroupObject
+            $KpGroups = $Connection.RootGroup.GetFlatGroupList() 
         }
         catch
         {
-            Write-Warning -Message '[BEGIN] An error occured in the Get-KeePassGroup Cmdlet.'
+            Write-Warning -Message '[BEGIN] An error occured in the Get-KpGroup Cmdlet.'
             if($ErrorNewPwGroupObject)
             { 
                 Write-Warning -Message '[BEGIN] An error occured while creating a new KeePassLib.PwGroup Object.'
@@ -1414,11 +1414,11 @@ function Get-KeePassGroup
         {
             foreach($Path in $FullPath)
             {
-                foreach($_kpGroup in $Groups)
+                foreach($_kpGroup in $KpGroups)
                 {
                     if($_kpGroup.GetFullPath("/", $false).Equals($Path))
                     {
-                        $OutGroups += $_kpGroup
+                        $KpOutGroups += $_kpGroup
                     }
                 }   
             }
@@ -1427,17 +1427,17 @@ function Get-KeePassGroup
         {
             foreach($Name in $GroupName )
             {
-                foreach($_kpGroup in $Groups)
+                foreach($_kpGroup in $KpGroups)
                 {
                     if($_kpGroup.Name.Equals($Name))
                     {
-                        $OutGroups += $_kpGroup
+                        $KpOutGroups += $_kpGroup
                     }
                 }
             }
         } 
     }
-    end{ $OutGroups }
+    end{ $KpOutGroups }
 }
 
 #Create a New KeePass Group
@@ -1449,13 +1449,13 @@ function Add-KeePassGroup
         .DESCRIPTION
             Creates a New KeePass Folder Group.
         .EXAMPLE
-            PS> Add-KeePassGroup -Connection $Conn -GroupName 'NewGroupName' -ParentGroupPath $Group
+            PS> Add-KpGroup -Connection $Conn -GroupName 'NewGroupName' -ParentGroupPath $KpGroup
             
             This Example Create a New Group with the specified name in the specified ParentGroup.
         .PARAMETER Connection
             This is the Open KeePass Database Connection
             
-            See Get-KeePassConnection to Create the conneciton Object.
+            See Get-KpConn to Create the conneciton Object.
         .PARAMETER GroupName
             Specify the name of the new group(s).
         .PARAMETER ParentGroup
@@ -1491,11 +1491,11 @@ function Add-KeePassGroup
     {
         try
         {
-            [KeePassLib.PwGroup] $Group = New-Object KeePassLib.PwGroup -ErrorAction Stop -ErrorVariable ErrorNewPwGroupObject    
+            [KeePassLib.PwGroup] $KpGroup = New-Object KeePassLib.PwGroup -ErrorAction Stop -ErrorVariable ErrorNewPwGroupObject    
         }
         catch
         {
-            Write-Warning -Message '[BEGIN] An error occured in the Add-KeePassGroup Cmdlet.'
+            Write-Warning -Message '[BEGIN] An error occured in the Add-KpGroup Cmdlet.'
             if($ErrorNewPwGroupObject)
             { 
                 Write-Warning -Message '[BEGIN] An error occured while creating a new KeePassLib.PwGroup Object.'
@@ -1516,8 +1516,8 @@ function Add-KeePassGroup
         {
             foreach($Name in $GroupName)
             {
-                $Group.Name = $GroupName
-                $Group.AddGroup($Group, $true)
+                $KpGroup.Name = $GroupName
+                $Group.AddGroup($KpGroup, $true)
             }
         }  
     }
@@ -1543,16 +1543,16 @@ function Get-KeePassPassword
             This Simply Applies the Rules specified and generates a new password that is returned in the form-
             of a KeePassLib.Security.ProtectedString.
         .EXAMPLE
-            PS> Get-KeePassPassword
+            PS> Get-KpPass
             
             This Example will generate a Password using the Default KeePass Password Profile.
             Which I believe is -UpperCase -LowerCase -Digites -Length 20
         .EXAMPLE
-            PS> Get-KeePassPassword -UpperCase -LowerCase -Digits -Length 20
+            PS> Get-KpPass -UpperCase -LowerCase -Digits -Length 20
             
             This Example will generate a 20 character password that contains Upper and Lower case letters ans numbers 0-9
         .EXAMPLE
-            PS> Get-KeePassPassword -UpperCase -LowerCase -Digits -SpecialCharacters -ExcludeCharacters '"' -Length 20
+            PS> Get-KpPass -UpperCase -LowerCase -Digits -SpecialCharacters -ExcludeCharacters '"' -Length 20
             
             This Example will generate a Password with the Specified Options and Exclude the Double Quote Character
         .PARAMETER UpperCase
@@ -1660,7 +1660,7 @@ function Get-KeePassPassword
 }
 
 #reads string from KeePassLib.Security.ProtectedString
-function ConvertFrom-KeePassProtectedString
+function ConvertFrom-KpProtectedString
 {
     <#
         .SYNOPSIS
@@ -1704,11 +1704,11 @@ function ConvertTo-KeePassPSObject
             It currently returns Most frequently used data about an entry and excludes extensive metadata such as-
             Foreground Color, Icon, ect.
         .EXAMPLE
-            PS> ConvertTo-KeePassPSObject -KpEntry $Entry
+            PS> Convert-ToKpPsObject -KpEntry $Entry
             
             This Example Converts one or more KeePass Entries to a defined Powershell Object.
         .EXAMPLE
-            PS> Get-KpEntry -Connection $DB -UserName "AUserName" | ConvertTo-KeePassPSObject
+            PS> Get-KpEntry -Connection $DB -UserName "AUserName" | Convert-ToKpPsObject
             
             This Example Converts one or more KeePass Entries to a defined Powershell Object.
         .PARAMETER Entry
@@ -1726,31 +1726,34 @@ function ConvertTo-KeePassPSObject
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwEntry[]] $Entry
     )
-    begin{ $PSOutObject = @() }
+    begin{ $KpPSOutObject = @() }
     process
     {
         
         foreach ($_kpItem in $Entry)
         {
-            $PsObject = New-Object -TypeName PSObject
-            $PsObject | Add-Member -Name 'CreationTime' -MemberType NoteProperty -Value $_kpItem.CreationTime
-            $PsObject | Add-Member -Name 'Expires' -MemberType NoteProperty -Value $_kpItem.Expires
-            $PsObject | Add-Member -Name 'ExpireTime' -MemberType NoteProperty -Value $_kpItem.ExpiryTime
-            $PsObject | Add-Member -Name 'LastAccessTime' -MemberType NoteProperty -Value $_kpItem.LastAccessTime
-            $PsObject | Add-Member -Name 'LastModificationTime' -MemberType NoteProperty -Value $_kpItem.LastModificationTime
-            $PsObject | Add-Member -Name 'LocationChanged' -MemberType NoteProperty -Value $_kpItem.LocationChanged
-            $PsObject | Add-Member -Name 'Tags' -MemberType NoteProperty -Value $_kpItem.Tags
-            $PsObject | Add-Member -Name 'Touched' -MemberType NoteProperty -Value $_kpItem.Touched
-            $PsObject | Add-Member -Name 'UsageCount' -MemberType NoteProperty -Value $_kpItem.UsageCount
-            $PsObject | Add-Member -Name 'ParentGroup' -MemberType NoteProperty -Value $_kpItem.ParentGroup.Name
-            $PsObject | Add-Member -Name 'FullPath' -MemberType NoteProperty -Value $_kpItem.ParentGroup.GetFullPath("/", $false)
-            $PsObject | Add-Member -Name 'Title' -MemberType NoteProperty -Value $_kpItem.Strings.ReadSafe("Title")
-            $PsObject | Add-Member -Name 'UserName' -MemberType NoteProperty -Value $_kpItem.Strings.ReadSafe("UserName")
-            $PsObject | Add-Member -Name 'Password' -MemberType NoteProperty -Value $_kpItem.Strings.ReadSafe("Password")
-            $PsObject | Add-Member -Name 'URL' -MemberType NoteProperty -Value $_kpItem.Strings.ReadSafe("URL")
-            $PsObject | Add-Member -Name 'Notes' -MemberType NoteProperty -Value $_kpItem.Strings.ReadSafe("Notes")
-            $PSOutObject += $PsObject  
+            $KpPsObject = New-Object -TypeName PSObject
+            $KpPsObject | Add-Member -Name 'CreationTime' -MemberType NoteProperty -Value $_kpItem.CreationTime
+            $KpPsObject | Add-Member -Name 'Expires' -MemberType NoteProperty -Value $_kpItem.Expires
+            $KpPsObject | Add-Member -Name 'ExpireTime' -MemberType NoteProperty -Value $_kpItem.ExpiryTime
+            $KpPsObject | Add-Member -Name 'LastAccessTime' -MemberType NoteProperty -Value $_kpItem.LastAccessTime
+            $KpPsObject | Add-Member -Name 'LastModificationTime' -MemberType NoteProperty -Value $_kpItem.LastModificationTime
+            $KpPsObject | Add-Member -Name 'LocationChanged' -MemberType NoteProperty -Value $_kpItem.LocationChanged
+            $KpPsObject | Add-Member -Name 'Tags' -MemberType NoteProperty -Value $_kpItem.Tags
+            $KpPsObject | Add-Member -Name 'Touched' -MemberType NoteProperty -Value $_kpItem.Touched
+            $KpPsObject | Add-Member -Name 'UsageCount' -MemberType NoteProperty -Value $_kpItem.UsageCount
+            $KpPsObject | Add-Member -Name 'ParentGroup' -MemberType NoteProperty -Value $_kpItem.ParentGroup.Name
+            $KpPsObject | Add-Member -Name 'FullPath' -MemberType NoteProperty -Value $_kpItem.ParentGroup.GetFullPath("/", $false)
+            $KpPsObject | Add-Member -Name 'Title' -MemberType NoteProperty -Value $_kpItem.Strings.ReadSafe("Title")
+            $KpPsObject | Add-Member -Name 'UserName' -MemberType NoteProperty -Value $_kpItem.Strings.ReadSafe("UserName")
+            $KpPsObject | Add-Member -Name 'Password' -MemberType NoteProperty -Value $_kpItem.Strings.ReadSafe("Password")
+            $KpPsObject | Add-Member -Name 'URL' -MemberType NoteProperty -Value $_kpItem.Strings.ReadSafe("URL")
+            $KpPsObject | Add-Member -Name 'Notes' -MemberType NoteProperty -Value $_kpItem.Strings.ReadSafe("Notes")
+            $KpPSOutObject += $KpPsObject  
         }       
     }
-    end{ $PSOutObject }
+    end{ $KpPSOutObject }
 }
+
+#Source KpLib
+Get-KpLib
