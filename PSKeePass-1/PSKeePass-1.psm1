@@ -841,7 +841,7 @@ function Get-KeePassConfiguration {
 
 ##New Code
 #load KeePassLib Sdk
-function Get-KeePasspLibrary
+function Get-KeePassLibrary
 {
     <#
         .SYNOPSIS 
@@ -1752,4 +1752,4 @@ function ConvertTo-KeePassPSObject
 }
 
 #Source KpLib
-Get-KeePasspLibrary
+Get-KeePassLibrary
