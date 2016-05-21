@@ -8,7 +8,7 @@ More info at:
 - Protected Eventlog at https://blogs.msdn.microsoft.com/powershell/2015/06/09/powershell-the-blue-team/
 - https://blogs.msdn.microsoft.com/powershell/2013/12/16/powershell-security-best-practices/
 
-The module contains the following functions:
+The module contains the following Cmdlets:
 
 1. Set-KeePassConfiguration
 2. Get-KeePassConfiguration
