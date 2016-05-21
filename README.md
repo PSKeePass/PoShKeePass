@@ -10,11 +10,22 @@ More info at:
 
 The module contains the following functions:
 
-Set-KeePassConfiguration
-Get-KeePassConfiguration
-Get-KeePassEntry
-Set-KeePassEntry
-New-KeePassEntry
+1. Set-KeePassConfiguration
+2. Get-KeePassConfiguration
+3. Get-KeePassEntry
+4. Set-KeePassEntry
+5. New-KeePassEntry
+6. Get-KeePassLibrary
+7. Get-KeePassCredential
+8. Get-KeePassConnection
+9. Remove-KeePassConnection
+10. Get-KeePassEntryBase
+11. Add-KeePassEntry
+12. Get-KeePassGroup
+13. Add-KeePassGroup
+14. Get-KeePassPassword
+15. ConvertFrom-KeePassProtectedString
+16. ConvertTo-KeePassPSObject
 
 The module currently has no suffisticated error-handling!
 
