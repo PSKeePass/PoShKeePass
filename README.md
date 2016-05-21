@@ -22,10 +22,5 @@ PSKeePass is tested and running with the followig KeePass versions:
 
 KeePass 2.3.1
 
-
-
-If you want to contribute it would be great if you could focus on
-- Error handling
-- Module help
-- Pester-tests to easily test PSKeePass against new versions of KeePass 
-
+## Contributing
+If you would like to contribute please review the CONTRIBUTE.md file.
