@@ -16,19 +16,19 @@ $KeePassCredential = Get-KeePassCredential -DatabaseFile $DatabaseFile -KeyFile 
 
 Write-Output "Getting Keepass Connection"
 #Open a connection to the KPDB
-$KeePassConnection = Get-KeePassConnection -KpCred $KeePassCredential
+$KeePassConnection = Get-KeePassConnection -KeePassCredential $KeePassCredential
 
 Write-Output "Getting Keepass Group"
 #Get a Keepass Group Object
-$KeePassGroup = Get-KeePassGroup -Connection $KeePassConnection -FullPath 'General'
+$KeePassGroup = Get-KeePassGroup -KeePassConnection $KeePassConnection -FullPath 'General'
 
 Write-Output "Adding KeePass Group"
 # #Add a KeePass group
-Add-KeePassGroup -Connection $KeePassConnection -GroupName 'TestGroup1' -ParentGroup $KeePassGroup
+Add-KeePassGroup -KeePassConnection $KeePassConnection -GroupName 'TestGroup1' -KeePassParentGroup $KeePassGroup
 
 Write-Output "Getting KeePass Group"
 #Get the KeePass Group we just added.
-$NewKeePassGroup = Get-KeePassGroup -Connection $KeePassConnection -FullPath 'General/TestGroup1'
+$NewKeePassGroup = Get-KeePassGroup -KeePassConnection $KeePassConnection -FullPath 'General/TestGroup1'
 
 Write-Output "Generating New KeePass Password"
 #Generate a New Password
@@ -36,11 +36,11 @@ $NewKeePassPassword = Get-KeePassPassword -UpperCase -LowerCase -Digits -Special
 
 Write-Output "Adding New KeePass Entry"
 # #Add a new KeePass Entry
-Add-KeePassEntry -Connection $KeePassConnection -KpGroup $NewKeePassGroup -Title 'TestTitle1' -UserName 'TestUserName1' -KpPassword $NewKeePassPassword  -Notes 'This is a test entry.' -URL 'http://TestURL.com'
+Add-KeePassEntry -KeePassConnection $KeePassConnection -KeePassGroup $NewKeePassGroup -Title 'TestTitle1' -UserName 'TestUserName1' -KeePassPassword $NewKeePassPassword  -Notes 'This is a test entry.' -URL 'http://TestURL.com'
 
 Write-Output "Getting a KeePass Entry"
 # #Get the KeePass Entry that was Just added
-$KeePassEntry = Get-KeePassEntryBase -Connection $KeePassConnection -KpGroup $NewKeePassGroup -Title 'TestTitle1'
+$KeePassEntry = Get-KeePassEntryBase -KeePassConnection $KeePassConnection -KeePassGroup $NewKeePassGroup -Title 'TestTitle1'
 
 Write-Output "This is a fetched KeePass Entry:"
 # #Show that entry
@@ -48,7 +48,7 @@ $KeePassEntry
 
 Write-Output "Convert a KeePass Entry to a PSObject"
 # #convert that entry a PS Object and convert the secure strings to text
-$KeePassPSObject = ConvertTo-KeePassPSObject -Entry $KeePassEntry 
+$KeePassPSObject = ConvertTo-KeePassPSObject -KeePassEntry $KeePassEntry 
 
 Write-Output "This is a KeePass Entry as a PSObject:"
 # #show that psobject
@@ -56,4 +56,4 @@ $KeePassPSObject
 
 Write-Output "Closing KeePass Connection"
 #Close and Remove Connecion to the KPDB
-Remove-KeePassConnection -Connection $KeePassConnection
+Remove-KeePassConnection -KeePassConnection $KeePassConnection
