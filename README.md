@@ -8,13 +8,24 @@ More info at:
 - Protected Eventlog at https://blogs.msdn.microsoft.com/powershell/2015/06/09/powershell-the-blue-team/
 - https://blogs.msdn.microsoft.com/powershell/2013/12/16/powershell-security-best-practices/
 
-The module contains the following functions:
+The module contains the following Cmdlets:
 
-Set-KeePassConfiguration
-Get-KeePassConfiguration
-Get-KeePassEntry
-Set-KeePassEntry
-New-KeePassEntry
+1. Set-KeePassConfiguration
+2. Get-KeePassConfiguration
+3. Get-KeePassEntry
+4. Set-KeePassEntry
+5. New-KeePassEntry
+6. Get-KeePassLibrary
+7. Get-KeePassCredential
+8. Get-KeePassConnection
+9. Remove-KeePassConnection
+10. Get-KeePassEntryBase
+11. Add-KeePassEntry
+12. Get-KeePassGroup
+13. Add-KeePassGroup
+14. Get-KeePassPassword
+15. ConvertFrom-KeePassProtectedString
+16. ConvertTo-KeePassPSObject
 
 The module currently has no suffisticated error-handling!
 
@@ -22,10 +33,5 @@ PSKeePass is tested and running with the followig KeePass versions:
 
 KeePass 2.3.1
 
-
-
-If you want to contribute it would be great if you could focus on
-- Error handling
-- Module help
-- Pester-tests to easily test PSKeePass against new versions of KeePass 
-
+## Contributing
+If you would like to contribute please review the CONTRIBUTE.md file.
