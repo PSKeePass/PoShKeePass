@@ -9,7 +9,6 @@
     - https://blogs.msdn.microsoft.com/powershell/2013/12/16/powershell-security-best-practices/
 #> 
 
-
 function Get-KeePassEntry 
 { 
     <#
