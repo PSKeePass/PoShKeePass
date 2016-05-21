@@ -2,8 +2,8 @@
 $ModulePath =  Resolve-Path -Path "$PSScriptRoot\..\PSKeePass-1\PSKeePass-1.psm1"
 
 #Test Keepass database and key file
-$DatabaseFile = Resolve-Path -Path "$PSScriptRoot\..\Test\PSKeePassTestDatabase.kdbx"
-$KeyFile = Resolve-Path -Path "$PSScriptRoot\..\Test\PSKeePassTestDatabase.key"
+$DatabaseFile = Resolve-Path -Path "$PSScriptRoot\..\Test\Includes\PSKeePassTestDatabase.kdbx"
+$KeyFile = Resolve-Path -Path "$PSScriptRoot\..\Test\Includes\PSKeePassTestDatabase.key"
 
 Write-Output "Importing Module"
 #import PSKeePass Module
