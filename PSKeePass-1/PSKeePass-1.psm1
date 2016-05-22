@@ -852,10 +852,10 @@ function Set-KeePassConfiguration
     { 
 
         [xml] $XML = (Get-Content $PSScriptRoot\KeePassConfiguration.xml)
-        $xml.Settings.KeePassSettings.DBDefaultpathPath = $DBDefaultpathPath
-        $xml.Settings.KeePassSettings.KPProgramFolder = $KPProgramFolder
-        $xml.Settings.KeePassSettings.DBKeyFilePath = $KeePassKeyFile 
-        $xml.Save("$PSScriptRoot\KeePassConfiguration.xml")
+        $XML.Settings.KeePassSettings.DBDefaultpathPath = $DBDefaultpathPath
+        $XML.Settings.KeePassSettings.KPProgramFolder = $KPProgramFolder
+        $XML.Settings.KeePassSettings.DBKeyFilePath = $KeePassKeyFile 
+        $XML.Save("$PSScriptRoot\KeePassConfiguration.xml")
 
         Write-Output 'KeePass configuration successfully updated.'
     }
