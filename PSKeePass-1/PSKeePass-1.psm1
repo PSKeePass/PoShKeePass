@@ -1886,7 +1886,6 @@ function Export-KeePassLibrary
     }
 }
 
-
 #Source KpLib
-Export-KeePassLibrary -Debug -Verbose
-Import-KeePassLibrary -Debug -Verbose
+Export-KeePassLibrary
+Import-KeePassLibrary
