@@ -883,7 +883,7 @@ function Set-KeePassConfiguration
         $xml.Flush()
         $xml.Close()
 
-        Write-Output 'KeePass configuration successfully created. The update, run Set-KeePassConfiguration again'
+        Write-Output 'KeePass configuration successfully created. To update, run Set-KeePassConfiguration again'
     }
       
 }
