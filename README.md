@@ -1,6 +1,6 @@
 ﻿# PSKeePass
 PowerShell module for KeePass
-This Module is based on the work of Jason Fossen at Sans.org (https://cyber-defense.sans.org/blog/2015/08/13/powershell-for-keepass-sample-script)
+This Module is based on the work of Jason Fossen at [Sans.org](https://cyber-defense.sans.org/blog/2015/08/13/powershell-for-keepass-sample-script)
 
 It´s intent is to make the usage of KeePass (www.keepass.info) as a credential database inside PowerShell scripts as easy
 as possible. Please be aware that you should use SecureStrngs, PSCredential objects and Event-Log encryption to keep you secrets save.
