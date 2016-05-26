@@ -1,7 +1,7 @@
 Get-Module PSKeePass | Remove-Module
-Import-Module "$PSScriptRoot\..\PSKeePass-1\PSKeePass-1.psm1" -ErrorAction Stop
+Import-Module "$PSScriptRoot\..\PSKeePass.psm1" -ErrorAction Stop
 
-InModuleScope "PSKeePass-1" {
+InModuleScope "PSKeePass" {
     
     Describe "Get-KeePassCredential - UnitTest" -Tag UnitTest {
         
