@@ -1,15 +1,4 @@
-﻿<# 
-
-    This Module is based on the work of Jason Fossen at Sans.org (https://cyber-defense.sans.org/blog/2015/08/13/powershell-for-keepass-sample-script)
-    
-    It´s intent is to make the usage of KeePass as a credential database inside PowerShell scripts as easy
-    as possible. Please be aware that you should use SecureStrngs, PSCredential objects and Event-Log encryption to keep you secrets save.
-    More info at:
-    - Protected Eventlog at https://blogs.msdn.microsoft.com/powershell/2015/06/09/powershell-the-blue-team/
-    - https://blogs.msdn.microsoft.com/powershell/2013/12/16/powershell-security-best-practices/
-#> 
-
-function Get-KeePassEntry 
+﻿function Get-KeePassEntry 
 { 
     <#
         .SYNOPSIS
@@ -1251,21 +1240,27 @@ function Add-KeePassEntry
         [Parameter(Position=0,Mandatory)]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwDatabase] $KeePassConnection,
+        
         [Parameter(Position=1,Mandatory)]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwGroup] $KeePassGroup,
+        
         [Parameter(Position=2,Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
         [string] $Title,
+        
         [Parameter(Position=3,Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
         [string] $UserName,
+        
         [Parameter(Position=4,Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.Security.ProtectedString] $KeePassPassword,
+        
         [Parameter(Position=5,Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
         [string] $Notes,
+        
         [Parameter(Position=6,Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
         [string] $URL
@@ -1489,18 +1484,20 @@ function Add-KeePassGroup
         )]
         [ValidateNotNull()]
         [KeePassLib.PwDatabase] $KeePassConnection,
+        
         [Parameter(
             Position = 1,
             Mandatory
         )]
         [ValidateNotNullorEmpty()]
-        [string[]] $GroupName,
+        [string] $GroupName,
+        
         [Parameter(
             Position = 2,
             Mandatory
         )]
         [ValidateNotNullOrEmpty()]
-        [KeePassLib.PwGroup[]] $KeePassParentGroup
+        [KeePassLib.PwGroup] $KeePassParentGroup
     )
     begin
     {
@@ -1527,16 +1524,10 @@ function Add-KeePassGroup
     }
     process
     {   
-        foreach($Group in $KeePassParentGroup)
-        {
-            foreach($Name in $GroupName)
-            {
-                $KeePassGroup.Name = $GroupName
-                $Group.AddGroup($KeePassGroup, $true)
-            }
-        }  
+        $KeePassGroup.Name = $GroupName
+        $KeePassParentGroup.AddGroup($KeePassGroup, $true)
+        $KeePassConnection.Save($null)
     }
-    end{ $KeePassConnection.Save($null) }
 }
 
 #Generates a Password Using the KeePass Password Generator
@@ -1825,4 +1816,4 @@ function Import-KeePassLibrary
 }
 
 #Source KpLib 
-Import-KeePassLibrary -Verbose -Debug
+Import-KeePassLibrary
