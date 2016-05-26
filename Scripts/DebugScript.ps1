@@ -1,5 +1,5 @@
 #Module Path
-$ModulePath =  Resolve-Path -Path "$PSScriptRoot\..\PSKeePass-1\PSKeePass-1.psm1"
+$ModulePath =  Resolve-Path -Path "$PSScriptRoot\..\PSKeePass-.psm1"
 
 #Test Keepass database and key file
 $DatabaseFile = Resolve-Path -Path "$PSScriptRoot\..\Test\Includes\PSKeePassTestDatabase.kdbx"
