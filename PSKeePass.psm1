@@ -77,7 +77,7 @@
             ValueFromPipelineByPropertyName=$true,
         Position=3)]
         [ValidateScript({Test-Path $_ })]
-        [string]$DBPath,
+        [string] $DBPath,
 
         [switch] $AsSecureStringCredential
     )
@@ -833,7 +833,7 @@ function Set-KeePassConfiguration
             Mandatory = $false,
             Position = 2
         )]
-        [String]$KPProgramFolder
+        [PSCustomObject] $PassProfile
     )
 
     #Check if there already is a KeePassConfiguration.xml which can be used / overwritten
@@ -842,7 +842,6 @@ function Set-KeePassConfiguration
 
         [xml] $XML = (Get-Content $PSScriptRoot\KeePassConfiguration.xml)
         $XML.Settings.KeePassSettings.DBDefaultpathPath = $DBDefaultpathPath
-        $XML.Settings.KeePassSettings.KPProgramFolder = $KPProgramFolder
         $XML.Settings.KeePassSettings.DBKeyFilePath = $KeePassKeyFile
         $XML.Save("$PSScriptRoot\KeePassConfiguration.xml")
 
@@ -864,9 +863,11 @@ function Set-KeePassConfiguration
         $XML.WriteStartElement('KeePassSettings')
         $XML.WriteElementString('DBDefaultpathPath',"$DBDefaultpathPath")
         $XML.WriteElementString('KeePassKeyFilePath', "$KeePassKeyFile")
-        $XML.WriteElementString('KPProgramFolder',"$KPProgramFolder")
         $XML.WriteEndElement()
         $XML.WriteEndElement()
+        
+        # $XML.WriteStartElement('PasswordProfiles')
+        # $XML.WriteStartElement('')
 
         $XML.WriteEndDocument()
         $xml.Flush()
@@ -1069,6 +1070,10 @@ function Get-KeePassConnection
             Write-Warning $_.Exception.Message
             Throw $_.Exception
         }
+        
+        #Clear Credentail Object
+        Clear-Variable KeePassCredential
+        
         $KeePassDatabase
     }
 }

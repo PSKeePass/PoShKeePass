@@ -122,5 +122,24 @@ InModuleScope "PSKeePass" {
         Remove-KeePassConnection -KeePassConnection $KeePassConnection
     }
     
-    
+    Describe "Add-KeePassGroup - UnitTest" -Tag UnitTest {
+        $KeePassCredential = Get-KeePassCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.key"
+        $KeePassConnection = Get-KeePassConnection -KeePassCredential $KeePassCredential
+        $KeePassGroup = Get-KeePassGroup -KeePassConnection $KeePassConnection -FullPath 'General'
+        
+        Context "Test 1: Add a KeePass Group" {
+            
+            It "Test 1a: Add a KeePass Group" {
+                Add-KeePassGroup -KeePassConnection $KeePassConnection -GroupName 'TestNewGroup' -KeePassParentGroup $KeePassGroup | Should Be $null
+                $NewKeePassGroup = Get-KeePassGroup -KeePassConnection $KeePassConnection -FullPath 'General/TestNewGroup'
+                $NewKeePassGroup.Count | Should Be 1
+                $NewKeePassGroup | Should BeOfType 'KeePassLib.PwGroup'
+                $NewKeePassGroup.Name | Should Be 'TestNewGroup'
+                $NewKeePassGroup.ParentGroup.Name | Should Be 'General'
+                $NewKeePassGroup.GetFullPath("/", $false) | Should Be 'General/TestNewGroup'
+            }
+        }
+        
+        Remove-KeePassConnection -KeePassConnection $KeePassConnection
+    }
 }
