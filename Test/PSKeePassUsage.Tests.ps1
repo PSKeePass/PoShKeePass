@@ -8,10 +8,10 @@ InModuleScope "PSKeePass" {
         Context "Example 1: Mock with Key File and Master Key" {
                     
             It "Example 1: Get PSKeePass Credential - Valid Files" {
-                $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.key" -MasterKey "AtestPassWord"
+                $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.key" -MasterKey $(ConvertTo-SecureString "AtestPassWord" -AsPlainText -Force)
                 $KeePassCredential.DatabaseFile | Should BeLike "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx"
                 $KeePassCredential.KeyFile | Should BeLike "$PSScriptRoot\Includes\PSKeePassTestDatabase.Key"           
-                $KeePassCredential.MasterKey | Should BeExactly "AtestPassWord"
+                # $KeePassCredential.MasterKey | Should BeExactly "AtestPassWord"
                 $KeePassCredential.AuthenticationType | Should Be "KeyAndMaster"
             }
         }
@@ -22,7 +22,7 @@ InModuleScope "PSKeePass" {
                 $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.key"
                 $KeePassCredential.DatabaseFile | Should BeLike "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx"
                 $KeePassCredential.KeyFile | Should BeLike "$PSScriptRoot\Includes\PSKeePassTestDatabase.Key"           
-                $KeePassCredential.MasterKey | Should Be ""
+                # $KeePassCredential.MasterKey | Should Be ""
                 $KeePassCredential.AuthenticationType | Should Be "Key"
             }
         }
@@ -30,10 +30,10 @@ InModuleScope "PSKeePass" {
         Context "Example 3: Mock with MasterKey" {
             
             It "Example 3: Get PSKeePass Credential - Valid" {
-                $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -MasterKey "AtestPassWord"
+                $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -MasterKey $(ConvertTo-SecureString "AtestPassWord" -AsPlainText -Force)
                 $KeePassCredential.DatabaseFile | Should BeLike "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx"
                 $KeePassCredential.KeyFile | Should Be ""         
-                $KeePassCredential.MasterKey | Should BeExactly "AtestPassWord"
+                # $KeePassCredential.MasterKey | Should BeExactly "AtestPassWord"
                 $KeePassCredential.AuthenticationType | Should Be "Master"
             }
         }

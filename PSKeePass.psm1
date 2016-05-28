@@ -959,7 +959,7 @@ function Get-KPCredential
         [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Master')]
         [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
         [ValidateNotNullOrEmpty()]
-        [string]$MasterKey
+        [System.Security.SecureString] $MasterKey
     )
     process
     {
@@ -1046,11 +1046,11 @@ function Get-KPConnection
             elseif ($KeePassCredential.AuthenicationType -eq "KeyAndMaster")
             {
                 $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpKeyFile($KeePassCredential.KeyFile)))
-                $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpPassword($KeePassCredential.MasterKey)))
+                $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpPassword([Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($KeePassCredential.MasterKey)))))
             }
             elseif ($KeePassCredential.AuthenticationType -eq "Master")
             {
-                $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpPassword($KeePassCredential.MasterKey)))
+                $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpPassword([Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($KeePassCredential.MasterKey)))))
             }
         }
         catch [Exception]
@@ -1061,6 +1061,7 @@ function Get-KPConnection
         finally
         {
             Remove-Variable -Name KeePassCredential
+            # $KeePassCompositeKey = $null
         }
 
         #Open KPDB Connection
@@ -1068,7 +1069,7 @@ function Get-KPConnection
         {
             $KeePassDatabase = New-Object KeePassLib.PwDatabase
             $KeePassDatabase.Open($KeePassIOConnectionInfo,$KeePassCompositeKey,$null)
-             
+           
             
         }
         catch [Exception]
@@ -1076,7 +1077,10 @@ function Get-KPConnection
             Write-Warning $_.Exception.Message
             Throw $_.Exception
         }
-       
+        finally
+        {
+             Remove-Variable -Name KeePassCompositeKey
+        }
         
         $KeePassDatabase
     }
