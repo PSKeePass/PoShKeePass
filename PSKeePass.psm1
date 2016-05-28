@@ -1535,6 +1535,7 @@ function Add-KPGroup
     }
 }
 
+#Removes a KeePassGroup
 function Remove-KPGroup
 {
     <#
@@ -1593,6 +1594,7 @@ function Remove-KPGroup
         {
             break
         }
+        ###Force only verses shouldprocess confirmation.
         # if (-not $Force)
         # {
         #     $caption = "Please Confirm"
