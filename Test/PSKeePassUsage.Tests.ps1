@@ -121,7 +121,7 @@ InModuleScope "PSKeePass" {
         Remove-KPConnection -KeePassConnection $KeePassConnection
     }
     
-    Describe "Add-KeePassGroup - UnitTest" -Tag UnitTest {
+    Describe "Add-KPGroup - UnitTest" -Tag UnitTest {
         $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.key"
         $KeePassConnection = Get-KPConnection -KeePassCredential $KeePassCredential
         $KeePassGroup = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'General'
@@ -136,8 +136,54 @@ InModuleScope "PSKeePass" {
                 $NewKeePassGroup.Name | Should Be 'TestNewGroup'
                 $NewKeePassGroup.ParentGroup.Name | Should Be 'General'
                 $NewKeePassGroup.GetFullPath("/", $false) | Should Be 'General/TestNewGroup'
+                ##Clean up
+                $NewKeePassGroup.ParentGroup.Groups.Remove($NewKeePassGroup) | Out-Null
+                $KeePassConnection.Save($null)
             }
+            
         }
         Remove-KPConnection -KeePassConnection $KeePassConnection
+    }
+    
+    Describe "Remove-KPGroup - UnitTest" -Tag UnitTest {
+        $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.key"
+        $KeePassConnection = Get-KPConnection -KeePassCredential $KeePassCredential
+        
+        Context "Test 1: Delete a KeePass Group" {
+            $KeePassGroup = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'General/TestDeleteGroup'
+            if(-not $KeePassGroup)
+            {
+                $KeePassParentGroup = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'General'
+                Add-KPGroup -KeePassConnection $KeePassConnection -GroupName 'TestDeleteGroup' -KeePassParentGroup $KeePassParentGroup
+                $KeePassGroup = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'General/TestDeleteGroup'
+            }
+            
+            It "Test 1a: Permenantly Deletes a KeePass Group" {
+                Remove-KPGroup -KeePassConnection $KeePassConnection -KeePassGroup $KeePassGroup -Force -NoRecycle | Should Be $null
+                Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'General/TestDeleteGroup' | Should Be $null
+            }
+        }
+        
+        Context "Test 2: Recycle a KeePass Group" {
+            $KeePassGroup = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'General/TestRecycleGroup'
+            if(-not $KeePassGroup)
+            {
+                $KeePassParentGroup = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'General'
+                Add-KPGroup -KeePassConnection $KeePassConnection -GroupName 'TestRecycleGroup' -KeePassParentGroup $KeePassParentGroup
+                $KeePassGroup = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'General/TestRecycleGroup'
+            }
+            
+            It "Test 2a: Recycles a KeePass Group" {
+                Remove-KPGroup -KeePassConnection $KeePassConnection -KeePassGroup $KeePassGroup -Force | Should Be $null
+                $RecycledGroup = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'Recycle Bin/TestRecycleGroup'
+                $RecycledGroup | Should BeOfType 'KeePassLib.PwGroup'
+                $RecycledGroup.Name | Should Be 'TestRecycleGroup'
+                ##Clean Up
+                $RecycledGroup.ParentGroup.Groups.Remove($RecycledGroup) | Out-Null
+                $KeePassConnection.Save($null)
+            }
+        }
+        
+        Remove-KPConnection $KeePassConnection
     }
 }
