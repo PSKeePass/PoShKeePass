@@ -30,9 +30,9 @@ The module contains the following Cmdlets:
 
 The module currently has no suffisticated error-handling!
 
-PSKeePass is tested and running with the followig KeePass versions:
+PSKeePass is tested and running with the followig KeePassLib versions:
 
-KeePass 2.3.1
+KeePass 2.3.x
 
 ## Contributing
 If you would like to contribute please review the CONTRIBUTE.md file.
