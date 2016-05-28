@@ -1342,6 +1342,96 @@ function Add-KPEntry
     }
 }
 
+#Removes a KeePassEntry
+function Remove-KPEntry
+{
+    <#
+    #>
+    [CmdletBinding(
+        SupportsShouldProcess = $true,
+        ConfirmImpact = "High"
+     )]
+    param
+    (
+        [Parameter(
+            Position = 0,
+            Mandatory,
+            ValueFromPipeline,
+            ValueFromPipelineByPropertyName
+        )]
+        [ValidateNotNull()]
+        [KeePassLib.PwDatabase] $KeePassConnection,
+        
+        [Parameter(
+            Mandatory = $true,
+            Position = 1,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true
+        )]
+        [ValidateNotNullOrEmpty()]
+        [KeePassLib.PwEntry] $KeePassEntry,
+        
+        [Parameter(
+            Mandatory = $false,
+            Position = 2
+        )]
+        [Switch] $NoRecycle,
+        
+        [Parameter(
+            Mandatory = $false,
+            Position = 3
+        )]
+        [Switch] $Force
+    )
+    begin
+    {
+        $RecycleBin = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'Recycle Bin'
+        $EntryDisplayName = "$($KeePassEntry.ParentGroup.GetFullPath('/',$false))/$($KeePassEntry.Strings.ReadSafe('Title'))"
+        
+        if ( $Force -or $PSCmdlet.ShouldProcess($($EntryDisplayName)))
+        {
+            if ( -not $Force -and (-not $RecycleBin -or $NoRecycle) )
+            {
+                if ( -not $PSCmdlet.ShouldContinue("Recycle Bin Does Not Exist or the -NoRecycle Option Has been Specified.", "Do you want to continue to Permanently Delete this Entry: ($($EntryDisplayName))?"))
+                {
+                    break
+                }
+            }
+        }
+        else
+        {
+            break
+        }
+    }
+    process
+    {        
+        if($RecycleBin -and -not $NoRecycle)
+        {
+            #Make Copy of the group to be recycled.
+            $DeletedKeePassEntry = $KeePassEntry.CloneDeep()
+            #Generate a new Uuid and update the copy fo the group
+            $DeletedKeePassEntry.Uuid = (New-Object KeePassLib.PwUuid($true))
+            #Add the copy to the recycle bin, with take ownership set to true
+            $RecycleBin.AddGroup($DeletedKeePassEntry, $true)
+            Write-Verbose -Message "[PROCESS] Group has been Recycled."    
+        }
+        
+        #Deletes the specified group
+        $IsRemoved = $KeePassEntry.ParentGroup.Entries.Remove($KeePassEntry)
+        
+        if(-not $IsRemoved)
+        {
+            Write-Warning -Message "[PROCESS] Unknown Error has occured. Failed to Remove Entry ($($EntryDisplayName))"
+            Throw "Failed to Remove Entry $($EntryDisplayName)"
+        }
+        else
+        {
+            Write-Verbose -Message "[PROCESS] Entry ($($EntryDisplayName)) has been Removed."
+            $KeePassConnection.Save($null)
+        }
+    }
+}
+
 #Gets a KeePass Group object
 function Get-KPGroup
 {
