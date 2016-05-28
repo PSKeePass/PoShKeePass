@@ -24,7 +24,7 @@ KeePass 2.3.1
 
 
 
-Contributing
+##Contributing
 
 If you would like to contribute please review the CONTRIBUTE.md file.
 
