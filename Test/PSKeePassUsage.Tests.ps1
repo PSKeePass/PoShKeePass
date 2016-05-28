@@ -3,12 +3,12 @@ Import-Module "$PSScriptRoot\..\PSKeePass.psm1" -ErrorAction Stop
 
 InModuleScope "PSKeePass" {
     
-    Describe "Get-KeePassCredential - UnitTest" -Tag UnitTest {
+    Describe "Get-KPCredential - UnitTest" -Tag UnitTest {
         
         Context "Example 1: Mock with Key File and Master Key" {
                     
             It "Example 1: Get PSKeePass Credential - Valid Files" {
-                $KeePassCredential = Get-KeePassCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.key" -MasterKey "AtestPassWord"
+                $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.key" -MasterKey "AtestPassWord"
                 $KeePassCredential.DatabaseFile | Should BeLike "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx"
                 $KeePassCredential.KeyFile | Should BeLike "$PSScriptRoot\Includes\PSKeePassTestDatabase.Key"           
                 $KeePassCredential.MasterKey | Should BeExactly "AtestPassWord"
@@ -19,7 +19,7 @@ InModuleScope "PSKeePass" {
         Context "Example 2: Mock with KeyFile" {
             
             It "Example 2: Get PSKeePass Credential - Valid" {
-                $KeePassCredential = Get-KeePassCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.key"
+                $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.key"
                 $KeePassCredential.DatabaseFile | Should BeLike "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx"
                 $KeePassCredential.KeyFile | Should BeLike "$PSScriptRoot\Includes\PSKeePassTestDatabase.Key"           
                 $KeePassCredential.MasterKey | Should Be ""
@@ -30,7 +30,7 @@ InModuleScope "PSKeePass" {
         Context "Example 3: Mock with MasterKey" {
             
             It "Example 3: Get PSKeePass Credential - Valid" {
-                $KeePassCredential = Get-KeePassCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -MasterKey "AtestPassWord"
+                $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -MasterKey "AtestPassWord"
                 $KeePassCredential.DatabaseFile | Should BeLike "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx"
                 $KeePassCredential.KeyFile | Should Be ""         
                 $KeePassCredential.MasterKey | Should BeExactly "AtestPassWord"
@@ -39,13 +39,13 @@ InModuleScope "PSKeePass" {
         }
     }
     
-    Describe "Get-KeePassConnection - UnitTest" -Tag UnitTest {
+    Describe "Get-KPConnection - UnitTest" -Tag UnitTest {
         
         Context "Example 1: Open with PSKeePass Credential Object - KeyFile" {
             
             It "Example 1: Get KeePass Database Connection with KeyFile - Valid" {
-                $KeePassCredential = Get-KeePassCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.key"
-                $KeePassConnection = Get-KeePassConnection -KeePassCredential $KeePassCredential
+                $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.key"
+                $KeePassConnection = Get-KPConnection -KeePassCredential $KeePassCredential
                 $KeePassConnection | Should BeOfType 'KeePassLib.PwDatabase'
                 $KeePassConnection.IsOpen | Should Be $true
                 $KeePassConnection.Close() | Should Be $null
@@ -56,26 +56,26 @@ InModuleScope "PSKeePass" {
         }
     }
     
-    Describe "Remove-KeePassConnection - UnitTest" -Tag UnitTest {
+    Describe "Remove-KPConnection - UnitTest" -Tag UnitTest {
         
         Context "Example 1: Close an Open PSKeePass Database Connection" {
             
             It "Example: Closes an KeePass Database Connection" {
-                $KeePassCredential = Get-KeePassCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.key"
-                $KeePassConnection = Get-KeePassConnection -KeePassCredential $KeePassCredential
-                Remove-KeePassConnection -KeePassConnection $KeePassConnection | Should Be $null
+                $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.key"
+                $KeePassConnection = Get-KPConnection -KeePassCredential $KeePassCredential
+                Remove-KPConnection -KeePassConnection $KeePassConnection | Should Be $null
             }
         }
     }
     
-    Describe "Get-KeePassGroup - UnitTest" -Tag UnitTest {
-        $KeePassCredential = Get-KeePassCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.key"
-        $KeePassConnection = Get-KeePassConnection -KeePassCredential $KeePassCredential
+    Describe "Get-KPGroup - UnitTest" -Tag UnitTest {
+        $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.key"
+        $KeePassConnection = Get-KPConnection -KeePassCredential $KeePassCredential
         
         Context "Test 1: Gets a KeePass Group - FullPath" {
             
             It "Test 1a: Gets a KeePass Group Named General - FullPath" {
-                $KeePassGroup = Get-KeePassGroup -KeePassConnection $KeePassConnection -FullPath 'General'
+                $KeePassGroup = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'General'
                 $KeePassGroup | Should BeOfType 'KeePassLib.PwGroup'
                 $KeePassGroup.Name | Should Be 'General'
                 $KeePassGroup.Notes | Should Be ''
@@ -83,7 +83,7 @@ InModuleScope "PSKeePass" {
             }
             
             It "Test 1b: Gets multiple KeePass Groups - FullPath - TestSameName" {
-                $KeePassGroup = Get-KeePassGroup -KeePassConnection $KeePassConnection -FullPath 'General/TestSameName'
+                $KeePassGroup = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'General/TestSameName'
                 $KeePassGroup.Count | Should Be 2
                 $KeePassGroup | Should BeOfType 'KeePassLib.PwGroup'
                 foreach ($_keepassGroup in $KeePassGroup)
@@ -98,7 +98,7 @@ InModuleScope "PSKeePass" {
         Context "Test 2: Gets a KeePass Group - GroupName" {
             
             It "Test 2a: Gets a KeePass Group Named Windows - GroupName" {
-                $KeePassGroup = Get-KeePassGroup -KeePassConnection $KeePassConnection -GroupName 'Windows'
+                $KeePassGroup = Get-KPGroup -KeePassConnection $KeePassConnection -GroupName 'Windows'
                 $KeePassGroup | Should BeOfType 'KeePassLib.PwGroup'
                 $KeePassGroup.Name | Should Be 'Windows'
                 $KeePassGroup.Notes | Should Be ''
@@ -106,7 +106,7 @@ InModuleScope "PSKeePass" {
             }
             
             IT "Test 2b: Gets multiple KeePass Groups - GroupName - TestSameName" {
-                $KeePassGroup = Get-KeePassGroup -KeePassConnection $KeePassConnection -GroupName 'TestSameName'
+                $KeePassGroup = Get-KPGroup -KeePassConnection $KeePassConnection -GroupName 'TestSameName'
                 $KeePassGroup.Count | Should Be 3
                 $KeePassGroup | Should BeOfType 'KeePassLib.PwGroup'
                 foreach ($_keepassGroup in $KeePassGroup)
@@ -118,20 +118,19 @@ InModuleScope "PSKeePass" {
                 $KeePassGroup[2].ParentGroup.Name | Should be 'PSKeePassTestDatabase'
             }
         }
-        
-        Remove-KeePassConnection -KeePassConnection $KeePassConnection
+        Remove-KPConnection -KeePassConnection $KeePassConnection
     }
     
     Describe "Add-KeePassGroup - UnitTest" -Tag UnitTest {
-        $KeePassCredential = Get-KeePassCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.key"
-        $KeePassConnection = Get-KeePassConnection -KeePassCredential $KeePassCredential
-        $KeePassGroup = Get-KeePassGroup -KeePassConnection $KeePassConnection -FullPath 'General'
+        $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.key"
+        $KeePassConnection = Get-KPConnection -KeePassCredential $KeePassCredential
+        $KeePassGroup = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'General'
         
         Context "Test 1: Add a KeePass Group" {
             
             It "Test 1a: Add a KeePass Group" {
-                Add-KeePassGroup -KeePassConnection $KeePassConnection -GroupName 'TestNewGroup' -KeePassParentGroup $KeePassGroup | Should Be $null
-                $NewKeePassGroup = Get-KeePassGroup -KeePassConnection $KeePassConnection -FullPath 'General/TestNewGroup'
+                Add-KPGroup -KeePassConnection $KeePassConnection -GroupName 'TestNewGroup' -KeePassParentGroup $KeePassGroup | Should Be $null
+                $NewKeePassGroup = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'General/TestNewGroup'
                 $NewKeePassGroup.Count | Should Be 1
                 $NewKeePassGroup | Should BeOfType 'KeePassLib.PwGroup'
                 $NewKeePassGroup.Name | Should Be 'TestNewGroup'
@@ -139,7 +138,6 @@ InModuleScope "PSKeePass" {
                 $NewKeePassGroup.GetFullPath("/", $false) | Should Be 'General/TestNewGroup'
             }
         }
-        
-        Remove-KeePassConnection -KeePassConnection $KeePassConnection
+        Remove-KPConnection -KeePassConnection $KeePassConnection
     }
 }
