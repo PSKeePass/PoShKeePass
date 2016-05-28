@@ -126,7 +126,7 @@ function Get-KeePassEntry {
   break}
   # Load the classes from KeePass.exe:
   $KeePassEXE = Join-Path -Path $KPProgramFolder -ChildPath 'KeePass.exe'
-  [Reflection.Assembly]::LoadFile($KeePassEXE)
+  [Reflection.Assembly]::LoadFile($KeePassEXE) | Out-Null
 
   ###########################################################################
   # To open a KeePass database, the decryption key is required, and this key
@@ -343,7 +343,7 @@ function New-KeePassEntry
  
     # Load the classes from KeePass.exe:
     $KeePassEXE = Join-Path -Path $KPProgramFolder -ChildPath 'KeePass.exe'
-    [Reflection.Assembly]::LoadFile($KeePassEXE)
+    [Reflection.Assembly]::LoadFile($KeePassEXE) | Out-Null
 
     ###########################################################################
     # To open a KeePass database, the decryption key is required, and this key
@@ -601,7 +601,7 @@ function Set-KeePassEntry
  
       # Load the classes from KeePass.exe:
       $KeePassEXE = Join-Path -Path $KPProgramFolder -ChildPath 'KeePass.exe'
-      [Reflection.Assembly]::LoadFile($KeePassEXE)
+      [Reflection.Assembly]::LoadFile($KeePassEXE) | Out-Null
 
       ###########################################################################
       # To open a KeePass database, the decryption key is required, and this key
