@@ -1346,6 +1346,124 @@ function Add-KPEntry
     }
 }
 
+function Set-KPEntry
+{
+    <#
+        .SYNOPSIS
+            This Function will add a new entry to a KeePass Database Group.
+        .DESCRIPTION
+            This Function will add a new entry to a KeePass Database Group.
+
+            Currently This function supportes the basic fields for creating a new KeePass Entry.
+        .PARAMETER KeePassConnection
+            This is the Open KeePass Database Connection
+
+            See Get-KeePassConnection to Create the conneciton Object.
+        .PARAMETER KeePassEntry
+            This is the KeePass Entry Object to update/set atrributes..
+        .PARAMETER Title
+            This is the Title of the New KeePass Entry.
+        .PARAMETER UserName
+            This is the UserName of the New KeePass Entry.
+        .PARAMETER KeePassPassword
+            This is the Password of the New KeePass Entry.
+        .PARAMETER Notes
+            This is the Notes of the New KeePass Entry.
+        .PARAMETER URL
+            This is the URL of the New KeePass Entry.
+        .NOTES
+            This Cmdlet will autosave on exit
+    #>
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(Position=0,Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [KeePassLib.PwDatabase] $KeePassConnection,
+
+        [Parameter(Position=1,Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [KeePassLib.PwEntry] $KeePassEntry,
+
+        [Parameter(Position=2,Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Title,
+
+        [Parameter(Position=3,Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [string] $UserName,
+
+        [Parameter(Position=4,Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [KeePassLib.Security.ProtectedString] $KeePassPassword,
+
+        [Parameter(Position=5,Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Notes,
+
+        [Parameter(Position=6,Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [string] $URL
+    )
+    begin
+    {
+        # try
+        # {
+        #     $KeePassEntry = New-Object KeePassLib.PwEntry($true, $true) -ErrorAction Stop -ErrorVariable ErrorNewPwEntryObject
+        # }
+        # catch
+        # {
+        #     Write-Warning -Message '[BEGIN] An error occured in the Add-KpEntry Cmdlet.'
+        #     if($ErrorNewPwGroupObject)
+        #     {
+        #         Write-Warning -Message '[BEGIN] An error occured while creating a new KeePassLib.PwEntry Object.'
+        #         Write-Warning -Message "[BEGIN] $($ErrorNewPwEntryObject.ErrorRecord.Message)"
+        #         Throw $_
+        #     }
+        #     else
+        #     {
+        #         Write-Warning -Message '[BEGIN] An unhandled exception occured.'
+        #         Write-Warning -Message '[BEGIN] Verify your KeePass Database Connection is Open.'
+        #         Throw $_
+        #     }
+        # }
+    }
+    process
+    {
+        if($Title)
+        {
+            $SecureTitle = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectTitle, $Title)
+            $KeePassEntry.Strings.Set("Title", $SecureTitle)
+        }
+
+        if($UserName)
+        {
+            $SecureUser = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectUserName, $UserName)
+            $KeePassEntry.Strings.Set("UserName", $SecureUser)
+        }
+
+        if($KeePassPassword)
+        {
+            $KeePassEntry.Strings.Set("Password", $KeePassPassword)
+        }
+
+        if($Notes)
+        {
+            $SecureNotes = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectNotes, $Notes)
+            $KeePassEntry.Strings.Set("Notes", $SecureNotes)
+        }
+
+        if($URL)
+        {
+            $SecureURL = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectUrl, $URL)
+            $KeePassEntry.Strings.Set("URL", $SecureURL)
+        }
+
+        #save database
+        $KeePassConnection.Save($null)
+    }
+}
+
 #Removes a KeePassEntry
 function Remove-KPEntry
 {
