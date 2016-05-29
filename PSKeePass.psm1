@@ -1350,6 +1350,7 @@ function Add-KPEntry
 #Needs Parameter Sets 
 #needs parameter atrributes updates
 #needs help text update
+### Add funcitonality from Set-KeePassEntry above (append notes) or only have that in wrapper funcion
 function Set-KPEntry
 {
     <#
