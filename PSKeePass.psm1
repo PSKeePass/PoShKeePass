@@ -864,11 +864,10 @@ function Set-KeePassConfiguration
         $XML.WriteElementString('DBDefaultpathPath',"$DBDefaultpathPath")
         $XML.WriteElementString('KeePassKeyFilePath', "$KeePassKeyFile")
         $XML.WriteEndElement()
+        $XML.WriteStartElement("PasswordProfiles")
+        $XML.WriteEndElement()
         $XML.WriteEndElement()
         
-        # $XML.WriteStartElement('PasswordProfiles')
-        # $XML.WriteStartElement('')
-
         $XML.WriteEndDocument()
         $xml.Flush()
         $xml.Close()
@@ -902,6 +901,80 @@ function Get-KeePassConfiguration
         Write-Output 'No KeePass Configuration has been created. You can create one with Set-KeePassConfiguration'
     }
 
+}
+
+#Saves a Password Profile to XML Config
+function New-KPPasswordProfile
+{
+    <#
+    #>
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(
+            Position = 0,
+            Mandatory = $true
+        )]
+        [ValidateNotNullOrEmpty()]
+        [PSCustomObject] $KeePassPasswordObject
+    )
+    
+    if (Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml)
+    {
+        [xml] $XML = Get-Content("$PSScriptRoot\KeePassConfiguration.xml")
+        #Create New Profile Element with Name of the new profile
+        $PasswordProfile = $XML.CreateElement('Profile')
+        $PasswordProfileAtribute = $XML.CreateAttribute('Name')
+        $PasswordProfileAtribute.Value = $KeePassPasswordObject.ProfileName
+        $PasswordProfile.Attributes.Append($PasswordProfileAtribute) | Out-Null
+        
+        #Build and Add Element Nodes
+        $CharacterSetNode = $XML.CreateNode('element','CharacterSet','')
+        $CharacterSetNode.InnerText = $KeePassPasswordObject.CharacterSet
+        $PasswordProfile.AppendChild($CharacterSetNode) | Out-Null
+        
+        $ExcludeLookAlikeNode = $XML.CreateNode('element','ExcludeLookAlike','')
+        $ExcludeLookAlikeNode.InnerText = $KeePassPasswordObject.ExcludeLookAlike
+        $PasswordProfile.AppendChild($ExcludeLookAlikeNode) | Out-Null
+        
+        $NoRepeatingCharactersNode = $XML.CreateNode('element','NoRepeatingCharacters','')
+        $NoRepeatingCharactersNode.InnerText = $KeePassPasswordObject.NoRepeatingCharacters
+        $PasswordProfile.AppendChild($NoRepeatingCharactersNode) | Out-Null
+        
+        $ExcludeCharactersNode = $XML.CreateNode('element','ExcludeCharacters','')
+        $ExcludeCharactersNode.InnerText = $KeePassPasswordObject.ExcludeCharacters
+        $PasswordProfile.AppendChild($ExcludeCharactersNode) | Out-Null
+        
+        $LengthNode = $XML.CreateNode('element','Length','')
+        $LengthNode.InnerText = $KeePassPasswordObject.Length
+        $PasswordProfile.AppendChild($LengthNode) | Out-Null
+        
+        $XML.SelectSingleNode('/Settings/PasswordProfiles').AppendChild($PasswordProfile) | Out-Null
+        
+        $XML.Save("$PSScriptRoot\KeePassConfiguration.xml")   
+    }
+    else
+    {
+        Write-Output 'No KeePass Configuration has been created. You can create one with Set-KeePassConfiguration'
+    }
+}
+
+#Need to build out this dummy function
+function Get-KPPasswordProfile
+{
+    <#
+    #>
+    [CmdletBinding()]
+    param()  
+}
+
+#Need to build out this dummy function
+function Set-KPPasswordProfile
+{
+    <#
+    #>
+    [CmdletBinding()]
+    param()  
 }
 
 ##New Code
@@ -1350,6 +1423,7 @@ function Add-KPEntry
 #Needs Parameter Sets 
 #needs parameter atrributes updates
 #needs help text update
+### Add funcitonality from Set-KeePassEntry above (append notes) or only have that in wrapper funcion
 function Set-KPEntry
 {
     <#
@@ -1999,6 +2073,8 @@ function Remove-KPGroup
 }
 
 #Generates a Password Using the KeePass Password Generator
+##Need to check if profile by name exists and prompt for what to do
+##Need to add option to generate via profile
 function Get-KeePassPassword
 {
     <#
@@ -2097,30 +2173,108 @@ function Get-KeePassPassword
         [string] $ExcludeCharacters,
         [Parameter(Position=12)]
         [ValidateNotNullOrEmpty()]
-        [int] $Length
+        [int] $Length,
+        [Parameter(Position=13)]
+        [ValidateNotNullOrEmpty()]
+        [String] $SaveAs
     )
     process
     {
         #Create New Password Profile.
         $PassProfile = New-Object KeePassLib.Cryptography.PasswordGenerator.PwProfile
-
+        $NewProfileObject = '' | Select-Object ProfileName,CharacterSet,ExcludeLookAlike,NoRepeatingCharacters,ExcludeCharacters,Length
+        
         if($PSBoundParameters.Count -gt 0)
         {
             $PassProfile.CharSet = New-Object KeePassLib.Cryptography.PasswordGenerator.PwCharSet
             #Build Profile With Options.
-            if($UpperCase){ $PassProfile.CharSet.Add('ABCDEFGHIJKLMNOPQRSTUVWXYZ') }
-            if($LowerCase){ $PassProfile.CharSet.Add('abcdefghijklmnopqrstuvwxyz') }
-            if($Digits){ $PassProfile.CharSet.Add('0123456789') }
-            if($SpecialCharacters){ $PassProfile.CharSet.Add('!"#$%&''*+,./:;=?@\^`|~') }
-            #if($HighANSICharacters){ $PassProfile.CharSet.Add('¡¢£¤¥¦§¨©ª«¬®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ') }
-            if($Minus){ $PassProfile.CharSet.Add('-') }
-            if($UnderScore){ $PassProfile.CharSet.Add('_') }
-            if($Space){ $PassProfile.CharSet.Add(' ') }
-            if($Brackets){ $PassProfile.CharSet.Add('[]{}()<>') }
-            if($ExcludeLookALike){ $PassProfile.ExcludeLookAlike = $true }
-            if($NoRepeatingCharacters){ $PassProfile.NoRepeatingCharacters = $true }
-            if($ExcludeCharacters){ $PassProfile.ExcludeCharacters = $ExcludeCharacters }
-            if($Length){ $PassProfile.Length = $Length }
+            if($UpperCase)
+            { 
+                $NewProfileObject.CharacterSet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+            }
+            
+            if($LowerCase)
+            { 
+                $NewProfileObject.CharacterSet += 'abcdefghijklmnopqrstuvwxyz'
+            }
+            
+            if($Digits)
+            {   
+                $NewProfileObject.CharacterSet += '0123456789' 
+            }
+            
+            if($SpecialCharacters)
+            { 
+                $NewProfileObject.CharacterSet += '!"#$%&''*+,./:;=?@\^`|~' 
+            }
+            
+            if($Minus)
+            { 
+                $NewProfileObject.CharacterSet += '-'  
+            }
+            
+            if($UnderScore)
+            { 
+                $NewProfileObject.CharacterSet += '_' 
+            }
+            
+            if($Space)
+            { 
+                $NewProfileObject.CharacterSet += ' ' 
+            }
+            
+            if($Brackets)
+            { 
+                $NewProfileObject.CharacterSet += '[]{}()<>' 
+            }
+            
+            if($ExcludeLookALike)
+            { 
+                $NewProfileObject.ExcludeLookAlike = $true 
+            }
+            else
+            {
+                $NewProfileObject.ExcludeLookAlike = $false    
+            }
+            
+            if($NoRepeatingCharacters)
+            { 
+                $NewProfileObject.NoRepeatingCharacters = $true 
+            }
+            else
+            {
+                $NewProfileObject.NoRepeatingCharacters = $false
+            }
+            
+            if($ExcludeCharacters)
+            { 
+                $NewProfileObject.ExcludeCharacters = $ExcludeCharacters 
+            }
+            else
+            {
+                $NewProfileObject.ExcludeCharacters = ''
+            }
+            
+            if($Length)
+            {
+                $NewProfileObject.Length = $Length 
+            }
+            else
+            {
+                $NewProfileObject.Length = '20'
+            }
+            
+            $PassProfile.CharSet.Add($NewProfileObject.CharacterSet)
+            $PassProfile.ExcludeLookAlike = $NewProfileObject.ExlcudeLookAlike
+            $PassProfile.NoRepeatingCharacters = $NewProfileObject.NoRepeatingCharacters
+            $PassProfile.ExcludeCharacters = $NewProfileObject.ExcludeCharacters
+            $PassProfile.Length = $NewProfileObject.Length
+             
+            if($SaveAs)
+            {
+                $NewProfileObject.ProfileName = $SaveAs
+                New-KPPasswordProfile -KeePassPasswordObject $NewProfileObject
+            }
         }
         #Create Pass Generator Profile Pool.
         $GenPassPool = New-Object KeePassLib.Cryptography.PasswordGenerator.CustomPwGeneratorPool
