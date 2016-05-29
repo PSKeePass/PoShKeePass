@@ -1360,7 +1360,9 @@ function Set-KPEntry
 
             See Get-KeePassConnection to Create the conneciton Object.
         .PARAMETER KeePassEntry
-            This is the KeePass Entry Object to update/set atrributes..
+            This is the KeePass Entry Object to update/set atrributes.
+        .PARAMETER KeePassGroup
+            Specifiy this if you want Move the KeePassEntry to another Group
         .PARAMETER Title
             This is the Title of the New KeePass Entry.
         .PARAMETER UserName
@@ -1403,7 +1405,11 @@ function Set-KPEntry
 
         [Parameter(Position=6,Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
-        [string] $URL
+        [string] $URL,
+        
+        [Parameter(Position=7,Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [KeePassLib.PwGroup] $KeePassGroup
     )
     begin
     {
@@ -1457,6 +1463,23 @@ function Set-KPEntry
         {
             $SecureURL = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectUrl, $URL)
             $KeePassEntry.Strings.Set("URL", $SecureURL)
+        }
+        
+        #If specified group is different than current group
+        if($KeePassGroup.Uuid -ne $KeePassEntry.Uuid)
+        {
+            #Make Full Copy of Entry
+            $NewKeePassEntry = $KeePassEntry.CloneDeep()
+            #Assign New Uuid to CloneDeep
+            $NewKeePassEntry.Uuid = New-Object KeePassLib.PwUuid($true)
+            #Add Clone to Specified group
+            $KeePassGroup.AddEntry($NewKeePassEntry)
+            
+            #Save for safety
+            $KeePassConnection.Save($null)
+            
+            #Delete previous entry
+            $KeePassEntry.ParentGroup.Entries.Remove($KeePassEntry)
         }
 
         #save database
