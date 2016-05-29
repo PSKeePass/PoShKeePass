@@ -1346,6 +1346,151 @@ function Add-KPEntry
     }
 }
 
+#Set/Update a KeePass Group
+#Needs Parameter Sets 
+#needs parameter atrributes updates
+#needs help text update
+function Set-KPEntry
+{
+    <#
+        .SYNOPSIS
+            This Function will add a new entry to a KeePass Database Group.
+        .DESCRIPTION
+            This Function will add a new entry to a KeePass Database Group.
+
+            Currently This function supportes the basic fields for creating a new KeePass Entry.
+        .PARAMETER KeePassConnection
+            This is the Open KeePass Database Connection
+
+            See Get-KeePassConnection to Create the conneciton Object.
+        .PARAMETER KeePassEntry
+            This is the KeePass Entry Object to update/set atrributes.
+        .PARAMETER KeePassGroup
+            Specifiy this if you want Move the KeePassEntry to another Group
+        .PARAMETER Title
+            This is the Title of the New KeePass Entry.
+        .PARAMETER UserName
+            This is the UserName of the New KeePass Entry.
+        .PARAMETER KeePassPassword
+            This is the Password of the New KeePass Entry.
+        .PARAMETER Notes
+            This is the Notes of the New KeePass Entry.
+        .PARAMETER URL
+            This is the URL of the New KeePass Entry.
+        .NOTES
+            This Cmdlet will autosave on exit
+    #>
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(Position=0,Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [KeePassLib.PwDatabase] $KeePassConnection,
+
+        [Parameter(Position=1,Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [KeePassLib.PwEntry] $KeePassEntry,
+
+        [Parameter(Position=2,Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Title,
+
+        [Parameter(Position=3,Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [string] $UserName,
+
+        [Parameter(Position=4,Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [KeePassLib.Security.ProtectedString] $KeePassPassword,
+
+        [Parameter(Position=5,Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Notes,
+
+        [Parameter(Position=6,Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [string] $URL,
+        
+        [Parameter(Position=7,Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [KeePassLib.PwGroup] $KeePassGroup
+    )
+    begin
+    {
+        # try
+        # {
+        #     $KeePassEntry = New-Object KeePassLib.PwEntry($true, $true) -ErrorAction Stop -ErrorVariable ErrorNewPwEntryObject
+        # }
+        # catch
+        # {
+        #     Write-Warning -Message '[BEGIN] An error occured in the Add-KpEntry Cmdlet.'
+        #     if($ErrorNewPwGroupObject)
+        #     {
+        #         Write-Warning -Message '[BEGIN] An error occured while creating a new KeePassLib.PwEntry Object.'
+        #         Write-Warning -Message "[BEGIN] $($ErrorNewPwEntryObject.ErrorRecord.Message)"
+        #         Throw $_
+        #     }
+        #     else
+        #     {
+        #         Write-Warning -Message '[BEGIN] An unhandled exception occured.'
+        #         Write-Warning -Message '[BEGIN] Verify your KeePass Database Connection is Open.'
+        #         Throw $_
+        #     }
+        # }
+    }
+    process
+    {
+        if($Title)
+        {
+            $SecureTitle = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectTitle, $Title)
+            $KeePassEntry.Strings.Set("Title", $SecureTitle)
+        }
+
+        if($UserName)
+        {
+            $SecureUser = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectUserName, $UserName)
+            $KeePassEntry.Strings.Set("UserName", $SecureUser)
+        }
+
+        if($KeePassPassword)
+        {
+            $KeePassEntry.Strings.Set("Password", $KeePassPassword)
+        }
+
+        if($Notes)
+        {
+            $SecureNotes = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectNotes, $Notes)
+            $KeePassEntry.Strings.Set("Notes", $SecureNotes)
+        }
+
+        if($URL)
+        {
+            $SecureURL = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectUrl, $URL)
+            $KeePassEntry.Strings.Set("URL", $SecureURL)
+        }
+        
+        #If specified group is different than current group
+        if($KeePassGroup.Uuid -ne $KeePassEntry.Uuid)
+        {
+            #Make Full Copy of Entry
+            $NewKeePassEntry = $KeePassEntry.CloneDeep()
+            #Assign New Uuid to CloneDeep
+            $NewKeePassEntry.Uuid = New-Object KeePassLib.PwUuid($true)
+            #Add Clone to Specified group
+            $KeePassGroup.AddEntry($NewKeePassEntry)
+            
+            #Save for safety
+            $KeePassConnection.Save($null)
+            
+            #Delete previous entry
+            $KeePassEntry.ParentGroup.Entries.Remove($KeePassEntry)
+        }
+
+        #save database
+        $KeePassConnection.Save($null)
+    }
+}
+
 #Removes a KeePassEntry
 function Remove-KPEntry
 {
@@ -1625,6 +1770,112 @@ function Add-KPGroup
     {
         $KeePassGroup.Name = $GroupName
         $KeePassParentGroup.AddGroup($KeePassGroup, $true)
+        $KeePassConnection.Save($null)
+    }
+}
+
+#Set/Update a KeePass Group
+#needs parameter sets 
+#checks to see if the changes are valid
+function Set-KPGroup
+{
+    <#
+        .SYNOPSIS
+            Creates a New KeePass Folder Group.
+        .DESCRIPTION
+            Creates a New KeePass Folder Group.
+        .EXAMPLE
+            PS> Add-KPGroup -KeePassConnection $Conn -GroupName 'NewGroupName' -KeePassParentGroup $KpGroup
+
+            This Example Create a New Group with the specified name in the specified KeePassParentGroup.
+        .PARAMETER KeePassConnection
+            This is the Open KeePass Database Connection
+
+            See Get-KeePassConnection to Create the conneciton Object.
+        .PARAMETER GroupName
+            Specify the name of the new group(s).
+        .PARAMETER KeePassParentGroup
+            Sepcify the KeePassParentGroup(s) for the new Group(s).
+        .NOTES
+            This Cmdlet Does AutoSave on exit.
+    #>
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(
+            Position = 0,
+            Mandatory,
+            ValueFromPipeline,
+            ValueFromPipelineByPropertyName
+        )]
+        [ValidateNotNull()]
+        [KeePassLib.PwDatabase] $KeePassConnection,
+
+        [Paramter(
+            Position = 1,
+            Mandatory = $true
+        )]
+        [ValidateNotNullOrEmpty()]
+        [KeePassLib.PwGroup] $KeePassGroup,
+
+        [Parameter(
+            Position = 1,
+            Mandatory = $false
+        )]
+        [ValidateNotNullorEmpty()]
+        [string] $GroupName,
+
+        [Parameter(
+            Position = 2,
+            Mandatory = $false
+        )]
+        [ValidateNotNullOrEmpty()]
+        [KeePassLib.PwGroup] $KeePassParentGroup
+    )
+    begin
+    {
+        # try
+        # {
+        #     [KeePassLib.PwGroup] $KeePassGroup = New-Object KeePassLib.PwGroup -ErrorAction Stop -ErrorVariable ErrorNewPwGroupObject
+        # }
+        # catch
+        # {
+        #     Write-Warning -Message '[BEGIN] An error occured in the Add-KpGroup Cmdlet.'
+        #     if($ErrorNewPwGroupObject)
+        #     {
+        #         Write-Warning -Message '[BEGIN] An error occured while creating a new KeePassLib.PwGroup Object.'
+        #         Write-Warning -Message "[BEGIN] $($ErrorNewPwGroupObject.ErrorRecord.Message)"
+        #         Throw $_
+        #     }
+        #     else
+        #     {
+        #         Write-Warning -Message '[BEGIN] An unhandled exception occured.'
+        #         Write-Warning -Message '[BEGIN] Verify your KeePass Database Connection is Open.'
+        #         Throw $_
+        #     }
+        # }
+    }
+    process
+    {
+        
+        if($GroupName)
+        {
+            $KeePassGroup.Name = $GroupName
+        }
+        
+        if($KeePassParentGroup)
+        {
+            if($KeePassGroup.ParentGroup.Uuid -ne $KeePassParentGroup.Uuid)
+            {
+                $UpdatedKeePassGroup = $KeePassGroup.CloneDeep()
+                $UpdatedKeePassGroup.Uuid = New-Object KeePassLib.PwUuid($true)
+                $KeePassParentGroup.AddGroup($UpdatedKeePassGroup, $true)
+                $KeePassConnection.Save($null)
+                $KeePassGroup.ParentGroup.Entries.Remove($KeePassGroup)
+            }
+            
+        }
+        
         $KeePassConnection.Save($null)
     }
 }
