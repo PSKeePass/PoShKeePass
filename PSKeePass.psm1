@@ -791,6 +791,222 @@ function Set-KeePassEntry
   }
 }
 
+#Generates a Password Using the KeePass Password Generator
+##Need to check if profile by name exists and prompt for what to do
+##Need to add option to generate via profile
+function Get-KeePassPassword
+{
+    <#
+        .SYNOPSIS
+            This Function will Generate a New Password.
+        .DESCRIPTION
+            This Function will Generate a New Password with the Specified rules using the KeePass-
+            Password Generator.
+
+            This Contains the Majority of the Options including the advanced options that the KeePass-
+            UI provides in its "PasswordGenerator Form".
+
+            Currently this function does not support the use of previously saved/created Password Profiles-
+            aka KeePassLib.Security.PasswordGenerator.PwProfile. Nore does it support Saving a New Profile.
+
+            This Simply Applies the Rules specified and generates a new password that is returned in the form-
+            of a KeePassLib.Security.ProtectedString.
+        .EXAMPLE
+            PS> Get-KpPass
+
+            This Example will generate a Password using the Default KeePass Password Profile.
+            Which I believe is -UpperCase -LowerCase -Digites -Length 20
+        .EXAMPLE
+            PS> Get-KpPass -UpperCase -LowerCase -Digits -Length 20
+
+            This Example will generate a 20 character password that contains Upper and Lower case letters ans numbers 0-9
+        .EXAMPLE
+            PS> Get-KpPass -UpperCase -LowerCase -Digits -SpecialCharacters -ExcludeCharacters '"' -Length 20
+
+            This Example will generate a Password with the Specified Options and Exclude the Double Quote Character
+        .PARAMETER UpperCase
+            If Specified it will add UpperCase Letters to the character set used to generate the password.
+        .PARAMETER LowerCase
+            If Specified it will add LowerCase Letters to the character set used to generate the password.
+        .PARAMETER Digits
+            If Specified it will add Digits to the character set used to generate the password.
+        .PARAMETER SpecialCharacters
+            If Specified it will add Special Characters '!"#$%&''*+,./:;=?@\^`|~' to the character set used to generate the password.
+        .PARAMETER Minus
+            If Specified it will add the Minus Symbol '-' to the character set used to generate the password.
+        .PARAMETER UnderScore
+            If Specified it will add the UnderScore Symbol '_' to the character set used to generate the password.
+        .PARAMETER Space
+            If Specified it will add the Space Character ' ' to the character set used to generate the password.
+        .PARAMETER Brackets
+            If Specified it will add Bracket Characters '()<>[]{}' to the character set used to generate the password.
+        .PARAMETER ExcludeLookAlike
+            If Specified it will exclude Characters that Look Similar from the character set used to generate the password.
+        .PARAMETER NoRepeatingCharacters
+            If Specified it will only allow Characters exist once in the password that is returned.
+        .PARAMETER ExcludeCharacters
+            This will take a list of characters to Exclude, and remove them from the character set used to generate the password.
+        .PARAMETER Length
+            This will specify the length of the resulting password. If not used it will use KeePass's Default Password Profile
+            Length Value which I believe is 20.
+    #>
+    [CmdletBinding()]
+    [OutputType('KeePassLib.Security.ProtectedString')]
+    param
+    (
+        [Parameter(Position=0)]
+        [ValidateNotNull()]
+        [Switch] $UpperCase,
+        [Parameter(Position=1)]
+        [ValidateNotNull()]
+        [Switch] $LowerCase,
+        [Parameter(Position=2)]
+        [ValidateNotNull()]
+        [Switch] $Digits,
+        [Parameter(Position=3)]
+        [ValidateNotNull()]
+        [Switch] $SpecialCharacters,
+        # [Parameter(Position=4)]
+        # [ValidateNotNull()]
+        # [Switch] $HighANSICharacters,
+        [Parameter(Position=5)]
+        [ValidateNotNull()]
+        [Switch] $Minus,
+        [Parameter(Position=6)]
+        [ValidateNotNull()]
+        [Switch] $UnderScore,
+        [Parameter(Position=7)]
+        [ValidateNotNull()]
+        [Switch] $Space,
+        [Parameter(Position=8)]
+        [ValidateNotNull()]
+        [Switch] $Brackets,
+        [Parameter(Position=9)]
+        [ValidateNotNull()]
+        [Switch] $ExcludeLookALike,
+        [Parameter(Position=10)]
+        [ValidateNotNull()]
+        [Switch] $NoRepeatingCharacters,
+        [Parameter(Position=11)]
+        [ValidateNotNullOrEmpty()]
+        [string] $ExcludeCharacters,
+        [Parameter(Position=12)]
+        [ValidateNotNullOrEmpty()]
+        [int] $Length,
+        [Parameter(Position=13)]
+        [ValidateNotNullOrEmpty()]
+        [String] $SaveAs
+    )
+    process
+    {
+        #Create New Password Profile.
+        $PassProfile = New-Object KeePassLib.Cryptography.PasswordGenerator.PwProfile
+        $NewProfileObject = '' | Select-Object ProfileName,CharacterSet,ExcludeLookAlike,NoRepeatingCharacters,ExcludeCharacters,Length
+        
+        if($PSBoundParameters.Count -gt 0)
+        {
+            $PassProfile.CharSet = New-Object KeePassLib.Cryptography.PasswordGenerator.PwCharSet
+            #Build Profile With Options.
+            if($UpperCase)
+            { 
+                $NewProfileObject.CharacterSet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+            }
+            
+            if($LowerCase)
+            { 
+                $NewProfileObject.CharacterSet += 'abcdefghijklmnopqrstuvwxyz'
+            }
+            
+            if($Digits)
+            {   
+                $NewProfileObject.CharacterSet += '0123456789' 
+            }
+            
+            if($SpecialCharacters)
+            { 
+                $NewProfileObject.CharacterSet += '!"#$%&''*+,./:;=?@\^`|~' 
+            }
+            
+            if($Minus)
+            { 
+                $NewProfileObject.CharacterSet += '-'  
+            }
+            
+            if($UnderScore)
+            { 
+                $NewProfileObject.CharacterSet += '_' 
+            }
+            
+            if($Space)
+            { 
+                $NewProfileObject.CharacterSet += ' ' 
+            }
+            
+            if($Brackets)
+            { 
+                $NewProfileObject.CharacterSet += '[]{}()<>' 
+            }
+            
+            if($ExcludeLookALike)
+            { 
+                $NewProfileObject.ExcludeLookAlike = $true 
+            }
+            else
+            {
+                $NewProfileObject.ExcludeLookAlike = $false    
+            }
+            
+            if($NoRepeatingCharacters)
+            { 
+                $NewProfileObject.NoRepeatingCharacters = $true 
+            }
+            else
+            {
+                $NewProfileObject.NoRepeatingCharacters = $false
+            }
+            
+            if($ExcludeCharacters)
+            { 
+                $NewProfileObject.ExcludeCharacters = $ExcludeCharacters 
+            }
+            else
+            {
+                $NewProfileObject.ExcludeCharacters = ''
+            }
+            
+            if($Length)
+            {
+                $NewProfileObject.Length = $Length 
+            }
+            else
+            {
+                $NewProfileObject.Length = '20'
+            }
+            
+            $PassProfile.CharSet.Add($NewProfileObject.CharacterSet)
+            $PassProfile.ExcludeLookAlike = $NewProfileObject.ExlcudeLookAlike
+            $PassProfile.NoRepeatingCharacters = $NewProfileObject.NoRepeatingCharacters
+            $PassProfile.ExcludeCharacters = $NewProfileObject.ExcludeCharacters
+            $PassProfile.Length = $NewProfileObject.Length
+             
+            if($SaveAs)
+            {
+                $NewProfileObject.ProfileName = $SaveAs
+                New-KPPasswordProfile -KeePassPasswordObject $NewProfileObject
+            }
+        }
+        #Create Pass Generator Profile Pool.
+        $GenPassPool = New-Object KeePassLib.Cryptography.PasswordGenerator.CustomPwGeneratorPool
+        #Create Out Parameter aka [rel] param.
+        [KeePassLib.Security.ProtectedString]$PSOut = New-Object KeePassLib.Security.ProtectedString
+        #Generate Password.
+        [KeePassLib.Cryptography.PasswordGenerator.PwGenerator]::Generate([ref] $PSOut, $PassProfile, $null, $GenPassPool) > $null
+        # $PSOut.GetType();
+
+        $PSOut
+    }
+}
+
 function Set-KeePassConfiguration
 {
     <#
@@ -903,6 +1119,12 @@ function Get-KeePassConfiguration
 
 }
 
+<################################################################# 
+##### Internals ######
+## *These functions below support all of the functions above.
+## *Their intended purpose is to be used for advanced scripting.
+#################################################################>
+
 #Saves a Password Profile to XML Config
 function New-KPPasswordProfile
 {
@@ -976,9 +1198,6 @@ function Set-KPPasswordProfile
     [CmdletBinding()]
     param()  
 }
-
-##New Code
-#load KeePassLib Sdk
 
 #Create a KeePass Credential Object
 function Get-KPCredential
@@ -2069,222 +2288,6 @@ function Remove-KPGroup
             Write-Verbose -Message "[PROCESS] Group ($($KeePassGroup.GetFullPath('/',$false))) has been Removed."
             $KeePassConnection.Save($null)
         }
-    }
-}
-
-#Generates a Password Using the KeePass Password Generator
-##Need to check if profile by name exists and prompt for what to do
-##Need to add option to generate via profile
-function Get-KeePassPassword
-{
-    <#
-        .SYNOPSIS
-            This Function will Generate a New Password.
-        .DESCRIPTION
-            This Function will Generate a New Password with the Specified rules using the KeePass-
-            Password Generator.
-
-            This Contains the Majority of the Options including the advanced options that the KeePass-
-            UI provides in its "PasswordGenerator Form".
-
-            Currently this function does not support the use of previously saved/created Password Profiles-
-            aka KeePassLib.Security.PasswordGenerator.PwProfile. Nore does it support Saving a New Profile.
-
-            This Simply Applies the Rules specified and generates a new password that is returned in the form-
-            of a KeePassLib.Security.ProtectedString.
-        .EXAMPLE
-            PS> Get-KpPass
-
-            This Example will generate a Password using the Default KeePass Password Profile.
-            Which I believe is -UpperCase -LowerCase -Digites -Length 20
-        .EXAMPLE
-            PS> Get-KpPass -UpperCase -LowerCase -Digits -Length 20
-
-            This Example will generate a 20 character password that contains Upper and Lower case letters ans numbers 0-9
-        .EXAMPLE
-            PS> Get-KpPass -UpperCase -LowerCase -Digits -SpecialCharacters -ExcludeCharacters '"' -Length 20
-
-            This Example will generate a Password with the Specified Options and Exclude the Double Quote Character
-        .PARAMETER UpperCase
-            If Specified it will add UpperCase Letters to the character set used to generate the password.
-        .PARAMETER LowerCase
-            If Specified it will add LowerCase Letters to the character set used to generate the password.
-        .PARAMETER Digits
-            If Specified it will add Digits to the character set used to generate the password.
-        .PARAMETER SpecialCharacters
-            If Specified it will add Special Characters '!"#$%&''*+,./:;=?@\^`|~' to the character set used to generate the password.
-        .PARAMETER Minus
-            If Specified it will add the Minus Symbol '-' to the character set used to generate the password.
-        .PARAMETER UnderScore
-            If Specified it will add the UnderScore Symbol '_' to the character set used to generate the password.
-        .PARAMETER Space
-            If Specified it will add the Space Character ' ' to the character set used to generate the password.
-        .PARAMETER Brackets
-            If Specified it will add Bracket Characters '()<>[]{}' to the character set used to generate the password.
-        .PARAMETER ExcludeLookAlike
-            If Specified it will exclude Characters that Look Similar from the character set used to generate the password.
-        .PARAMETER NoRepeatingCharacters
-            If Specified it will only allow Characters exist once in the password that is returned.
-        .PARAMETER ExcludeCharacters
-            This will take a list of characters to Exclude, and remove them from the character set used to generate the password.
-        .PARAMETER Length
-            This will specify the length of the resulting password. If not used it will use KeePass's Default Password Profile
-            Length Value which I believe is 20.
-    #>
-    [CmdletBinding()]
-    [OutputType('KeePassLib.Security.ProtectedString')]
-    param
-    (
-        [Parameter(Position=0)]
-        [ValidateNotNull()]
-        [Switch] $UpperCase,
-        [Parameter(Position=1)]
-        [ValidateNotNull()]
-        [Switch] $LowerCase,
-        [Parameter(Position=2)]
-        [ValidateNotNull()]
-        [Switch] $Digits,
-        [Parameter(Position=3)]
-        [ValidateNotNull()]
-        [Switch] $SpecialCharacters,
-        # [Parameter(Position=4)]
-        # [ValidateNotNull()]
-        # [Switch] $HighANSICharacters,
-        [Parameter(Position=5)]
-        [ValidateNotNull()]
-        [Switch] $Minus,
-        [Parameter(Position=6)]
-        [ValidateNotNull()]
-        [Switch] $UnderScore,
-        [Parameter(Position=7)]
-        [ValidateNotNull()]
-        [Switch] $Space,
-        [Parameter(Position=8)]
-        [ValidateNotNull()]
-        [Switch] $Brackets,
-        [Parameter(Position=9)]
-        [ValidateNotNull()]
-        [Switch] $ExcludeLookALike,
-        [Parameter(Position=10)]
-        [ValidateNotNull()]
-        [Switch] $NoRepeatingCharacters,
-        [Parameter(Position=11)]
-        [ValidateNotNullOrEmpty()]
-        [string] $ExcludeCharacters,
-        [Parameter(Position=12)]
-        [ValidateNotNullOrEmpty()]
-        [int] $Length,
-        [Parameter(Position=13)]
-        [ValidateNotNullOrEmpty()]
-        [String] $SaveAs
-    )
-    process
-    {
-        #Create New Password Profile.
-        $PassProfile = New-Object KeePassLib.Cryptography.PasswordGenerator.PwProfile
-        $NewProfileObject = '' | Select-Object ProfileName,CharacterSet,ExcludeLookAlike,NoRepeatingCharacters,ExcludeCharacters,Length
-        
-        if($PSBoundParameters.Count -gt 0)
-        {
-            $PassProfile.CharSet = New-Object KeePassLib.Cryptography.PasswordGenerator.PwCharSet
-            #Build Profile With Options.
-            if($UpperCase)
-            { 
-                $NewProfileObject.CharacterSet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-            }
-            
-            if($LowerCase)
-            { 
-                $NewProfileObject.CharacterSet += 'abcdefghijklmnopqrstuvwxyz'
-            }
-            
-            if($Digits)
-            {   
-                $NewProfileObject.CharacterSet += '0123456789' 
-            }
-            
-            if($SpecialCharacters)
-            { 
-                $NewProfileObject.CharacterSet += '!"#$%&''*+,./:;=?@\^`|~' 
-            }
-            
-            if($Minus)
-            { 
-                $NewProfileObject.CharacterSet += '-'  
-            }
-            
-            if($UnderScore)
-            { 
-                $NewProfileObject.CharacterSet += '_' 
-            }
-            
-            if($Space)
-            { 
-                $NewProfileObject.CharacterSet += ' ' 
-            }
-            
-            if($Brackets)
-            { 
-                $NewProfileObject.CharacterSet += '[]{}()<>' 
-            }
-            
-            if($ExcludeLookALike)
-            { 
-                $NewProfileObject.ExcludeLookAlike = $true 
-            }
-            else
-            {
-                $NewProfileObject.ExcludeLookAlike = $false    
-            }
-            
-            if($NoRepeatingCharacters)
-            { 
-                $NewProfileObject.NoRepeatingCharacters = $true 
-            }
-            else
-            {
-                $NewProfileObject.NoRepeatingCharacters = $false
-            }
-            
-            if($ExcludeCharacters)
-            { 
-                $NewProfileObject.ExcludeCharacters = $ExcludeCharacters 
-            }
-            else
-            {
-                $NewProfileObject.ExcludeCharacters = ''
-            }
-            
-            if($Length)
-            {
-                $NewProfileObject.Length = $Length 
-            }
-            else
-            {
-                $NewProfileObject.Length = '20'
-            }
-            
-            $PassProfile.CharSet.Add($NewProfileObject.CharacterSet)
-            $PassProfile.ExcludeLookAlike = $NewProfileObject.ExlcudeLookAlike
-            $PassProfile.NoRepeatingCharacters = $NewProfileObject.NoRepeatingCharacters
-            $PassProfile.ExcludeCharacters = $NewProfileObject.ExcludeCharacters
-            $PassProfile.Length = $NewProfileObject.Length
-             
-            if($SaveAs)
-            {
-                $NewProfileObject.ProfileName = $SaveAs
-                New-KPPasswordProfile -KeePassPasswordObject $NewProfileObject
-            }
-        }
-        #Create Pass Generator Profile Pool.
-        $GenPassPool = New-Object KeePassLib.Cryptography.PasswordGenerator.CustomPwGeneratorPool
-        #Create Out Parameter aka [rel] param.
-        [KeePassLib.Security.ProtectedString]$PSOut = New-Object KeePassLib.Security.ProtectedString
-        #Generate Password.
-        [KeePassLib.Cryptography.PasswordGenerator.PwGenerator]::Generate([ref] $PSOut, $PassProfile, $null, $GenPassPool) > $null
-        # $PSOut.GetType();
-
-        $PSOut
     }
 }
 
