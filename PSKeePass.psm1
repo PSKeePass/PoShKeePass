@@ -1346,6 +1346,10 @@ function Add-KPEntry
     }
 }
 
+#Set/Update a KeePass Group
+#Needs Parameter Sets 
+#needs parameter atrributes updates
+#needs help text update
 function Set-KPEntry
 {
     <#
@@ -1766,6 +1770,112 @@ function Add-KPGroup
     {
         $KeePassGroup.Name = $GroupName
         $KeePassParentGroup.AddGroup($KeePassGroup, $true)
+        $KeePassConnection.Save($null)
+    }
+}
+
+#Set/Update a KeePass Group
+#needs parameter sets 
+#checks to see if the changes are valid
+function Set-KPGroup
+{
+    <#
+        .SYNOPSIS
+            Creates a New KeePass Folder Group.
+        .DESCRIPTION
+            Creates a New KeePass Folder Group.
+        .EXAMPLE
+            PS> Add-KPGroup -KeePassConnection $Conn -GroupName 'NewGroupName' -KeePassParentGroup $KpGroup
+
+            This Example Create a New Group with the specified name in the specified KeePassParentGroup.
+        .PARAMETER KeePassConnection
+            This is the Open KeePass Database Connection
+
+            See Get-KeePassConnection to Create the conneciton Object.
+        .PARAMETER GroupName
+            Specify the name of the new group(s).
+        .PARAMETER KeePassParentGroup
+            Sepcify the KeePassParentGroup(s) for the new Group(s).
+        .NOTES
+            This Cmdlet Does AutoSave on exit.
+    #>
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(
+            Position = 0,
+            Mandatory,
+            ValueFromPipeline,
+            ValueFromPipelineByPropertyName
+        )]
+        [ValidateNotNull()]
+        [KeePassLib.PwDatabase] $KeePassConnection,
+
+        [Paramter(
+            Position = 1,
+            Mandatory = $true
+        )]
+        [ValidateNotNullOrEmpty()]
+        [KeePassLib.PwGroup] $KeePassGroup,
+
+        [Parameter(
+            Position = 1,
+            Mandatory = $false
+        )]
+        [ValidateNotNullorEmpty()]
+        [string] $GroupName,
+
+        [Parameter(
+            Position = 2,
+            Mandatory = $false
+        )]
+        [ValidateNotNullOrEmpty()]
+        [KeePassLib.PwGroup] $KeePassParentGroup
+    )
+    begin
+    {
+        # try
+        # {
+        #     [KeePassLib.PwGroup] $KeePassGroup = New-Object KeePassLib.PwGroup -ErrorAction Stop -ErrorVariable ErrorNewPwGroupObject
+        # }
+        # catch
+        # {
+        #     Write-Warning -Message '[BEGIN] An error occured in the Add-KpGroup Cmdlet.'
+        #     if($ErrorNewPwGroupObject)
+        #     {
+        #         Write-Warning -Message '[BEGIN] An error occured while creating a new KeePassLib.PwGroup Object.'
+        #         Write-Warning -Message "[BEGIN] $($ErrorNewPwGroupObject.ErrorRecord.Message)"
+        #         Throw $_
+        #     }
+        #     else
+        #     {
+        #         Write-Warning -Message '[BEGIN] An unhandled exception occured.'
+        #         Write-Warning -Message '[BEGIN] Verify your KeePass Database Connection is Open.'
+        #         Throw $_
+        #     }
+        # }
+    }
+    process
+    {
+        
+        if($GroupName)
+        {
+            $KeePassGroup.Name = $GroupName
+        }
+        
+        if($KeePassParentGroup)
+        {
+            if($KeePassGroup.ParentGroup.Uuid -ne $KeePassParentGroup.Uuid)
+            {
+                $UpdatedKeePassGroup = $KeePassGroup.CloneDeep()
+                $UpdatedKeePassGroup.Uuid = New-Object KeePassLib.PwUuid($true)
+                $KeePassParentGroup.AddGroup($UpdatedKeePassGroup, $true)
+                $KeePassConnection.Save($null)
+                $KeePassGroup.ParentGroup.Entries.Remove($KeePassGroup)
+            }
+            
+        }
+        
         $KeePassConnection.Save($null)
     }
 }
