@@ -903,6 +903,7 @@ function Get-KeePassConfiguration
 
 }
 
+#Saves a Password Profile to XML Config
 function New-KPPasswordProfile
 {
     <#
@@ -921,37 +922,34 @@ function New-KPPasswordProfile
     if (Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml)
     {
         [xml] $XML = Get-Content("$PSScriptRoot\KeePassConfiguration.xml")
-        #Navigate to Password Profiles
-        $XML.SelectSingleNode('PasswordProfiles')
         #Create New Profile Element with Name of the new profile
         $PasswordProfile = $XML.CreateElement('Profile')
         $PasswordProfileAtribute = $XML.CreateAttribute('Name')
         $PasswordProfileAtribute.Value = $KeePassPasswordObject.ProfileName
-        $PasswordProfile.Attributes.Append($PasswordProfileAtribute)
+        $PasswordProfile.Attributes.Append($PasswordProfileAtribute) | Out-Null
         
         #Build and Add Element Nodes
         $CharacterSetNode = $XML.CreateNode('element','CharacterSet','')
         $CharacterSetNode.InnerText = $KeePassPasswordObject.CharacterSet
-        $PasswordProfile.AppendChild($CharacterSetNode)
+        $PasswordProfile.AppendChild($CharacterSetNode) | Out-Null
         
         $ExcludeLookAlikeNode = $XML.CreateNode('element','ExcludeLookAlike','')
         $ExcludeLookAlikeNode.InnerText = $KeePassPasswordObject.ExcludeLookAlike
-        $PasswordProfile.AppendChild($ExcludeLookAlikeNode)
+        $PasswordProfile.AppendChild($ExcludeLookAlikeNode) | Out-Null
         
         $NoRepeatingCharactersNode = $XML.CreateNode('element','NoRepeatingCharacters','')
         $NoRepeatingCharactersNode.InnerText = $KeePassPasswordObject.NoRepeatingCharacters
-        $PasswordProfile.AppendChild($NoRepeatingCharactersNode)
+        $PasswordProfile.AppendChild($NoRepeatingCharactersNode) | Out-Null
         
         $ExcludeCharactersNode = $XML.CreateNode('element','ExcludeCharacters','')
         $ExcludeCharactersNode.InnerText = $KeePassPasswordObject.ExcludeCharacters
-        $PasswordProfile.AppendChild($ExcludeCharactersNode)
+        $PasswordProfile.AppendChild($ExcludeCharactersNode) | Out-Null
         
         $LengthNode = $XML.CreateNode('element','Length','')
         $LengthNode.InnerText = $KeePassPasswordObject.Length
-        $PasswordProfile.AppendChild($LengthNode)
+        $PasswordProfile.AppendChild($LengthNode) | Out-Null
         
-        $XML.SelectSingleNode('/Settings/PasswordProfiles').AppendChild($PasswordProfile)
-        # $XML.Settings.PasswordProfiles.AppendChild($PasswordProfile)
+        $XML.SelectSingleNode('/Settings/PasswordProfiles').AppendChild($PasswordProfile) | Out-Null
         
         $XML.Save("$PSScriptRoot\KeePassConfiguration.xml")   
     }
@@ -959,6 +957,24 @@ function New-KPPasswordProfile
     {
         Write-Output 'No KeePass Configuration has been created. You can create one with Set-KeePassConfiguration'
     }
+}
+
+#Need to build out this dummy function
+function Get-KPPasswordProfile
+{
+    <#
+    #>
+    [CmdletBinding()]
+    param()  
+}
+
+#Need to build out this dummy function
+function Set-KPPasswordProfile
+{
+    <#
+    #>
+    [CmdletBinding()]
+    param()  
 }
 
 ##New Code
@@ -2057,6 +2073,8 @@ function Remove-KPGroup
 }
 
 #Generates a Password Using the KeePass Password Generator
+##Need to check if profile by name exists and prompt for what to do
+##Need to add option to generate via profile
 function Get-KeePassPassword
 {
     <#
