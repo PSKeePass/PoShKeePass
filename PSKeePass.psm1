@@ -791,1290 +791,10 @@ function Set-KeePassEntry
   }
 }
 
-function Set-KeePassConfiguration
-{
-    <#
-        .SYNOPSIS
-            Sets the configuration for the PowerShell KeePass Module.
-            .DESCRIPTION
-            Adds the entries KPProgramfolder and DBDefaultpathPath to the KeePassConfiguration.xml
-            located in the modules root folder.
-        .PARAMETER DBDefaultpathPath
-            The path to the default KeePass Database file.
-            e.g. C:\KeePassDBs\mytest.kdbx
-            The default Databasfile can be overwritten by the Cmdlets
-            Get-KeePassEntry, New-KeePassEntry, Set-KeePassEntry by defining the
-            DBPath parameter.
-        .EXAMPLE
-            Set-KeePassConfiguration -DBDefaultpathPath C:\TEMP\Test-Database.kdbx -KPProgramFolder 'C:\Program Files (x86)\KeePass Password Safe 2\'
 
-            Description: Creates a new KeePassConfiguration.xml in the current PowerShell module folder if there is no existing KeePassConfiguration.xml.
-            If the KeePassConfiguration.xml already exists it will be overwritten.
-
-            Output:
-            KeePass configuration successfully updated
-    #>
-    [CmdletBinding()]
-    param
-    (
-        [Parameter(
-            Mandatory = $false,
-            Position = 0
-        )]
-        [String] $DBDefaultpathPath,
-
-        [Parameter(
-            Mandatory = $false,
-            Position = 1
-        )]
-        [String] $KeePassKeyFile,
-
-        [Parameter(
-            Mandatory = $false,
-            Position = 2
-        )]
-        [PSCustomObject] $PassProfile
-    )
-
-    #Check if there already is a KeePassConfiguration.xml which can be used / overwritten
-    if (Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml)
-    {
-
-        [xml] $XML = (Get-Content $PSScriptRoot\KeePassConfiguration.xml)
-        $XML.Settings.KeePassSettings.DBDefaultpathPath = $DBDefaultpathPath
-        $XML.Settings.KeePassSettings.DBKeyFilePath = $KeePassKeyFile
-        $XML.Save("$PSScriptRoot\KeePassConfiguration.xml")
-
-        Write-Output 'KeePass configuration successfully updated.'
-    }
-    else
-    {
-        $Path = "$PSScriptRoot\KeePassConfiguration.xml"
-
-        $XML = New-Object System.Xml.XmlTextWriter($Path,$null)
-        $XML.Formatting = 'Indented'
-        $XML.Indentation = 1
-        $XML.IndentChar = "`t"
-
-        $XML.WriteStartDocument()
-        $XML.WriteProcessingInstruction('xml-stylesheet', "type='text/xsl' href='style.xsl'")
-
-        $XML.WriteStartElement('Settings')
-        $XML.WriteStartElement('KeePassSettings')
-        $XML.WriteElementString('DBDefaultpathPath',"$DBDefaultpathPath")
-        $XML.WriteElementString('KeePassKeyFilePath', "$KeePassKeyFile")
-        $XML.WriteEndElement()
-        $XML.WriteStartElement("PasswordProfiles")
-        $XML.WriteEndElement()
-        $XML.WriteEndElement()
-        
-        $XML.WriteEndDocument()
-        $xml.Flush()
-        $xml.Close()
-
-        Write-Output 'KeePass configuration successfully created. To update, run Set-KeePassConfiguration again'
-    }
-
-}
-
-function Get-KeePassConfiguration
-{
-    <#
-        .SYNOPSIS
-            Reads the current KeePassConfiguration and displays values for DBDefaultpathPath and KPProgramfolder for the PowerShell KeePass Module.
-        .DESCRIPTION
-            Reads the current KeePassConfiguration and displays values for DBDefaultpathPath and KPProgramfolder for the PowerShell KeePass Module.
-            The KeePassConfiguration.xml is located in the PSKeePass module root folder.
-    #>
-    #Check if there already is a KeePassConfiguration.xml and write out the configuration
-    if (Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml)
-    {
-        [xml]$XML = (Get-Content $PSScriptRoot\KeePassConfiguration.xml)
-
-        $output = '' | Select-Object DBDefaultpathPath,KPProgramFolder
-        $Output.DBDefaultpathPath = $xml.Settings.KeePassSettings.DBDefaultpathPath
-        $Output.KPProgramFolder = $xml.Settings.KeePassSettings.KPProgramFolder
-        $output
-    }
-    else
-    {
-        Write-Output 'No KeePass Configuration has been created. You can create one with Set-KeePassConfiguration'
-    }
-
-}
-
-#Saves a Password Profile to XML Config
-function New-KPPasswordProfile
-{
-    <#
-    #>
-    [CmdletBinding()]
-    param
-    (
-        [Parameter(
-            Position = 0,
-            Mandatory = $true
-        )]
-        [ValidateNotNullOrEmpty()]
-        [PSCustomObject] $KeePassPasswordObject
-    )
-    
-    if (Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml)
-    {
-        [xml] $XML = Get-Content("$PSScriptRoot\KeePassConfiguration.xml")
-        #Create New Profile Element with Name of the new profile
-        $PasswordProfile = $XML.CreateElement('Profile')
-        $PasswordProfileAtribute = $XML.CreateAttribute('Name')
-        $PasswordProfileAtribute.Value = $KeePassPasswordObject.ProfileName
-        $PasswordProfile.Attributes.Append($PasswordProfileAtribute) | Out-Null
-        
-        #Build and Add Element Nodes
-        $CharacterSetNode = $XML.CreateNode('element','CharacterSet','')
-        $CharacterSetNode.InnerText = $KeePassPasswordObject.CharacterSet
-        $PasswordProfile.AppendChild($CharacterSetNode) | Out-Null
-        
-        $ExcludeLookAlikeNode = $XML.CreateNode('element','ExcludeLookAlike','')
-        $ExcludeLookAlikeNode.InnerText = $KeePassPasswordObject.ExcludeLookAlike
-        $PasswordProfile.AppendChild($ExcludeLookAlikeNode) | Out-Null
-        
-        $NoRepeatingCharactersNode = $XML.CreateNode('element','NoRepeatingCharacters','')
-        $NoRepeatingCharactersNode.InnerText = $KeePassPasswordObject.NoRepeatingCharacters
-        $PasswordProfile.AppendChild($NoRepeatingCharactersNode) | Out-Null
-        
-        $ExcludeCharactersNode = $XML.CreateNode('element','ExcludeCharacters','')
-        $ExcludeCharactersNode.InnerText = $KeePassPasswordObject.ExcludeCharacters
-        $PasswordProfile.AppendChild($ExcludeCharactersNode) | Out-Null
-        
-        $LengthNode = $XML.CreateNode('element','Length','')
-        $LengthNode.InnerText = $KeePassPasswordObject.Length
-        $PasswordProfile.AppendChild($LengthNode) | Out-Null
-        
-        $XML.SelectSingleNode('/Settings/PasswordProfiles').AppendChild($PasswordProfile) | Out-Null
-        
-        $XML.Save("$PSScriptRoot\KeePassConfiguration.xml")   
-    }
-    else
-    {
-        Write-Output 'No KeePass Configuration has been created. You can create one with Set-KeePassConfiguration'
-    }
-}
-
-#Need to build out this dummy function
-function Get-KPPasswordProfile
-{
-    <#
-    #>
-    [CmdletBinding()]
-    param()  
-}
-
-#Need to build out this dummy function
-function Set-KPPasswordProfile
-{
-    <#
-    #>
-    [CmdletBinding()]
-    param()  
-}
-
-##New Code
-#load KeePassLib Sdk
-
-#Create a KeePass Credential Object
-function Get-KPCredential
-{
-	<#
-        .SYNOPSIS
-            This function Creates a Keepass Credential Object to be passed to the keepass module.
-        .DESCRIPTION
-            This function Creates a Keepass Credential Object to be passed to the keepass module. This will be used to to validate passed
-            keepass database credentials and then open said database in a specific way based on passed credentials
-        .EXAMPLE
-            PS> Get-KpCred -KpDBPath "\\mypath\database.kdbx" -KpKeyPath "\\mypath\database.key"
-
-            This Example will create a keepass credential object to be used when opening a keepass database, using the database file and a keepass kee file.
-        .EXAMPLE
-            PS> Get-KpCred -KpDBPath "\\mypath\database.kdbx" -KpKeyPath "\\mypath\database.key" -KpMasterKey "MyMasterKeyPassword"
-
-            This Example will create a keepass credential object to be used when opening a keepass database, using the database file, a keepass kee file, and a masterkey password.
-        .EXAMPLE
-            PS> Get-KpCred -KpDBPath "\\mypath\database.kdbx" -KpMasterKey "MyMasterKeyPassword"
-
-            This Example will create a keepass credential object to be used when opening a keepass database, using the database file and a masterkey password.
-        .PARAMETER DatabaseFile
-            The path to your Keepass Database File (.kdbx)
-        .PARAMETER KeyFile
-            The path to your Keepass Encryption Key File (.key)
-        .PARAMETER MasterKey
-            The Master Key Password to your Keepass Database.
-        .INPUTS
-            String. All Inputs are passed as a string.
-        .OUTPUTS
-            System.Management.Automation.PSCustomObject
-	#>
-    [CmdletBinding(DefaultParameterSetName='Key')]
-    [OutputType([PSCustomObject])]
-    param
-    (
-        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Key')]
-        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Master')]
-        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript({Test-Path $_})]
-        [string]$DatabaseFile,
-
-        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Key')]
-        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript({Test-Path $_})]
-        [string]$KeyFile,
-
-        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Master')]
-        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
-        [ValidateNotNullOrEmpty()]
-        [System.Security.SecureString] $MasterKey
-    )
-    process
-    {
-        try
-        {
-            $output = [Ordered]@{
-                'DatabaseFile' = $DatabaseFile
-                'KeyFile' = $KeyFile
-                'MasterKey' = $MasterKey
-                'AuthenticationType' = $PSCmdlet.ParameterSetName
-            }
-        }
-        catch [Exception]
-        {
-            Throw $_.Exception.Message
-        }
-        finally
-        {
-            [PSCustomObject]$output
-        }
-    }
-}
-
-#Open KeePass DB Connection
-function Get-KPConnection
-{
-    <#
-        .SYNOPSIS
-            This Function Creates a Connection to a KeePass Database.
-        .DESCRIPTION
-            This Function Creates a Connection to a KeePass Database. It Uses a KpCred Object-
-            to determine the authentication method. It then connectes to the database and returns-
-            an open KeePassLib.PwDatabase object.
-
-            Currently this funciton supports these methods of authentication:
-                KeyFile
-                Master Password
-                Master Password and KeyFile
-
-            Future Versions will support Windows User Authentication Types.
-        .EXAMPLE
-            PS> Get-KeePassConnection -KeePassCredential $Creds
-
-            This Example will return an KeePass Database Connection using a pre-defined KeePass Credential Object.
-        .PARAMETER KeePassCredential
-            This is the KeePass Credential Object, that is used to open a connection to the KeePass DB.
-
-            See Get-KeePassCredential in order to generate this credential object.
-    #>
-    [CmdletBinding()]
-    [OutputType('KeePassLib.PwDatabase')]
-    param
-    (
-        [Parameter(Position=0,
-            Mandatory,
-            ValueFromPipeline,
-            ValueFromPipelineByPropertyName
-        )]
-        [ValidateNotNullOrEmpty()]
-        [PSCustomObject] $KeePassCredential
-    )
-    process
-    {
-        #Create IOConnectionInfo to KPDB using KPLib
-        try
-        {
-            $KeePassIOConnectionInfo = New-Object KeePassLib.Serialization.IOConnectionInfo
-            $KeePassIOConnectionInfo.Path = $KeePassCredential.DatabaseFile
-            $KeePassCompositeKey = New-Object KeePassLib.Keys.CompositeKey
-        }
-        catch [Exception]
-        {
-            Write-Warning $_.Exception.Message
-            Throw $_.Exception
-        }
-
-        #Determine AuthenticationType and Create KPLib CompositeKey
-        try
-        {
-            if ($KeePassCredential.AuthenticationType -eq "Key")
-            {
-                $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpKeyFile($KeePassCredential.KeyFile)))
-            }
-            elseif ($KeePassCredential.AuthenicationType -eq "KeyAndMaster")
-            {
-                $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpKeyFile($KeePassCredential.KeyFile)))
-                $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpPassword([Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($KeePassCredential.MasterKey)))))
-            }
-            elseif ($KeePassCredential.AuthenticationType -eq "Master")
-            {
-                $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpPassword([Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($KeePassCredential.MasterKey)))))
-            }
-        }
-        catch [Exception]
-        {
-            Write-Warning $_.Exception.Message
-            Throw $_.Exception
-        }
-        finally
-        {
-            Remove-Variable -Name KeePassCredential
-            # $KeePassCompositeKey = $null
-        }
-
-        #Open KPDB Connection
-        try
-        {
-            $KeePassDatabase = New-Object KeePassLib.PwDatabase
-            $KeePassDatabase.Open($KeePassIOConnectionInfo,$KeePassCompositeKey,$null)
-           
-            
-        }
-        catch [Exception]
-        {
-            Write-Warning $_.Exception.Message
-            Throw $_.Exception
-        }
-        finally
-        {
-             Remove-Variable -Name KeePassCompositeKey
-        }
-        
-        $KeePassDatabase
-    }
-}
-
-#Close KeePass DB connection
-function Remove-KPConnection
-{
-    <#
-        .SYNOPSIS
-            This Function Removes a Connection to a KeePass Database.
-        .DESCRIPTION
-            This Function Removes a Connection to a KeePass Database.
-        .EXAMPLE
-            PS> Remove-KPConnection -KeePassConnection $DB
-
-            This Example will Remove/Close a KeePass Database Connection using a pre-defined KeePass DB connection.
-        .PARAMETER KeePassConnection
-            This is the KeePass Connection to be Closed
-    #>
-    [CmdletBinding()]
-    param
-    (
-        [Parameter(Position=0, Mandatory)]
-        [ValidateNotNullOrEmpty()]
-        [KeePassLib.PwDatabase] $KeePassConnection
-    )
-    process
-    {
-        try
-        {
-            $KeePassConnection.Close()
-        }
-        catch [Exception]
-        {
-            Write-Warning $_.Exception.Message
-        }
-    }
-}
-
-#Fetch a KeePass entry
-function Get-KPEntry
-{
-    <#
-        .SYNOPSIS
-            This function will lookup and Return KeePass one or more KeePass Entries.
-        .DESCRIPTION
-            This function will lookup Return KeePass Entry(ies). It supports basic lookup filtering.
-        .EXAMPLE
-            PS> Get-KPEntryBase -KeePassConnection $DB -UserName "MyUser"
-
-            This Example will return all entries that have the UserName "MyUser"
-        .EXAMPLE
-            PS> Get-KPEntry -KeePassConnection $DB -KeePassGroup $KpGroup
-
-            This Example will return all entries that are in the specified group.
-        .EXAMPLE
-            PS> Get-KPEntry -KeePassConnection $DB -UserName "AUserName"
-
-            This Example will return all entries have the UserName "AUserName"
-        .PARAMETER KeePassConnection
-            This is the Open KeePass Database Connection
-
-            See Get-KeePassConnection to Create the conneciton Object.
-        .PARAMETER KeePassGroup
-            This is the KeePass Group Object in which to search for entries.
-        .PARAMETER Title
-            This is a Title of one or more KeePass Entries.
-        .PARAMETER UserName
-            This is the UserName of one or more KeePass Entries.
-    #>
-    [CmdletBinding(DefaultParameterSetName="")]
-    [OutputType('KeePassLib.PwEntry')]
-    param
-    (
-        [Parameter(Position=0,Mandatory,ParameterSetName="Group")]
-        [Parameter(Position=0,Mandatory,ParameterSetName="Title")]
-        [Parameter(Position=0,Mandatory,ParameterSetName="UserName")]
-        [Parameter(Position=0,Mandatory,ParameterSetName="Password")]
-        [ValidateNotNullOrEmpty()]
-        [KeePassLib.PwDatabase] $KeePassConnection,
-
-        [Parameter(Position=1,Mandatory,ParameterSetName="Group")]
-        [ValidateNotNullOrEmpty()]
-        [KeePassLib.PwGroup[]] $KeePassGroup,
-
-        [Parameter(Position=2,Mandatory=$false,ParameterSetName="Group")]
-        [Parameter(Position=1,Mandatory,ParameterSetName="Title")]
-        [ValidateNotNullOrEmpty()]
-        [string] $Title,
-
-        [Parameter(Position=3,Mandatory=$false,ParameterSetName="Group")]
-        [Parameter(Position=2,Mandatory=$false,ParameterSetName="Title")]
-        [Parameter(Position=1,Mandatory,ParameterSetName="UserName")]
-        [ValidateNotNullOrEmpty()]
-        [string] $UserName
-    )
-    process
-    {
-        #Get Entries and Filter
-        $KeePassItems = $KeePassConnection.RootGroup.GetEntries($true)
-
-        #This a lame way of filtering.
-        if ($KeePassGroup)
-        {
-            $KeePassItems = foreach($_keepassItem in $KeePassItems)
-            {
-                if($KeePassGroup.Contains($_keepassItem.ParentGroup))
-                {
-                    $_keepassItem
-                }
-            }
-        }
-        if ($Title)
-        {
-            $KeePassItems = foreach($_keepassItem in $KeePassItems)
-            {
-                if($_keepassItem.Strings.ReadSafe("Title").ToLower().Equals($Title.ToLower()))
-                {
-                    $_keepassItem
-                }
-            }
-        }
-        if ($UserName)
-        {
-             $KeePassItems = foreach($_keepassItem in $KeePassItems)
-             {
-                 if($_keepassItem.Strings.ReadSafe("UserName").ToLower().Equals($UserName.ToLower()))
-                 {
-                    $_keepassItem
-                 }
-             }
-        }
-        $KeePassItems
-    }
-}
-
-#Add New KeePass Entry
-function Add-KPEntry
-{
-    <#
-        .SYNOPSIS
-            This Function will add a new entry to a KeePass Database Group.
-        .DESCRIPTION
-            This Function will add a new entry to a KeePass Database Group.
-
-            Currently This function supportes the basic fields for creating a new KeePass Entry.
-        .PARAMETER KeePassConnection
-            This is the Open KeePass Database Connection
-
-            See Get-KeePassConnection to Create the conneciton Object.
-        .PARAMETER KeePassGroup
-            This is the KeePass GroupObject to add the new Entry to.
-        .PARAMETER Title
-            This is the Title of the New KeePass Entry.
-        .PARAMETER UserName
-            This is the UserName of the New KeePass Entry.
-        .PARAMETER KeePassPassword
-            This is the Password of the New KeePass Entry.
-        .PARAMETER Notes
-            This is the Notes of the New KeePass Entry.
-        .PARAMETER URL
-            This is the URL of the New KeePass Entry.
-        .NOTES
-            This Cmdlet will autosave on exit
-    #>
-    [CmdletBinding()]
-    param
-    (
-        [Parameter(Position=0,Mandatory)]
-        [ValidateNotNullOrEmpty()]
-        [KeePassLib.PwDatabase] $KeePassConnection,
-
-        [Parameter(Position=1,Mandatory)]
-        [ValidateNotNullOrEmpty()]
-        [KeePassLib.PwGroup] $KeePassGroup,
-
-        [Parameter(Position=2,Mandatory=$false)]
-        [ValidateNotNullOrEmpty()]
-        [string] $Title,
-
-        [Parameter(Position=3,Mandatory=$false)]
-        [ValidateNotNullOrEmpty()]
-        [string] $UserName,
-
-        [Parameter(Position=4,Mandatory=$false)]
-        [ValidateNotNullOrEmpty()]
-        [KeePassLib.Security.ProtectedString] $KeePassPassword,
-
-        [Parameter(Position=5,Mandatory=$false)]
-        [ValidateNotNullOrEmpty()]
-        [string] $Notes,
-
-        [Parameter(Position=6,Mandatory=$false)]
-        [ValidateNotNullOrEmpty()]
-        [string] $URL
-    )
-    begin
-    {
-        try
-        {
-            $KeePassEntry = New-Object KeePassLib.PwEntry($true, $true) -ErrorAction Stop -ErrorVariable ErrorNewPwEntryObject
-        }
-        catch
-        {
-            Write-Warning -Message '[BEGIN] An error occured in the Add-KpEntry Cmdlet.'
-            if($ErrorNewPwGroupObject)
-            {
-                Write-Warning -Message '[BEGIN] An error occured while creating a new KeePassLib.PwEntry Object.'
-                Write-Warning -Message "[BEGIN] $($ErrorNewPwEntryObject.ErrorRecord.Message)"
-                Throw $_
-            }
-            else
-            {
-                Write-Warning -Message '[BEGIN] An unhandled exception occured.'
-                Write-Warning -Message '[BEGIN] Verify your KeePass Database Connection is Open.'
-                Throw $_
-            }
-        }
-    }
-    process
-    {
-        if($Title)
-        {
-            $SecureTitle = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectTitle, $Title)
-            $KeePassEntry.Strings.Set("Title", $SecureTitle)
-        }
-
-        if($UserName)
-        {
-            $SecureUser = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectUserName, $UserName)
-            $KeePassEntry.Strings.Set("UserName", $SecureUser)
-        }
-
-        if($KeePassPassword)
-        {
-            $KeePassEntry.Strings.Set("Password", $KeePassPassword)
-        }
-        else
-        {
-            #get password based on default pattern
-            $KeePassPassword = Get-KeePassPassword
-            $KeePassEntry.Strings.Set("Password", $KeePassPassword)
-        }
-
-        if($Notes)
-        {
-            $SecureNotes = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectNotes, $Notes)
-            $KeePassEntry.Strings.Set("Notes", $SecureNotes)
-        }
-
-        if($URL)
-        {
-            $SecureURL = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectUrl, $URL)
-            $KeePassEntry.Strings.Set("URL", $SecureURL)
-        }
-
-        #Add to Group
-        $KeePassGroup.AddEntry($KeePassEntry,$true)
-
-        #save database
-        $KeePassConnection.Save($null)
-    }
-}
-
-#Set/Update a KeePass Group
-#Needs Parameter Sets 
-#needs parameter atrributes updates
-#needs help text update
-### Add funcitonality from Set-KeePassEntry above (append notes) or only have that in wrapper funcion
-function Set-KPEntry
-{
-    <#
-        .SYNOPSIS
-            This Function will add a new entry to a KeePass Database Group.
-        .DESCRIPTION
-            This Function will add a new entry to a KeePass Database Group.
-
-            Currently This function supportes the basic fields for creating a new KeePass Entry.
-        .PARAMETER KeePassConnection
-            This is the Open KeePass Database Connection
-
-            See Get-KeePassConnection to Create the conneciton Object.
-        .PARAMETER KeePassEntry
-            This is the KeePass Entry Object to update/set atrributes.
-        .PARAMETER KeePassGroup
-            Specifiy this if you want Move the KeePassEntry to another Group
-        .PARAMETER Title
-            This is the Title of the New KeePass Entry.
-        .PARAMETER UserName
-            This is the UserName of the New KeePass Entry.
-        .PARAMETER KeePassPassword
-            This is the Password of the New KeePass Entry.
-        .PARAMETER Notes
-            This is the Notes of the New KeePass Entry.
-        .PARAMETER URL
-            This is the URL of the New KeePass Entry.
-        .NOTES
-            This Cmdlet will autosave on exit
-    #>
-    [CmdletBinding()]
-    param
-    (
-        [Parameter(Position=0,Mandatory)]
-        [ValidateNotNullOrEmpty()]
-        [KeePassLib.PwDatabase] $KeePassConnection,
-
-        [Parameter(Position=1,Mandatory)]
-        [ValidateNotNullOrEmpty()]
-        [KeePassLib.PwEntry] $KeePassEntry,
-
-        [Parameter(Position=2,Mandatory=$false)]
-        [ValidateNotNullOrEmpty()]
-        [string] $Title,
-
-        [Parameter(Position=3,Mandatory=$false)]
-        [ValidateNotNullOrEmpty()]
-        [string] $UserName,
-
-        [Parameter(Position=4,Mandatory=$false)]
-        [ValidateNotNullOrEmpty()]
-        [KeePassLib.Security.ProtectedString] $KeePassPassword,
-
-        [Parameter(Position=5,Mandatory=$false)]
-        [ValidateNotNullOrEmpty()]
-        [string] $Notes,
-
-        [Parameter(Position=6,Mandatory=$false)]
-        [ValidateNotNullOrEmpty()]
-        [string] $URL,
-        
-        [Parameter(Position=7,Mandatory)]
-        [ValidateNotNullOrEmpty()]
-        [KeePassLib.PwGroup] $KeePassGroup
-    )
-    begin
-    {
-        # try
-        # {
-        #     $KeePassEntry = New-Object KeePassLib.PwEntry($true, $true) -ErrorAction Stop -ErrorVariable ErrorNewPwEntryObject
-        # }
-        # catch
-        # {
-        #     Write-Warning -Message '[BEGIN] An error occured in the Add-KpEntry Cmdlet.'
-        #     if($ErrorNewPwGroupObject)
-        #     {
-        #         Write-Warning -Message '[BEGIN] An error occured while creating a new KeePassLib.PwEntry Object.'
-        #         Write-Warning -Message "[BEGIN] $($ErrorNewPwEntryObject.ErrorRecord.Message)"
-        #         Throw $_
-        #     }
-        #     else
-        #     {
-        #         Write-Warning -Message '[BEGIN] An unhandled exception occured.'
-        #         Write-Warning -Message '[BEGIN] Verify your KeePass Database Connection is Open.'
-        #         Throw $_
-        #     }
-        # }
-    }
-    process
-    {
-        if($Title)
-        {
-            $SecureTitle = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectTitle, $Title)
-            $KeePassEntry.Strings.Set("Title", $SecureTitle)
-        }
-
-        if($UserName)
-        {
-            $SecureUser = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectUserName, $UserName)
-            $KeePassEntry.Strings.Set("UserName", $SecureUser)
-        }
-
-        if($KeePassPassword)
-        {
-            $KeePassEntry.Strings.Set("Password", $KeePassPassword)
-        }
-
-        if($Notes)
-        {
-            $SecureNotes = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectNotes, $Notes)
-            $KeePassEntry.Strings.Set("Notes", $SecureNotes)
-        }
-
-        if($URL)
-        {
-            $SecureURL = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectUrl, $URL)
-            $KeePassEntry.Strings.Set("URL", $SecureURL)
-        }
-        
-        #If specified group is different than current group
-        if($KeePassGroup.Uuid -ne $KeePassEntry.Uuid)
-        {
-            #Make Full Copy of Entry
-            $NewKeePassEntry = $KeePassEntry.CloneDeep()
-            #Assign New Uuid to CloneDeep
-            $NewKeePassEntry.Uuid = New-Object KeePassLib.PwUuid($true)
-            #Add Clone to Specified group
-            $KeePassGroup.AddEntry($NewKeePassEntry)
-            
-            #Save for safety
-            $KeePassConnection.Save($null)
-            
-            #Delete previous entry
-            $KeePassEntry.ParentGroup.Entries.Remove($KeePassEntry)
-        }
-
-        #save database
-        $KeePassConnection.Save($null)
-    }
-}
-
-#Removes a KeePassEntry
-function Remove-KPEntry
-{
-    <#
-    #>
-    [CmdletBinding(
-        SupportsShouldProcess = $true,
-        ConfirmImpact = "High"
-     )]
-    param
-    (
-        [Parameter(
-            Position = 0,
-            Mandatory,
-            ValueFromPipeline,
-            ValueFromPipelineByPropertyName
-        )]
-        [ValidateNotNull()]
-        [KeePassLib.PwDatabase] $KeePassConnection,
-        
-        [Parameter(
-            Mandatory = $true,
-            Position = 1,
-            ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true
-        )]
-        [ValidateNotNullOrEmpty()]
-        [KeePassLib.PwEntry] $KeePassEntry,
-        
-        [Parameter(
-            Mandatory = $false,
-            Position = 2
-        )]
-        [Switch] $NoRecycle,
-        
-        [Parameter(
-            Mandatory = $false,
-            Position = 3
-        )]
-        [Switch] $Force
-    )
-    begin
-    {
-        $RecycleBin = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'Recycle Bin'
-        $EntryDisplayName = "$($KeePassEntry.ParentGroup.GetFullPath('/',$false))/$($KeePassEntry.Strings.ReadSafe('Title'))"
-        
-        if ( $Force -or $PSCmdlet.ShouldProcess($($EntryDisplayName)))
-        {
-            if ( -not $Force -and (-not $RecycleBin -or $NoRecycle) )
-            {
-                if ( -not $PSCmdlet.ShouldContinue("Recycle Bin Does Not Exist or the -NoRecycle Option Has been Specified.", "Do you want to continue to Permanently Delete this Entry: ($($EntryDisplayName))?"))
-                {
-                    break
-                }
-            }
-        }
-        else
-        {
-            break
-        }
-    }
-    process
-    {        
-        if($RecycleBin -and -not $NoRecycle)
-        {
-            #Make Copy of the group to be recycled.
-            $DeletedKeePassEntry = $KeePassEntry.CloneDeep()
-            #Generate a new Uuid and update the copy fo the group
-            $DeletedKeePassEntry.Uuid = (New-Object KeePassLib.PwUuid($true))
-            #Add the copy to the recycle bin, with take ownership set to true
-            $RecycleBin.AddGroup($DeletedKeePassEntry, $true)
-            Write-Verbose -Message "[PROCESS] Group has been Recycled."    
-        }
-        
-        #Deletes the specified group
-        $IsRemoved = $KeePassEntry.ParentGroup.Entries.Remove($KeePassEntry)
-        
-        if(-not $IsRemoved)
-        {
-            Write-Warning -Message "[PROCESS] Unknown Error has occured. Failed to Remove Entry ($($EntryDisplayName))"
-            Throw "Failed to Remove Entry $($EntryDisplayName)"
-        }
-        else
-        {
-            Write-Verbose -Message "[PROCESS] Entry ($($EntryDisplayName)) has been Removed."
-            $KeePassConnection.Save($null)
-        }
-    }
-}
-
-#Gets a KeePass Group object
-function Get-KPGroup
-{
-    <#
-        .SYNOPSIS
-            Gets a KeePass Group Object.
-        .DESCRIPTION
-            Gets a KeePass Group Object. Type: KeePassLib.PwGroup
-        .EXAMPLE
-            PS> Get-KeePassGroup -KeePassConnection $Conn -FullPath 'full/KPDatabase/pathtoGroup'
-
-            This Example will return a KeePassLib.PwGroup array Object with the full group path specified.
-        .EXAMPLE
-            PS> Get-KeePassGroup -KeePassConnection $Conn -GroupName 'Test Group'
-
-            This Example will return a KeePassLib.PwGroup array Object with the groups that have the specified name.
-        .PARAMETER KeePassConnection
-            Specify the Open KeePass Database Connection
-
-            See Get-KeePassConnection to Create the conneciton Object.
-        .PARAMETER FullPath
-            Specify the FullPath of a Group or Groups in a KPDB
-        .PARAMETER GroupName
-            Specify the GroupName of a Group or Groups in a KPDB.
-    #>
-    [CmdletBinding(DefaultParameterSetName = 'Full')]
-    [OutputType('KeePassLib.PwGroup')]
-    param
-    (
-        [Parameter(
-            Position = 0,
-            Mandatory,
-            ParameterSetName = 'Full'
-        )]
-        [Parameter(
-            Position = 0,
-            Mandatory,
-            ParameterSetName = 'Partial'
-        )]
-        [ValidateNotNullOrEmpty()]
-        [KeePassLib.PwDatabase] $KeePassConnection,
-        
-        [Parameter(
-            Position = 1,
-            Mandatory,
-            ParameterSetName = 'Full',
-            ValueFromPipelineByPropertyName
-        )]
-        [ValidateNotNullOrEmpty()]
-        [string] $FullPath,
-        
-        [Parameter(
-            Position = 1,
-            Mandatory,
-            ParameterSetName = 'Partial',
-            ValueFromPipelineByPropertyName
-        )]
-        [ValidateNotNullOrEmpty()]
-        [string] $GroupName
-    )
-    begin
-    {
-        try
-        {
-            [KeePassLib.PwGroup[]] $KeePassOutGroups = $null
-            #hmm not sure what this $KpGroup variable is for...
-            [KeePassLib.PwGroup] $KpGroup = New-Object KeePassLib.PwGroup -ErrorAction Stop -ErrorVariable ErrorNewPwGroupObject
-            $KeePassGroups = $KeePassConnection.RootGroup.GetFlatGroupList()
-        }
-        catch
-        {
-            Write-Warning -Message '[BEGIN] An error occured in the Get-KpGroup Cmdlet.'
-            if($ErrorNewPwGroupObject)
-            {
-                Write-Warning -Message '[BEGIN] An error occured while creating a new KeePassLib.PwGroup Object.'
-                Write-Warning -Message "[BEGIN] $($ErrorNewPwGroupObject.ErrorRecord.Message)"
-                Throw $_
-            }
-            else
-            {
-                Write-Warning -Message '[BEGIN] An unhandled exception occured.'
-                Write-Warning -Message '[BEGIN] Verify your KeePass Database Connection is Open.'
-                Throw $_
-            }
-        }
-
-    }
-    process
-    {
-        if ($PSCmdlet.ParameterSetName -eq 'Full')
-        {
-            foreach($_keepassGroup in $KeePassGroups)
-            {
-                if($_keepassGroup.GetFullPath("/", $false).Equals($FullPath))
-                {
-                    $KeePassOutGroups += $_keepassGroup
-                }                   
-            }
-        }
-        elseif ($PSCmdlet.ParameterSetName -eq 'Partial')
-        {
-            foreach($_keepassGroup in $KeePassGroups)
-            {
-                if($_keepassGroup.Name.Equals($GroupName))
-                {
-                    $KeePassOutGroups += $_keepassGroup
-                }
-            }
-        }
-    }
-    end{ $KeePassOutGroups }
-}
-
-#Create a New KeePass Group
-function Add-KPGroup
-{
-    <#
-        .SYNOPSIS
-            Creates a New KeePass Folder Group.
-        .DESCRIPTION
-            Creates a New KeePass Folder Group.
-        .EXAMPLE
-            PS> Add-KPGroup -KeePassConnection $Conn -GroupName 'NewGroupName' -KeePassParentGroup $KpGroup
-
-            This Example Create a New Group with the specified name in the specified KeePassParentGroup.
-        .PARAMETER KeePassConnection
-            This is the Open KeePass Database Connection
-
-            See Get-KeePassConnection to Create the conneciton Object.
-        .PARAMETER GroupName
-            Specify the name of the new group(s).
-        .PARAMETER KeePassParentGroup
-            Sepcify the KeePassParentGroup(s) for the new Group(s).
-        .NOTES
-            This Cmdlet Does AutoSave on exit.
-    #>
-    [CmdletBinding()]
-    param
-    (
-        [Parameter(
-            Position = 0,
-            Mandatory,
-            ValueFromPipeline,
-            ValueFromPipelineByPropertyName
-        )]
-        [ValidateNotNull()]
-        [KeePassLib.PwDatabase] $KeePassConnection,
-
-        [Parameter(
-            Position = 1,
-            Mandatory
-        )]
-        [ValidateNotNullorEmpty()]
-        [string] $GroupName,
-
-        [Parameter(
-            Position = 2,
-            Mandatory
-        )]
-        [ValidateNotNullOrEmpty()]
-        [KeePassLib.PwGroup] $KeePassParentGroup
-    )
-    begin
-    {
-        try
-        {
-            [KeePassLib.PwGroup] $KeePassGroup = New-Object KeePassLib.PwGroup -ErrorAction Stop -ErrorVariable ErrorNewPwGroupObject
-        }
-        catch
-        {
-            Write-Warning -Message '[BEGIN] An error occured in the Add-KpGroup Cmdlet.'
-            if($ErrorNewPwGroupObject)
-            {
-                Write-Warning -Message '[BEGIN] An error occured while creating a new KeePassLib.PwGroup Object.'
-                Write-Warning -Message "[BEGIN] $($ErrorNewPwGroupObject.ErrorRecord.Message)"
-                Throw $_
-            }
-            else
-            {
-                Write-Warning -Message '[BEGIN] An unhandled exception occured.'
-                Write-Warning -Message '[BEGIN] Verify your KeePass Database Connection is Open.'
-                Throw $_
-            }
-        }
-    }
-    process
-    {
-        $KeePassGroup.Name = $GroupName
-        $KeePassParentGroup.AddGroup($KeePassGroup, $true)
-        $KeePassConnection.Save($null)
-    }
-}
-
-#Set/Update a KeePass Group
-#needs parameter sets 
-#checks to see if the changes are valid
-function Set-KPGroup
-{
-    <#
-        .SYNOPSIS
-            Creates a New KeePass Folder Group.
-        .DESCRIPTION
-            Creates a New KeePass Folder Group.
-        .EXAMPLE
-            PS> Add-KPGroup -KeePassConnection $Conn -GroupName 'NewGroupName' -KeePassParentGroup $KpGroup
-
-            This Example Create a New Group with the specified name in the specified KeePassParentGroup.
-        .PARAMETER KeePassConnection
-            This is the Open KeePass Database Connection
-
-            See Get-KeePassConnection to Create the conneciton Object.
-        .PARAMETER GroupName
-            Specify the name of the new group(s).
-        .PARAMETER KeePassParentGroup
-            Sepcify the KeePassParentGroup(s) for the new Group(s).
-        .NOTES
-            This Cmdlet Does AutoSave on exit.
-    #>
-    [CmdletBinding()]
-    param
-    (
-        [Parameter(
-            Position = 0,
-            Mandatory,
-            ValueFromPipeline,
-            ValueFromPipelineByPropertyName
-        )]
-        [ValidateNotNull()]
-        [KeePassLib.PwDatabase] $KeePassConnection,
-
-        [Paramter(
-            Position = 1,
-            Mandatory = $true
-        )]
-        [ValidateNotNullOrEmpty()]
-        [KeePassLib.PwGroup] $KeePassGroup,
-
-        [Parameter(
-            Position = 1,
-            Mandatory = $false
-        )]
-        [ValidateNotNullorEmpty()]
-        [string] $GroupName,
-
-        [Parameter(
-            Position = 2,
-            Mandatory = $false
-        )]
-        [ValidateNotNullOrEmpty()]
-        [KeePassLib.PwGroup] $KeePassParentGroup
-    )
-    begin
-    {
-        # try
-        # {
-        #     [KeePassLib.PwGroup] $KeePassGroup = New-Object KeePassLib.PwGroup -ErrorAction Stop -ErrorVariable ErrorNewPwGroupObject
-        # }
-        # catch
-        # {
-        #     Write-Warning -Message '[BEGIN] An error occured in the Add-KpGroup Cmdlet.'
-        #     if($ErrorNewPwGroupObject)
-        #     {
-        #         Write-Warning -Message '[BEGIN] An error occured while creating a new KeePassLib.PwGroup Object.'
-        #         Write-Warning -Message "[BEGIN] $($ErrorNewPwGroupObject.ErrorRecord.Message)"
-        #         Throw $_
-        #     }
-        #     else
-        #     {
-        #         Write-Warning -Message '[BEGIN] An unhandled exception occured.'
-        #         Write-Warning -Message '[BEGIN] Verify your KeePass Database Connection is Open.'
-        #         Throw $_
-        #     }
-        # }
-    }
-    process
-    {
-        
-        if($GroupName)
-        {
-            $KeePassGroup.Name = $GroupName
-        }
-        
-        if($KeePassParentGroup)
-        {
-            if($KeePassGroup.ParentGroup.Uuid -ne $KeePassParentGroup.Uuid)
-            {
-                $UpdatedKeePassGroup = $KeePassGroup.CloneDeep()
-                $UpdatedKeePassGroup.Uuid = New-Object KeePassLib.PwUuid($true)
-                $KeePassParentGroup.AddGroup($UpdatedKeePassGroup, $true)
-                $KeePassConnection.Save($null)
-                $KeePassGroup.ParentGroup.Entries.Remove($KeePassGroup)
-            }
-            
-        }
-        
-        $KeePassConnection.Save($null)
-    }
-}
-
-#Removes a KeePassGroup
-function Remove-KPGroup
-{
-    <#
-    #>
-    [CmdletBinding(
-        SupportsShouldProcess = $true,
-        ConfirmImpact = "High"
-     )]
-    param
-    (
-        [Parameter(
-            Position = 0,
-            Mandatory,
-            ValueFromPipeline,
-            ValueFromPipelineByPropertyName
-        )]
-        [ValidateNotNull()]
-        [KeePassLib.PwDatabase] $KeePassConnection,
-        
-        [Parameter(
-            Mandatory = $true,
-            Position = 1,
-            ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true
-        )]
-        [ValidateNotNullOrEmpty()]
-        [KeePassLib.PwGroup] $KeePassGroup,
-        
-        [Parameter(
-            Mandatory = $false,
-            Position = 2
-        )]
-        [Switch] $NoRecycle,
-        
-        [Parameter(
-            Mandatory = $false,
-            Position = 3
-        )]
-        [Switch] $Force
-    )
-    begin
-    {
-        $RecycleBin = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'Recycle Bin'
-        
-        if ( $Force -or $PSCmdlet.ShouldProcess($($KeePassGroup.GetFullPath('/',$false))))
-        {
-            if ( -not $Force -and (-not $RecycleBin -or $NoRecycle) )
-            {
-                if ( -not $PSCmdlet.ShouldContinue("Recycle Bin Does Not Exist or the -NoRecycle Option Has been Specified.", "Do you want to continue to Permanently Delete this Group: ($($KeePassGroup.GetFullPath('/',$false)))?"))
-                {
-                    break
-                }
-            }
-        }
-        else
-        {
-            break
-        }
-        ###Force only verses shouldprocess confirmation.
-        # if (-not $Force)
-        # {
-        #     $caption = "Please Confirm"
-        #     if( -not $RecycleBin -or $NoRecycle)
-        #     {
-        #         $Message = "Are you Sure You Want To Permanently Delete Group ($($KeePassGroup.GetFullPath('/',$false))) and all of its Entries and SubGroups." 
-        #     }
-        #     else
-        #     {
-        #         $Message = "Are you Sure You Want To Recycle Group ($($KeePassGroup.GetFullPath('/',$false))) and all of its Entries and SubGroups."    
-        #     }  
-            
-        #     [int]$defaultChoice = 1
-        #     $yes = New-Object System.Management.Automation.Host.ChoiceDescription "&Yes", "Do the job."
-        #     $no = New-Object System.Management.Automation.Host.ChoiceDescription "&No", "Do not do the job."
-        #     $options = [System.Management.Automation.Host.ChoiceDescription[]]($yes, $no)
-        #     $choiceRTN = $host.ui.PromptForChoice($caption,$message, $options, $defaultChoice)
-
-        #     if ( $choiceRTN -ne 1 )
-        #     {
-        #         Write-Warning -Message "Continueing with Operation."
-        #     }
-        #     else
-        #     {
-        #         Write-Warning -Message "Cancellation Requested. Aborting operation."
-        #         Break
-        #     }
-        # }
-    }
-    process
-    {        
-        if($RecycleBin -and -not $NoRecycle)
-        {
-            #Make Copy of the group to be recycled.
-            $DeletedKeePassGroup = $KeePassGroup.CloneDeep()
-            #Generate a new Uuid and update the copy fo the group
-            $DeletedKeePassGroup.Uuid = (New-Object KeePassLib.PwUuid($true))
-            #Add the copy to the recycle bin, with take ownership set to true
-            $RecycleBin.AddGroup($DeletedKeePassGroup, $true)
-            Write-Verbose -Message "[PROCESS] Group has been Recycled."    
-        }
-        
-        #Deletes the specified group
-        $IsRemoved = $KeePassGroup.ParentGroup.Groups.Remove($KeePassGroup)
-        
-        if(-not $IsRemoved)
-        {
-            Write-Warning -Message "[PROCESS] Unknown Error has occured. Failed to Remove Group ($($KeePassGroup.GetFullPath('/',$false)))"
-            Throw "Failed to Remove Group $($KeePassGroup.GetFullPath('/',$false))"
-        }
-        else
-        {
-            Write-Verbose -Message "[PROCESS] Group ($($KeePassGroup.GetFullPath('/',$false))) has been Removed."
-            $KeePassConnection.Save($null)
-        }
-    }
-}
-
-#Generates a Password Using the KeePass Password Generator
-##Need to check if profile by name exists and prompt for what to do
-##Need to add option to generate via profile
+## Generates a Password Using the KeePass Password Generator
+## Need to check if profile by name exists and prompt for what to do
+## Need to add option to generate via profile
 function Get-KeePassPassword
 {
     <#
@@ -2285,6 +1005,1312 @@ function Get-KeePassPassword
         # $PSOut.GetType();
 
         $PSOut
+    }
+}
+
+function Set-KeePassConfiguration
+{
+    <#
+        .SYNOPSIS
+            Sets the configuration for the PowerShell KeePass Module.
+        .DESCRIPTION
+            Adds the entries KPProgramfolder and DBDefaultpathPath to the KeePassConfiguration.xml
+            located in the modules root folder.
+        .PARAMETER DBDefaultpathPath
+            The path to the default KeePass Database file.
+            e.g. C:\KeePassDBs\mytest.kdbx
+            The default Databasfile can be overwritten by the Cmdlets
+            Get-KeePassEntry, New-KeePassEntry, Set-KeePassEntry by defining the
+            DBPath parameter.
+        .EXAMPLE
+            Set-KeePassConfiguration -DBDefaultpathPath C:\TEMP\Test-Database.kdbx -KPProgramFolder 'C:\Program Files (x86)\KeePass Password Safe 2\'
+
+            Description: Creates a new KeePassConfiguration.xml in the current PowerShell module folder if there is no existing KeePassConfiguration.xml.
+            If the KeePassConfiguration.xml already exists it will be overwritten.
+
+            Output:
+            KeePass configuration successfully updated
+    #>
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(
+            Mandatory = $false,
+            Position = 0
+        )]
+        [String] $DBDefaultpathPath,
+
+        [Parameter(
+            Mandatory = $false,
+            Position = 1
+        )]
+        [String] $KeePassKeyFile,
+
+        [Parameter(
+            Mandatory = $false,
+            Position = 2
+        )]
+        [PSCustomObject] $PassProfile
+    )
+
+    #Check if there already is a KeePassConfiguration.xml which can be used / overwritten
+    if (Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml)
+    {
+
+        [xml] $XML = (Get-Content $PSScriptRoot\KeePassConfiguration.xml)
+        $XML.Settings.KeePassSettings.DBDefaultpathPath = $DBDefaultpathPath
+        $XML.Settings.KeePassSettings.DBKeyFilePath = $KeePassKeyFile
+        $XML.Save("$PSScriptRoot\KeePassConfiguration.xml")
+
+        Write-Output 'KeePass configuration successfully updated.'
+    }
+    else
+    {
+        $Path = "$PSScriptRoot\KeePassConfiguration.xml"
+
+        $XML = New-Object System.Xml.XmlTextWriter($Path,$null)
+        $XML.Formatting = 'Indented'
+        $XML.Indentation = 1
+        $XML.IndentChar = "`t"
+
+        $XML.WriteStartDocument()
+        $XML.WriteProcessingInstruction('xml-stylesheet', "type='text/xsl' href='style.xsl'")
+
+        $XML.WriteStartElement('Settings')
+        $XML.WriteStartElement('KeePassSettings')
+        $XML.WriteElementString('DBDefaultpathPath',"$DBDefaultpathPath")
+        $XML.WriteElementString('KeePassKeyFilePath', "$KeePassKeyFile")
+        $XML.WriteEndElement()
+        $XML.WriteStartElement("PasswordProfiles")
+        $XML.WriteEndElement()
+        $XML.WriteEndElement()
+        
+        $XML.WriteEndDocument()
+        $xml.Flush()
+        $xml.Close()
+
+        Write-Output 'KeePass configuration successfully created. To update, run Set-KeePassConfiguration again'
+    }
+
+}
+
+function Get-KeePassConfiguration
+{
+    <#
+        .SYNOPSIS
+            Reads the current KeePassConfiguration and displays values for DBDefaultpathPath and KPProgramfolder for the PowerShell KeePass Module.
+        .DESCRIPTION
+            Reads the current KeePassConfiguration and displays values for DBDefaultpathPath and KPProgramfolder for the PowerShell KeePass Module.
+            The KeePassConfiguration.xml is located in the PSKeePass module root folder.
+    #>
+    #Check if there already is a KeePassConfiguration.xml and write out the configuration
+    if (Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml)
+    {
+        [xml]$XML = (Get-Content $PSScriptRoot\KeePassConfiguration.xml)
+
+        $output = '' | Select-Object DBDefaultpathPath,KPProgramFolder
+        $Output.DBDefaultpathPath = $xml.Settings.KeePassSettings.DBDefaultpathPath
+        $Output.KPProgramFolder = $xml.Settings.KeePassSettings.KPProgramFolder
+        $output
+    }
+    else
+    {
+        Write-Output 'No KeePass Configuration has been created. You can create one with Set-KeePassConfiguration'
+    }
+
+}
+
+<#
+# Internals
+# *These functions below support all of the functions above.
+# *Their intended purpose is to be used for advanced scripting.
+#>
+
+## Saves a Password Profile to XML Config
+function New-KPPasswordProfile
+{
+    <#
+    #>
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(
+            Position = 0,
+            Mandatory = $true
+        )]
+        [ValidateNotNullOrEmpty()]
+        [PSCustomObject] $KeePassPasswordObject
+    )
+    
+    if (Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml)
+    {
+        [xml] $XML = Get-Content("$PSScriptRoot\KeePassConfiguration.xml")
+        #Create New Profile Element with Name of the new profile
+        $PasswordProfile = $XML.CreateElement('Profile')
+        $PasswordProfileAtribute = $XML.CreateAttribute('Name')
+        $PasswordProfileAtribute.Value = $KeePassPasswordObject.ProfileName
+        $PasswordProfile.Attributes.Append($PasswordProfileAtribute) | Out-Null
+        
+        #Build and Add Element Nodes
+        $CharacterSetNode = $XML.CreateNode('element','CharacterSet','')
+        $CharacterSetNode.InnerText = $KeePassPasswordObject.CharacterSet
+        $PasswordProfile.AppendChild($CharacterSetNode) | Out-Null
+        
+        $ExcludeLookAlikeNode = $XML.CreateNode('element','ExcludeLookAlike','')
+        $ExcludeLookAlikeNode.InnerText = $KeePassPasswordObject.ExcludeLookAlike
+        $PasswordProfile.AppendChild($ExcludeLookAlikeNode) | Out-Null
+        
+        $NoRepeatingCharactersNode = $XML.CreateNode('element','NoRepeatingCharacters','')
+        $NoRepeatingCharactersNode.InnerText = $KeePassPasswordObject.NoRepeatingCharacters
+        $PasswordProfile.AppendChild($NoRepeatingCharactersNode) | Out-Null
+        
+        $ExcludeCharactersNode = $XML.CreateNode('element','ExcludeCharacters','')
+        $ExcludeCharactersNode.InnerText = $KeePassPasswordObject.ExcludeCharacters
+        $PasswordProfile.AppendChild($ExcludeCharactersNode) | Out-Null
+        
+        $LengthNode = $XML.CreateNode('element','Length','')
+        $LengthNode.InnerText = $KeePassPasswordObject.Length
+        $PasswordProfile.AppendChild($LengthNode) | Out-Null
+        
+        $XML.SelectSingleNode('/Settings/PasswordProfiles').AppendChild($PasswordProfile) | Out-Null
+        
+        $XML.Save("$PSScriptRoot\KeePassConfiguration.xml")   
+    }
+    else
+    {
+        Write-Output 'No KeePass Configuration has been created. You can create one with Set-KeePassConfiguration'
+    }
+}
+
+## Need to build out this dummy function
+function Get-KPPasswordProfile
+{
+    <#
+    #>
+    [CmdletBinding()]
+    param()  
+}
+
+## Need to build out this dummy function
+function Set-KPPasswordProfile
+{
+    <#
+    #>
+    [CmdletBinding()]
+    param()  
+}
+
+## Create a KeePass Credential Object
+function Get-KPCredential
+{
+	<#
+        .SYNOPSIS
+            This function Creates a Keepass Credential Object to be passed to the keepass module.
+        .DESCRIPTION
+            This function Creates a Keepass Credential Object to be passed to the keepass module. This will be used to to validate passed
+            keepass database credentials and then open said database in a specific way based on passed credentials
+        .EXAMPLE
+            PS> Get-KpCred -KpDBPath "\\mypath\database.kdbx" -KpKeyPath "\\mypath\database.key"
+
+            This Example will create a keepass credential object to be used when opening a keepass database, using the database file and a keepass kee file.
+        .EXAMPLE
+            PS> Get-KpCred -KpDBPath "\\mypath\database.kdbx" -KpKeyPath "\\mypath\database.key" -KpMasterKey "MyMasterKeyPassword"
+
+            This Example will create a keepass credential object to be used when opening a keepass database, using the database file, a keepass kee file, and a masterkey password.
+        .EXAMPLE
+            PS> Get-KpCred -KpDBPath "\\mypath\database.kdbx" -KpMasterKey "MyMasterKeyPassword"
+
+            This Example will create a keepass credential object to be used when opening a keepass database, using the database file and a masterkey password.
+        .PARAMETER DatabaseFile
+            The path to your Keepass Database File (.kdbx)
+        .PARAMETER KeyFile
+            The path to your Keepass Encryption Key File (.key)
+        .PARAMETER MasterKey
+            The Master Key Password to your Keepass Database.
+        .INPUTS
+            String. All Inputs are passed as a string.
+        .OUTPUTS
+            System.Management.Automation.PSCustomObject
+	#>
+    [CmdletBinding(DefaultParameterSetName='Key')]
+    [OutputType([PSCustomObject])]
+    param
+    (
+        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Key')]
+        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Master')]
+        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
+        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Network')]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript({Test-Path $_})]
+        [string] $DatabaseFile,
+
+        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Key')]
+        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript({Test-Path $_})]
+        [string] $KeyFile,
+
+        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Master')]
+        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
+        [ValidateNotNullOrEmpty()]
+        [System.Security.SecureString] $MasterKey,
+
+        [Parameter(Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Network')]
+        [Parameter(Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Key')]
+        [Parameter(Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Master')]
+        [switch] $UseNetworkAccount
+    )
+    process
+    {
+        try
+        {
+            $output = [Ordered]@{
+                'DatabaseFile' = $DatabaseFile
+                'KeyFile' = $KeyFile
+                'MasterKey' = $MasterKey
+                'AuthenticationType' = $PSCmdlet.ParameterSetName
+                'UseNetworkAccount' = $UseNetworkAccount
+            }
+        }
+        catch [Exception]
+        {
+            Throw $_.Exception.Message
+        }
+        finally
+        {
+            [PSCustomObject]$output
+        }
+    }
+}
+
+## Open KeePass DB Connection
+function Get-KPConnection
+{
+    <#
+        .SYNOPSIS
+            This Function Creates a Connection to a KeePass Database.
+        .DESCRIPTION
+            This Function Creates a Connection to a KeePass Database. It Uses a KpCred Object-
+            to determine the authentication method. It then connectes to the database and returns-
+            an open KeePassLib.PwDatabase object.
+
+            Currently this funciton supports these methods of authentication:
+                KeyFile
+                Master Password
+                Master Password and KeyFile
+
+            Future Versions will support Windows User Authentication Types.
+        .EXAMPLE
+            PS> Get-KeePassConnection -KeePassCredential $Creds
+
+            This Example will return an KeePass Database Connection using a pre-defined KeePass Credential Object.
+        .PARAMETER KeePassCredential
+            This is the KeePass Credential Object, that is used to open a connection to the KeePass DB.
+
+            See Get-KeePassCredential in order to generate this credential object.
+    #>
+    [CmdletBinding()]
+    [OutputType('KeePassLib.PwDatabase')]
+    param
+    (
+        [Parameter(Position=0,
+            Mandatory,
+            ValueFromPipeline,
+            ValueFromPipelineByPropertyName
+        )]
+        [ValidateNotNullOrEmpty()]
+        [PSCustomObject] $KeePassCredential
+    )
+    process
+    {
+        #Create IOConnectionInfo to KPDB using KPLib
+        try
+        {
+            $KeePassIOConnectionInfo = New-Object KeePassLib.Serialization.IOConnectionInfo
+            $KeePassIOConnectionInfo.Path = $KeePassCredential.DatabaseFile
+            $KeePassCompositeKey = New-Object KeePassLib.Keys.CompositeKey
+        }
+        catch [Exception]
+        {
+            Write-Warning $_.Exception.Message
+            Throw $_.Exception
+        }
+
+        #Determine AuthenticationType and Create KPLib CompositeKey
+        try
+        {
+            
+
+            if ($KeePassCredential.AuthenticationType -eq "Key")
+            {
+                $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpKeyFile($KeePassCredential.KeyFile)))
+                if($KeePassCredential.UseNetworkAccount)
+                {
+                    $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpUserAccount))
+                }
+            }
+            elseif ($KeePassCredential.AuthenicationType -eq "KeyAndMaster")
+            {
+                $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpKeyFile($KeePassCredential.KeyFile)))
+
+                $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpPassword([Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($KeePassCredential.MasterKey)))))
+                
+                # $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpUserAccount))
+            }
+            elseif ($KeePassCredential.AuthenticationType -eq "Master")
+            {
+                $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpPassword([Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($KeePassCredential.MasterKey)))))
+                if($KeePassCredential.UseNetworkAccount)
+                {
+                    $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpUserAccount))
+                }
+            }
+
+            
+        }
+        catch [Exception]
+        {
+            Write-Warning $_.Exception.Message
+            Throw $_.Exception
+        }
+        finally
+        {
+            Remove-Variable -Name KeePassCredential
+            # $KeePassCompositeKey = $null
+        }
+
+        #Open KPDB Connection
+        try
+        {
+            $KeePassDatabase = New-Object KeePassLib.PwDatabase
+            $KeePassDatabase.Open($KeePassIOConnectionInfo,$KeePassCompositeKey,$null)
+           
+            
+        }
+        catch [Exception]
+        {
+            Write-Warning $_.Exception.Message
+            Throw $_.Exception
+        }
+        finally
+        {
+             Remove-Variable -Name KeePassCompositeKey
+        }
+        
+        $KeePassDatabase
+    }
+}
+
+## Close KeePass DB connection
+function Remove-KPConnection
+{
+    <#
+        .SYNOPSIS
+            This Function Removes a Connection to a KeePass Database.
+        .DESCRIPTION
+            This Function Removes a Connection to a KeePass Database.
+        .EXAMPLE
+            PS> Remove-KPConnection -KeePassConnection $DB
+
+            This Example will Remove/Close a KeePass Database Connection using a pre-defined KeePass DB connection.
+        .PARAMETER KeePassConnection
+            This is the KeePass Connection to be Closed
+    #>
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(Position=0, Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [KeePassLib.PwDatabase] $KeePassConnection
+    )
+    process
+    {
+        try
+        {
+            $KeePassConnection.Close()
+        }
+        catch [Exception]
+        {
+            Write-Warning $_.Exception.Message
+        }
+    }
+}
+
+## Fetch a KeePass entry
+function Get-KPEntry
+{
+    <#
+        .SYNOPSIS
+            This function will lookup and Return KeePass one or more KeePass Entries.
+        .DESCRIPTION
+            This function will lookup Return KeePass Entry(ies). It supports basic lookup filtering.
+        .EXAMPLE
+            PS> Get-KPEntryBase -KeePassConnection $DB -UserName "MyUser"
+
+            This Example will return all entries that have the UserName "MyUser"
+        .EXAMPLE
+            PS> Get-KPEntry -KeePassConnection $DB -KeePassGroup $KpGroup
+
+            This Example will return all entries that are in the specified group.
+        .EXAMPLE
+            PS> Get-KPEntry -KeePassConnection $DB -UserName "AUserName"
+
+            This Example will return all entries have the UserName "AUserName"
+        .PARAMETER KeePassConnection
+            This is the Open KeePass Database Connection
+
+            See Get-KeePassConnection to Create the conneciton Object.
+        .PARAMETER KeePassGroup
+            This is the KeePass Group Object in which to search for entries.
+        .PARAMETER Title
+            This is a Title of one or more KeePass Entries.
+        .PARAMETER UserName
+            This is the UserName of one or more KeePass Entries.
+    #>
+    [CmdletBinding(DefaultParameterSetName="")]
+    [OutputType('KeePassLib.PwEntry')]
+    param
+    (
+        [Parameter(Position=0,Mandatory,ParameterSetName="Group")]
+        [Parameter(Position=0,Mandatory,ParameterSetName="Title")]
+        [Parameter(Position=0,Mandatory,ParameterSetName="UserName")]
+        [Parameter(Position=0,Mandatory,ParameterSetName="Password")]
+        [ValidateNotNullOrEmpty()]
+        [KeePassLib.PwDatabase] $KeePassConnection,
+
+        [Parameter(Position=1,Mandatory,ParameterSetName="Group")]
+        [ValidateNotNullOrEmpty()]
+        [KeePassLib.PwGroup[]] $KeePassGroup,
+
+        [Parameter(Position=2,Mandatory=$false,ParameterSetName="Group")]
+        [Parameter(Position=1,Mandatory,ParameterSetName="Title")]
+        [ValidateNotNullOrEmpty()]
+        [string] $Title,
+
+        [Parameter(Position=3,Mandatory=$false,ParameterSetName="Group")]
+        [Parameter(Position=2,Mandatory=$false,ParameterSetName="Title")]
+        [Parameter(Position=1,Mandatory,ParameterSetName="UserName")]
+        [ValidateNotNullOrEmpty()]
+        [string] $UserName
+    )
+    process
+    {
+        #Get Entries and Filter
+        $KeePassItems = $KeePassConnection.RootGroup.GetEntries($true)
+
+        #This a lame way of filtering.
+        if ($KeePassGroup)
+        {
+            $KeePassItems = foreach($_keepassItem in $KeePassItems)
+            {
+                if($KeePassGroup.Contains($_keepassItem.ParentGroup))
+                {
+                    $_keepassItem
+                }
+            }
+        }
+        if ($Title)
+        {
+            $KeePassItems = foreach($_keepassItem in $KeePassItems)
+            {
+                if($_keepassItem.Strings.ReadSafe("Title").ToLower().Equals($Title.ToLower()))
+                {
+                    $_keepassItem
+                }
+            }
+        }
+        if ($UserName)
+        {
+             $KeePassItems = foreach($_keepassItem in $KeePassItems)
+             {
+                 if($_keepassItem.Strings.ReadSafe("UserName").ToLower().Equals($UserName.ToLower()))
+                 {
+                    $_keepassItem
+                 }
+             }
+        }
+        $KeePassItems
+    }
+}
+
+## Add New KeePass Entry
+function Add-KPEntry
+{
+    <#
+        .SYNOPSIS
+            This Function will add a new entry to a KeePass Database Group.
+        .DESCRIPTION
+            This Function will add a new entry to a KeePass Database Group.
+
+            Currently This function supportes the basic fields for creating a new KeePass Entry.
+        .PARAMETER KeePassConnection
+            This is the Open KeePass Database Connection
+
+            See Get-KeePassConnection to Create the conneciton Object.
+        .PARAMETER KeePassGroup
+            This is the KeePass GroupObject to add the new Entry to.
+        .PARAMETER Title
+            This is the Title of the New KeePass Entry.
+        .PARAMETER UserName
+            This is the UserName of the New KeePass Entry.
+        .PARAMETER KeePassPassword
+            This is the Password of the New KeePass Entry.
+        .PARAMETER Notes
+            This is the Notes of the New KeePass Entry.
+        .PARAMETER URL
+            This is the URL of the New KeePass Entry.
+        .NOTES
+            This Cmdlet will autosave on exit
+    #>
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(Position=0,Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [KeePassLib.PwDatabase] $KeePassConnection,
+
+        [Parameter(Position=1,Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [KeePassLib.PwGroup] $KeePassGroup,
+
+        [Parameter(Position=2,Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Title,
+
+        [Parameter(Position=3,Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [string] $UserName,
+
+        [Parameter(Position=4,Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [KeePassLib.Security.ProtectedString] $KeePassPassword,
+
+        [Parameter(Position=5,Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Notes,
+
+        [Parameter(Position=6,Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [string] $URL
+    )
+    begin
+    {
+        try
+        {
+            $KeePassEntry = New-Object KeePassLib.PwEntry($true, $true) -ErrorAction Stop -ErrorVariable ErrorNewPwEntryObject
+        }
+        catch
+        {
+            Write-Warning -Message '[BEGIN] An error occured in the Add-KpEntry Cmdlet.'
+            if($ErrorNewPwGroupObject)
+            {
+                Write-Warning -Message '[BEGIN] An error occured while creating a new KeePassLib.PwEntry Object.'
+                Write-Warning -Message "[BEGIN] $($ErrorNewPwEntryObject.ErrorRecord.Message)"
+                Throw $_
+            }
+            else
+            {
+                Write-Warning -Message '[BEGIN] An unhandled exception occured.'
+                Write-Warning -Message '[BEGIN] Verify your KeePass Database Connection is Open.'
+                Throw $_
+            }
+        }
+    }
+    process
+    {
+        if($Title)
+        {
+            $SecureTitle = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectTitle, $Title)
+            $KeePassEntry.Strings.Set("Title", $SecureTitle)
+        }
+
+        if($UserName)
+        {
+            $SecureUser = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectUserName, $UserName)
+            $KeePassEntry.Strings.Set("UserName", $SecureUser)
+        }
+
+        if($KeePassPassword)
+        {
+            $KeePassEntry.Strings.Set("Password", $KeePassPassword)
+        }
+        else
+        {
+            #get password based on default pattern
+            $KeePassPassword = Get-KeePassPassword
+            $KeePassEntry.Strings.Set("Password", $KeePassPassword)
+        }
+
+        if($Notes)
+        {
+            $SecureNotes = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectNotes, $Notes)
+            $KeePassEntry.Strings.Set("Notes", $SecureNotes)
+        }
+
+        if($URL)
+        {
+            $SecureURL = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectUrl, $URL)
+            $KeePassEntry.Strings.Set("URL", $SecureURL)
+        }
+
+        #Add to Group
+        $KeePassGroup.AddEntry($KeePassEntry,$true)
+
+        #save database
+        $KeePassConnection.Save($null)
+    }
+}
+
+## Set/Update a KeePass Group
+## Needs Parameter Sets 
+## needs parameter atrributes updates
+## needs help text update
+## Add funcitonality from Set-KeePassEntry above (append notes) or only have that in wrapper funcion
+function Set-KPEntry
+{
+    <#
+        .SYNOPSIS
+            This Function will add a new entry to a KeePass Database Group.
+        .DESCRIPTION
+            This Function will add a new entry to a KeePass Database Group.
+
+            Currently This function supportes the basic fields for creating a new KeePass Entry.
+        .PARAMETER KeePassConnection
+            This is the Open KeePass Database Connection
+
+            See Get-KeePassConnection to Create the conneciton Object.
+        .PARAMETER KeePassEntry
+            This is the KeePass Entry Object to update/set atrributes.
+        .PARAMETER KeePassGroup
+            Specifiy this if you want Move the KeePassEntry to another Group
+        .PARAMETER Title
+            This is the Title of the New KeePass Entry.
+        .PARAMETER UserName
+            This is the UserName of the New KeePass Entry.
+        .PARAMETER KeePassPassword
+            This is the Password of the New KeePass Entry.
+        .PARAMETER Notes
+            This is the Notes of the New KeePass Entry.
+        .PARAMETER URL
+            This is the URL of the New KeePass Entry.
+        .NOTES
+            This Cmdlet will autosave on exit
+    #>
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(Position=0,Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [KeePassLib.PwDatabase] $KeePassConnection,
+
+        [Parameter(Position=1,Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [KeePassLib.PwEntry] $KeePassEntry,
+
+        [Parameter(Position=2,Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Title,
+
+        [Parameter(Position=3,Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [string] $UserName,
+
+        [Parameter(Position=4,Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [KeePassLib.Security.ProtectedString] $KeePassPassword,
+
+        [Parameter(Position=5,Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Notes,
+
+        [Parameter(Position=6,Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [string] $URL,
+        
+        [Parameter(Position=7,Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [KeePassLib.PwGroup] $KeePassGroup
+    )
+    begin
+    {
+        # try
+        # {
+        #     $KeePassEntry = New-Object KeePassLib.PwEntry($true, $true) -ErrorAction Stop -ErrorVariable ErrorNewPwEntryObject
+        # }
+        # catch
+        # {
+        #     Write-Warning -Message '[BEGIN] An error occured in the Add-KpEntry Cmdlet.'
+        #     if($ErrorNewPwGroupObject)
+        #     {
+        #         Write-Warning -Message '[BEGIN] An error occured while creating a new KeePassLib.PwEntry Object.'
+        #         Write-Warning -Message "[BEGIN] $($ErrorNewPwEntryObject.ErrorRecord.Message)"
+        #         Throw $_
+        #     }
+        #     else
+        #     {
+        #         Write-Warning -Message '[BEGIN] An unhandled exception occured.'
+        #         Write-Warning -Message '[BEGIN] Verify your KeePass Database Connection is Open.'
+        #         Throw $_
+        #     }
+        # }
+    }
+    process
+    {
+        if($Title)
+        {
+            $SecureTitle = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectTitle, $Title)
+            $KeePassEntry.Strings.Set("Title", $SecureTitle)
+        }
+
+        if($UserName)
+        {
+            $SecureUser = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectUserName, $UserName)
+            $KeePassEntry.Strings.Set("UserName", $SecureUser)
+        }
+
+        if($KeePassPassword)
+        {
+            $KeePassEntry.Strings.Set("Password", $KeePassPassword)
+        }
+
+        if($Notes)
+        {
+            $SecureNotes = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectNotes, $Notes)
+            $KeePassEntry.Strings.Set("Notes", $SecureNotes)
+        }
+
+        if($URL)
+        {
+            $SecureURL = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectUrl, $URL)
+            $KeePassEntry.Strings.Set("URL", $SecureURL)
+        }
+        
+        #If specified group is different than current group
+        if($KeePassGroup.Uuid -ne $KeePassEntry.Uuid)
+        {
+            #Make Full Copy of Entry
+            $NewKeePassEntry = $KeePassEntry.CloneDeep()
+            #Assign New Uuid to CloneDeep
+            $NewKeePassEntry.Uuid = New-Object KeePassLib.PwUuid($true)
+            #Add Clone to Specified group
+            $KeePassGroup.AddEntry($NewKeePassEntry)
+            
+            #Save for safety
+            $KeePassConnection.Save($null)
+            
+            #Delete previous entry
+            $KeePassEntry.ParentGroup.Entries.Remove($KeePassEntry)
+        }
+
+        #save database
+        $KeePassConnection.Save($null)
+    }
+}
+
+## Removes a KeePassEntry
+function Remove-KPEntry
+{
+    <#
+    #>
+    [CmdletBinding(
+        SupportsShouldProcess = $true,
+        ConfirmImpact = "High"
+     )]
+    param
+    (
+        [Parameter(
+            Position = 0,
+            Mandatory,
+            ValueFromPipeline,
+            ValueFromPipelineByPropertyName
+        )]
+        [ValidateNotNull()]
+        [KeePassLib.PwDatabase] $KeePassConnection,
+        
+        [Parameter(
+            Mandatory = $true,
+            Position = 1,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true
+        )]
+        [ValidateNotNullOrEmpty()]
+        [KeePassLib.PwEntry] $KeePassEntry,
+        
+        [Parameter(
+            Mandatory = $false,
+            Position = 2
+        )]
+        [Switch] $NoRecycle,
+        
+        [Parameter(
+            Mandatory = $false,
+            Position = 3
+        )]
+        [Switch] $Force
+    )
+    begin
+    {
+        $RecycleBin = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'Recycle Bin'
+        $EntryDisplayName = "$($KeePassEntry.ParentGroup.GetFullPath('/',$false))/$($KeePassEntry.Strings.ReadSafe('Title'))"
+        
+        if ( $Force -or $PSCmdlet.ShouldProcess($($EntryDisplayName)))
+        {
+            if ( -not $Force -and (-not $RecycleBin -or $NoRecycle) )
+            {
+                if ( -not $PSCmdlet.ShouldContinue("Recycle Bin Does Not Exist or the -NoRecycle Option Has been Specified.", "Do you want to continue to Permanently Delete this Entry: ($($EntryDisplayName))?"))
+                {
+                    break
+                }
+            }
+        }
+        else
+        {
+            break
+        }
+    }
+    process
+    {        
+        if($RecycleBin -and -not $NoRecycle)
+        {
+            #Make Copy of the group to be recycled.
+            $DeletedKeePassEntry = $KeePassEntry.CloneDeep()
+            #Generate a new Uuid and update the copy fo the group
+            $DeletedKeePassEntry.Uuid = (New-Object KeePassLib.PwUuid($true))
+            #Add the copy to the recycle bin, with take ownership set to true
+            $RecycleBin.AddGroup($DeletedKeePassEntry, $true)
+            Write-Verbose -Message "[PROCESS] Group has been Recycled."    
+        }
+        
+        #Deletes the specified group
+        $IsRemoved = $KeePassEntry.ParentGroup.Entries.Remove($KeePassEntry)
+        
+        if(-not $IsRemoved)
+        {
+            Write-Warning -Message "[PROCESS] Unknown Error has occured. Failed to Remove Entry ($($EntryDisplayName))"
+            Throw "Failed to Remove Entry $($EntryDisplayName)"
+        }
+        else
+        {
+            Write-Verbose -Message "[PROCESS] Entry ($($EntryDisplayName)) has been Removed."
+            $KeePassConnection.Save($null)
+        }
+    }
+}
+
+## Gets a KeePass Group object
+function Get-KPGroup
+{
+    <#
+        .SYNOPSIS
+            Gets a KeePass Group Object.
+        .DESCRIPTION
+            Gets a KeePass Group Object. Type: KeePassLib.PwGroup
+        .EXAMPLE
+            PS> Get-KeePassGroup -KeePassConnection $Conn -FullPath 'full/KPDatabase/pathtoGroup'
+
+            This Example will return a KeePassLib.PwGroup array Object with the full group path specified.
+        .EXAMPLE
+            PS> Get-KeePassGroup -KeePassConnection $Conn -GroupName 'Test Group'
+
+            This Example will return a KeePassLib.PwGroup array Object with the groups that have the specified name.
+        .PARAMETER KeePassConnection
+            Specify the Open KeePass Database Connection
+
+            See Get-KeePassConnection to Create the conneciton Object.
+        .PARAMETER FullPath
+            Specify the FullPath of a Group or Groups in a KPDB
+        .PARAMETER GroupName
+            Specify the GroupName of a Group or Groups in a KPDB.
+    #>
+    [CmdletBinding(DefaultParameterSetName = 'Full')]
+    [OutputType('KeePassLib.PwGroup')]
+    param
+    (
+        [Parameter(
+            Position = 0,
+            Mandatory,
+            ParameterSetName = 'Full'
+        )]
+        [Parameter(
+            Position = 0,
+            Mandatory,
+            ParameterSetName = 'Partial'
+        )]
+        [ValidateNotNullOrEmpty()]
+        [KeePassLib.PwDatabase] $KeePassConnection,
+        
+        [Parameter(
+            Position = 1,
+            Mandatory,
+            ParameterSetName = 'Full',
+            ValueFromPipelineByPropertyName
+        )]
+        [ValidateNotNullOrEmpty()]
+        [string] $FullPath,
+        
+        [Parameter(
+            Position = 1,
+            Mandatory,
+            ParameterSetName = 'Partial',
+            ValueFromPipelineByPropertyName
+        )]
+        [ValidateNotNullOrEmpty()]
+        [string] $GroupName
+    )
+    begin
+    {
+        try
+        {
+            [KeePassLib.PwGroup[]] $KeePassOutGroups = $null
+            #hmm not sure what this $KpGroup variable is for...
+            [KeePassLib.PwGroup] $KpGroup = New-Object KeePassLib.PwGroup -ErrorAction Stop -ErrorVariable ErrorNewPwGroupObject
+            $KeePassGroups = $KeePassConnection.RootGroup.GetFlatGroupList()
+        }
+        catch
+        {
+            Write-Warning -Message '[BEGIN] An error occured in the Get-KpGroup Cmdlet.'
+            if($ErrorNewPwGroupObject)
+            {
+                Write-Warning -Message '[BEGIN] An error occured while creating a new KeePassLib.PwGroup Object.'
+                Write-Warning -Message "[BEGIN] $($ErrorNewPwGroupObject.ErrorRecord.Message)"
+                Throw $_
+            }
+            else
+            {
+                Write-Warning -Message '[BEGIN] An unhandled exception occured.'
+                Write-Warning -Message '[BEGIN] Verify your KeePass Database Connection is Open.'
+                Throw $_
+            }
+        }
+
+    }
+    process
+    {
+        if ($PSCmdlet.ParameterSetName -eq 'Full')
+        {
+            foreach($_keepassGroup in $KeePassGroups)
+            {
+                if($_keepassGroup.GetFullPath("/", $false).Equals($FullPath))
+                {
+                    $KeePassOutGroups += $_keepassGroup
+                }                   
+            }
+        }
+        elseif ($PSCmdlet.ParameterSetName -eq 'Partial')
+        {
+            foreach($_keepassGroup in $KeePassGroups)
+            {
+                if($_keepassGroup.Name.Equals($GroupName))
+                {
+                    $KeePassOutGroups += $_keepassGroup
+                }
+            }
+        }
+    }
+    end{ $KeePassOutGroups }
+}
+
+## Create a New KeePass Group
+function Add-KPGroup
+{
+    <#
+        .SYNOPSIS
+            Creates a New KeePass Folder Group.
+        .DESCRIPTION
+            Creates a New KeePass Folder Group.
+        .EXAMPLE
+            PS> Add-KPGroup -KeePassConnection $Conn -GroupName 'NewGroupName' -KeePassParentGroup $KpGroup
+
+            This Example Create a New Group with the specified name in the specified KeePassParentGroup.
+        .PARAMETER KeePassConnection
+            This is the Open KeePass Database Connection
+
+            See Get-KeePassConnection to Create the conneciton Object.
+        .PARAMETER GroupName
+            Specify the name of the new group(s).
+        .PARAMETER KeePassParentGroup
+            Sepcify the KeePassParentGroup(s) for the new Group(s).
+        .NOTES
+            This Cmdlet Does AutoSave on exit.
+    #>
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(
+            Position = 0,
+            Mandatory,
+            ValueFromPipeline,
+            ValueFromPipelineByPropertyName
+        )]
+        [ValidateNotNull()]
+        [KeePassLib.PwDatabase] $KeePassConnection,
+
+        [Parameter(
+            Position = 1,
+            Mandatory
+        )]
+        [ValidateNotNullorEmpty()]
+        [string] $GroupName,
+
+        [Parameter(
+            Position = 2,
+            Mandatory
+        )]
+        [ValidateNotNullOrEmpty()]
+        [KeePassLib.PwGroup] $KeePassParentGroup
+    )
+    begin
+    {
+        try
+        {
+            [KeePassLib.PwGroup] $KeePassGroup = New-Object KeePassLib.PwGroup -ErrorAction Stop -ErrorVariable ErrorNewPwGroupObject
+        }
+        catch
+        {
+            Write-Warning -Message '[BEGIN] An error occured in the Add-KpGroup Cmdlet.'
+            if($ErrorNewPwGroupObject)
+            {
+                Write-Warning -Message '[BEGIN] An error occured while creating a new KeePassLib.PwGroup Object.'
+                Write-Warning -Message "[BEGIN] $($ErrorNewPwGroupObject.ErrorRecord.Message)"
+                Throw $_
+            }
+            else
+            {
+                Write-Warning -Message '[BEGIN] An unhandled exception occured.'
+                Write-Warning -Message '[BEGIN] Verify your KeePass Database Connection is Open.'
+                Throw $_
+            }
+        }
+    }
+    process
+    {
+        $KeePassGroup.Name = $GroupName
+        $KeePassParentGroup.AddGroup($KeePassGroup, $true)
+        $KeePassConnection.Save($null)
+    }
+}
+
+## Set/Update a KeePass Group
+## needs parameter sets 
+## checks to see if the changes are valid
+function Set-KPGroup
+{
+    <#
+        .SYNOPSIS
+            Creates a New KeePass Folder Group.
+        .DESCRIPTION
+            Creates a New KeePass Folder Group.
+        .EXAMPLE
+            PS> Add-KPGroup -KeePassConnection $Conn -GroupName 'NewGroupName' -KeePassParentGroup $KpGroup
+
+            This Example Create a New Group with the specified name in the specified KeePassParentGroup.
+        .PARAMETER KeePassConnection
+            This is the Open KeePass Database Connection
+
+            See Get-KeePassConnection to Create the conneciton Object.
+        .PARAMETER GroupName
+            Specify the name of the new group(s).
+        .PARAMETER KeePassParentGroup
+            Sepcify the KeePassParentGroup(s) for the new Group(s).
+        .NOTES
+            This Cmdlet Does AutoSave on exit.
+    #>
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(
+            Position = 0,
+            Mandatory,
+            ValueFromPipeline,
+            ValueFromPipelineByPropertyName
+        )]
+        [ValidateNotNull()]
+        [KeePassLib.PwDatabase] $KeePassConnection,
+
+        [Paramter(
+            Position = 1,
+            Mandatory = $true
+        )]
+        [ValidateNotNullOrEmpty()]
+        [KeePassLib.PwGroup] $KeePassGroup,
+
+        [Parameter(
+            Position = 1,
+            Mandatory = $false
+        )]
+        [ValidateNotNullorEmpty()]
+        [string] $GroupName,
+
+        [Parameter(
+            Position = 2,
+            Mandatory = $false
+        )]
+        [ValidateNotNullOrEmpty()]
+        [KeePassLib.PwGroup] $KeePassParentGroup
+    )
+    begin
+    {
+        # try
+        # {
+        #     [KeePassLib.PwGroup] $KeePassGroup = New-Object KeePassLib.PwGroup -ErrorAction Stop -ErrorVariable ErrorNewPwGroupObject
+        # }
+        # catch
+        # {
+        #     Write-Warning -Message '[BEGIN] An error occured in the Add-KpGroup Cmdlet.'
+        #     if($ErrorNewPwGroupObject)
+        #     {
+        #         Write-Warning -Message '[BEGIN] An error occured while creating a new KeePassLib.PwGroup Object.'
+        #         Write-Warning -Message "[BEGIN] $($ErrorNewPwGroupObject.ErrorRecord.Message)"
+        #         Throw $_
+        #     }
+        #     else
+        #     {
+        #         Write-Warning -Message '[BEGIN] An unhandled exception occured.'
+        #         Write-Warning -Message '[BEGIN] Verify your KeePass Database Connection is Open.'
+        #         Throw $_
+        #     }
+        # }
+    }
+    process
+    {
+        
+        if($GroupName)
+        {
+            $KeePassGroup.Name = $GroupName
+        }
+        
+        if($KeePassParentGroup)
+        {
+            if($KeePassGroup.ParentGroup.Uuid -ne $KeePassParentGroup.Uuid)
+            {
+                $UpdatedKeePassGroup = $KeePassGroup.CloneDeep()
+                $UpdatedKeePassGroup.Uuid = New-Object KeePassLib.PwUuid($true)
+                $KeePassParentGroup.AddGroup($UpdatedKeePassGroup, $true)
+                $KeePassConnection.Save($null)
+                $KeePassGroup.ParentGroup.Entries.Remove($KeePassGroup)
+            }
+            
+        }
+        
+        $KeePassConnection.Save($null)
+    }
+}
+
+## Removes a KeePassGroup
+function Remove-KPGroup
+{
+    <#
+    #>
+    [CmdletBinding(
+        SupportsShouldProcess = $true,
+        ConfirmImpact = "High"
+     )]
+    param
+    (
+        [Parameter(
+            Position = 0,
+            Mandatory,
+            ValueFromPipeline,
+            ValueFromPipelineByPropertyName
+        )]
+        [ValidateNotNull()]
+        [KeePassLib.PwDatabase] $KeePassConnection,
+        
+        [Parameter(
+            Mandatory = $true,
+            Position = 1,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true
+        )]
+        [ValidateNotNullOrEmpty()]
+        [KeePassLib.PwGroup] $KeePassGroup,
+        
+        [Parameter(
+            Mandatory = $false,
+            Position = 2
+        )]
+        [Switch] $NoRecycle,
+        
+        [Parameter(
+            Mandatory = $false,
+            Position = 3
+        )]
+        [Switch] $Force
+    )
+    begin
+    {
+        $RecycleBin = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'Recycle Bin'
+        
+        if ( $Force -or $PSCmdlet.ShouldProcess($($KeePassGroup.GetFullPath('/',$false))))
+        {
+            if ( -not $Force -and (-not $RecycleBin -or $NoRecycle) )
+            {
+                if ( -not $PSCmdlet.ShouldContinue("Recycle Bin Does Not Exist or the -NoRecycle Option Has been Specified.", "Do you want to continue to Permanently Delete this Group: ($($KeePassGroup.GetFullPath('/',$false)))?"))
+                {
+                    break
+                }
+            }
+        }
+        else
+        {
+            break
+        }
+        ###Force only verses shouldprocess confirmation.
+        # if (-not $Force)
+        # {
+        #     $caption = "Please Confirm"
+        #     if( -not $RecycleBin -or $NoRecycle)
+        #     {
+        #         $Message = "Are you Sure You Want To Permanently Delete Group ($($KeePassGroup.GetFullPath('/',$false))) and all of its Entries and SubGroups." 
+        #     }
+        #     else
+        #     {
+        #         $Message = "Are you Sure You Want To Recycle Group ($($KeePassGroup.GetFullPath('/',$false))) and all of its Entries and SubGroups."    
+        #     }  
+            
+        #     [int]$defaultChoice = 1
+        #     $yes = New-Object System.Management.Automation.Host.ChoiceDescription "&Yes", "Do the job."
+        #     $no = New-Object System.Management.Automation.Host.ChoiceDescription "&No", "Do not do the job."
+        #     $options = [System.Management.Automation.Host.ChoiceDescription[]]($yes, $no)
+        #     $choiceRTN = $host.ui.PromptForChoice($caption,$message, $options, $defaultChoice)
+
+        #     if ( $choiceRTN -ne 1 )
+        #     {
+        #         Write-Warning -Message "Continueing with Operation."
+        #     }
+        #     else
+        #     {
+        #         Write-Warning -Message "Cancellation Requested. Aborting operation."
+        #         Break
+        #     }
+        # }
+    }
+    process
+    {        
+        if($RecycleBin -and -not $NoRecycle)
+        {
+            #Make Copy of the group to be recycled.
+            $DeletedKeePassGroup = $KeePassGroup.CloneDeep()
+            #Generate a new Uuid and update the copy fo the group
+            $DeletedKeePassGroup.Uuid = (New-Object KeePassLib.PwUuid($true))
+            #Add the copy to the recycle bin, with take ownership set to true
+            $RecycleBin.AddGroup($DeletedKeePassGroup, $true)
+            Write-Verbose -Message "[PROCESS] Group has been Recycled."    
+        }
+        
+        #Deletes the specified group
+        $IsRemoved = $KeePassGroup.ParentGroup.Groups.Remove($KeePassGroup)
+        
+        if(-not $IsRemoved)
+        {
+            Write-Warning -Message "[PROCESS] Unknown Error has occured. Failed to Remove Group ($($KeePassGroup.GetFullPath('/',$false)))"
+            Throw "Failed to Remove Group $($KeePassGroup.GetFullPath('/',$false))"
+        }
+        else
+        {
+            Write-Verbose -Message "[PROCESS] Group ($($KeePassGroup.GetFullPath('/',$false))) has been Removed."
+            $KeePassConnection.Save($null)
+        }
     }
 }
 
