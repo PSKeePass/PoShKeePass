@@ -791,6 +791,7 @@ function Set-KeePassEntry
   }
 }
 
+
 ## Generates a Password Using the KeePass Password Generator
 ## Need to check if profile by name exists and prompt for what to do
 ## Need to add option to generate via profile
@@ -1238,20 +1239,26 @@ function Get-KPCredential
         [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Key')]
         [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Master')]
         [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
+        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Network')]
         [ValidateNotNullOrEmpty()]
         [ValidateScript({Test-Path $_})]
-        [string]$DatabaseFile,
+        [string] $DatabaseFile,
 
         [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Key')]
         [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
         [ValidateNotNullOrEmpty()]
         [ValidateScript({Test-Path $_})]
-        [string]$KeyFile,
+        [string] $KeyFile,
 
         [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Master')]
         [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
         [ValidateNotNullOrEmpty()]
-        [System.Security.SecureString] $MasterKey
+        [System.Security.SecureString] $MasterKey,
+
+        [Parameter(Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Network')]
+        [Parameter(Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Key')]
+        [Parameter(Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Master')]
+        [switch] $UseNetworkAccount
     )
     process
     {
@@ -1262,6 +1269,7 @@ function Get-KPCredential
                 'KeyFile' = $KeyFile
                 'MasterKey' = $MasterKey
                 'AuthenticationType' = $PSCmdlet.ParameterSetName
+                'UseNetworkAccount' = $UseNetworkAccount
             }
         }
         catch [Exception]
@@ -1331,19 +1339,34 @@ function Get-KPConnection
         #Determine AuthenticationType and Create KPLib CompositeKey
         try
         {
+            
+
             if ($KeePassCredential.AuthenticationType -eq "Key")
             {
                 $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpKeyFile($KeePassCredential.KeyFile)))
+                if($KeePassCredential.UseNetworkAccount)
+                {
+                    $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpUserAccount))
+                }
             }
             elseif ($KeePassCredential.AuthenicationType -eq "KeyAndMaster")
             {
                 $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpKeyFile($KeePassCredential.KeyFile)))
+
                 $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpPassword([Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($KeePassCredential.MasterKey)))))
+                
+                # $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpUserAccount))
             }
             elseif ($KeePassCredential.AuthenticationType -eq "Master")
             {
                 $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpPassword([Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($KeePassCredential.MasterKey)))))
+                if($KeePassCredential.UseNetworkAccount)
+                {
+                    $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpUserAccount))
+                }
             }
+
+            
         }
         catch [Exception]
         {
