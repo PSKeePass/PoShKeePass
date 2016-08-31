@@ -791,9 +791,9 @@ function Set-KeePassEntry
   }
 }
 
-#Generates a Password Using the KeePass Password Generator
-##Need to check if profile by name exists and prompt for what to do
-##Need to add option to generate via profile
+## Generates a Password Using the KeePass Password Generator
+## Need to check if profile by name exists and prompt for what to do
+## Need to add option to generate via profile
 function Get-KeePassPassword
 {
     <#
@@ -1012,7 +1012,7 @@ function Set-KeePassConfiguration
     <#
         .SYNOPSIS
             Sets the configuration for the PowerShell KeePass Module.
-            .DESCRIPTION
+        .DESCRIPTION
             Adds the entries KPProgramfolder and DBDefaultpathPath to the KeePassConfiguration.xml
             located in the modules root folder.
         .PARAMETER DBDefaultpathPath
@@ -1119,13 +1119,13 @@ function Get-KeePassConfiguration
 
 }
 
-<################################################################# 
-##### Internals ######
-## *These functions below support all of the functions above.
-## *Their intended purpose is to be used for advanced scripting.
-#################################################################>
+<#
+# Internals
+# *These functions below support all of the functions above.
+# *Their intended purpose is to be used for advanced scripting.
+#>
 
-#Saves a Password Profile to XML Config
+## Saves a Password Profile to XML Config
 function New-KPPasswordProfile
 {
     <#
@@ -1181,7 +1181,7 @@ function New-KPPasswordProfile
     }
 }
 
-#Need to build out this dummy function
+## Need to build out this dummy function
 function Get-KPPasswordProfile
 {
     <#
@@ -1190,7 +1190,7 @@ function Get-KPPasswordProfile
     param()  
 }
 
-#Need to build out this dummy function
+## Need to build out this dummy function
 function Set-KPPasswordProfile
 {
     <#
@@ -1199,7 +1199,7 @@ function Set-KPPasswordProfile
     param()  
 }
 
-#Create a KeePass Credential Object
+## Create a KeePass Credential Object
 function Get-KPCredential
 {
 	<#
@@ -1275,7 +1275,7 @@ function Get-KPCredential
     }
 }
 
-#Open KeePass DB Connection
+## Open KeePass DB Connection
 function Get-KPConnection
 {
     <#
@@ -1378,7 +1378,7 @@ function Get-KPConnection
     }
 }
 
-#Close KeePass DB connection
+## Close KeePass DB connection
 function Remove-KPConnection
 {
     <#
@@ -1413,7 +1413,7 @@ function Remove-KPConnection
     }
 }
 
-#Fetch a KeePass entry
+## Fetch a KeePass entry
 function Get-KPEntry
 {
     <#
@@ -1510,7 +1510,7 @@ function Get-KPEntry
     }
 }
 
-#Add New KeePass Entry
+## Add New KeePass Entry
 function Add-KPEntry
 {
     <#
@@ -1638,11 +1638,11 @@ function Add-KPEntry
     }
 }
 
-#Set/Update a KeePass Group
-#Needs Parameter Sets 
-#needs parameter atrributes updates
-#needs help text update
-### Add funcitonality from Set-KeePassEntry above (append notes) or only have that in wrapper funcion
+## Set/Update a KeePass Group
+## Needs Parameter Sets 
+## needs parameter atrributes updates
+## needs help text update
+## Add funcitonality from Set-KeePassEntry above (append notes) or only have that in wrapper funcion
 function Set-KPEntry
 {
     <#
@@ -1784,7 +1784,7 @@ function Set-KPEntry
     }
 }
 
-#Removes a KeePassEntry
+## Removes a KeePassEntry
 function Remove-KPEntry
 {
     <#
@@ -1874,7 +1874,7 @@ function Remove-KPEntry
     }
 }
 
-#Gets a KeePass Group object
+## Gets a KeePass Group object
 function Get-KPGroup
 {
     <#
@@ -1987,7 +1987,7 @@ function Get-KPGroup
     end{ $KeePassOutGroups }
 }
 
-#Create a New KeePass Group
+## Create a New KeePass Group
 function Add-KPGroup
 {
     <#
@@ -2067,9 +2067,9 @@ function Add-KPGroup
     }
 }
 
-#Set/Update a KeePass Group
-#needs parameter sets 
-#checks to see if the changes are valid
+## Set/Update a KeePass Group
+## needs parameter sets 
+## checks to see if the changes are valid
 function Set-KPGroup
 {
     <#
@@ -2173,7 +2173,7 @@ function Set-KPGroup
     }
 }
 
-#Removes a KeePassGroup
+## Removes a KeePassGroup
 function Remove-KPGroup
 {
     <#
@@ -2439,3 +2439,4 @@ function Import-KPLibrary
 
 #Source KpLib
 Import-KPLibrary
+cacls.exe
