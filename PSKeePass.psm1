@@ -225,60 +225,58 @@ function Get-KeePassEntry_1
 {
     param
     (
-        [Parameter(
-            Position = 0,
-            Mandatory = $false
-        )]
-        [ValidateNotNullOrEmpty()]
-        [String] $KeePassDatabaseFile,
-
-        [Parameter(
-            Position = 1,
-            Mandatory = $false
-        )]
-        [ValidateNotNullOrEmpty()]
-        [String] $KeePassKeyFile,
-
-        [Parameter(
-            Position = 2,
-            Mandatory = $false
-        )]
-        [ValidateNotNullOrEmpty()]
-        [securestring] $KeePassMasterKey,
-
-        [Parameter(
-            Postion = 3,
-            Mandatory = $false
-        )]
-        [Switch] $UseNetworkAccount,
-
-        [Parameter(
-            Position = 4,
-            Mandatory = $false
-        )]
+        [Parameter(Position = 0 ,Mandatory = $false, ParameterSetName='AutoAuth')]
+        [Parameter(Position = 0 ,Mandatory = $false, ParameterSetName='Key')]
+        [Parameter(Position = 0 ,Mandatory = $false, ParameterSetName='Master')]
+        [Parameter(Position = 0 ,Mandatory = $false, ParameterSetName='KeyAndMaster')]
+        [Parameter(Position = 0 ,Mandatory = $false, ParameterSetName='Network')]
         [ValidateNotNullOrEmpty()]
         [String] $KeePassEntryGroupPath,
 
-        [Parameter(
-            Position = 5,
-            Mandatory = $false
-        )]
+        [Parameter(Position = 1 ,Mandatory = $false, ParameterSetName='AutoAuth')]
+        [Parameter(Position = 1 ,Mandatory = $false, ParameterSetName='Key')]
+        [Parameter(Position = 1 ,Mandatory = $false, ParameterSetName='Master')]
+        [Parameter(Position = 1 ,Mandatory = $false, ParameterSetName='KeyAndMaster')]
+        [Parameter(Position = 1 ,Mandatory = $false, ParameterSetName='Network')]
         [ValidateNotNullOrEmpty()]
         [String] $KeePassEntryTitle,
 
-        [Parameter(
-            Position = 6,
-            Mandatory = $false,
-            ValueFromPipeline = $true
-        )]
+        [Parameter(Position = 2 ,Mandatory = $false, ValueFromPipeline = $true, ParameterSetName='AutoAuth')]
+        [Parameter(Position = 2 ,Mandatory = $false, ValueFromPipeline = $true, ParameterSetName='Key')]
+        [Parameter(Position = 2 ,Mandatory = $false, ValueFromPipeline = $true, ParameterSetName='Master')]
+        [Parameter(Position = 2 ,Mandatory = $false, ValueFromPipeline = $true, ParameterSetName='KeyAndMaster')]
+        [Parameter(Position = 2 ,Mandatory = $false, ValueFromPipeline = $true, ParameterSetName='Network')]
         [ValidateNotNullOrEmpty()]
         [String] $KeePassEntryUserName,
 
-        [Parameter(
-            Position = 7,
-            Mandatory = $false
-        )]
-        [Switch] $AsPlainText
+        [Parameter(Position = 3 ,Mandatory = $false, ParameterSetName='AutoAuth')]
+        [Parameter(Position = 3 ,Mandatory = $false, ParameterSetName='Key')]
+        [Parameter(Position = 3 ,Mandatory = $false, ParameterSetName='Master')]
+        [Parameter(Position = 3 ,Mandatory = $false, ParameterSetName='KeyAndMaster')]
+        [Parameter(Position = 3 ,Mandatory = $false, ParameterSetName='Network')]
+        [Switch] $AsPlainText,
+
+        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Key')]
+        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Master')]
+        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
+        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Network')]
+        [ValidateNotNullOrEmpty()]
+        [string] $DatabaseFile,
+
+        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Key')]
+        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
+        [ValidateNotNullOrEmpty()]
+        [string] $KeyFile,
+
+        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Master')]
+        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
+        [ValidateNotNullOrEmpty()]
+        [System.Security.SecureString] $MasterKey,
+
+        [Parameter(Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Network')]
+        [Parameter(Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Key')]
+        [Parameter(Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Master')]
+        [switch] $UseNetworkAccount
     )
     begin
     {
