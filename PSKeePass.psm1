@@ -225,15 +225,60 @@ function Get-KeePassEntry_1
 {
     param
     (
-        #Params
-        #matching parameter sets as get-kpentry
-        #db file
-        #db auth Params
-        #group name/path
-        #username
-        #title
-        #switch to return as powershell object (aka plain text)
-        #allow username from pipeline 
+        [Parameter(
+            Position = 0,
+            Mandatory = $false
+        )]
+        [ValidateNotNullOrEmpty()]
+        [String] $KeePassDatabaseFile,
+
+        [Parameter(
+            Position = 1,
+            Mandatory = $false
+        )]
+        [ValidateNotNullOrEmpty()]
+        [String] $KeePassKeyFile,
+
+        [Parameter(
+            Position = 2,
+            Mandatory = $false
+        )]
+        [ValidateNotNullOrEmpty()]
+        [securestring] $KeePassMasterKey,
+
+        [Parameter(
+            Postion = 3,
+            Mandatory = $false
+        )]
+        [Switch] $UseNetworkAccount,
+
+        [Parameter(
+            Position = 4,
+            Mandatory = $false
+        )]
+        [ValidateNotNullOrEmpty()]
+        [String] $KeePassEntryGroupPath,
+
+        [Parameter(
+            Position = 5,
+            Mandatory = $false
+        )]
+        [ValidateNotNullOrEmpty()]
+        [String] $KeePassEntryTitle,
+
+        [Parameter(
+            Position = 6,
+            Mandatory = $false,
+            ValueFromPipeline = $true
+        )]
+        [ValidateNotNullOrEmpty()]
+        [String] $KeePassEntryUserName,
+
+        [Parameter(
+            Position = 7,
+            Mandatory = $false
+        )]
+        [Switch] $AsPlainText
     )
     begin
     {
