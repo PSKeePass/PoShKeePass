@@ -791,7 +791,6 @@ function Set-KeePassEntry
   }
 }
 
-
 ## Generates a Password Using the KeePass Password Generator
 ## Need to check if profile by name exists and prompt for what to do
 ## Need to add option to generate via profile
