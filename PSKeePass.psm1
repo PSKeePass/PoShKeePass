@@ -1,4 +1,6 @@
-﻿function Get-KeePassEntry
+﻿##DEV
+## This can be updated to be a wrapper for get-kpentry
+function Get-KeePassEntry
 {
     <#
         .SYNOPSIS
@@ -219,6 +221,8 @@
     }
 }
 
+##DEV
+## This can be updated to be a wrapper to add-kpentry
 function New-KeePassEntry
 {
     <#
@@ -305,7 +309,7 @@ function New-KeePassEntry
         [String] $Notes
     )
 
-    #Check if an entry with the same name already exists in the same database in the same TopLevelGroup
+    ## Check if an entry with the same name already exists in the same database in the same TopLevelGroup
 
     if ($DBPath)
     {
@@ -317,7 +321,7 @@ function New-KeePassEntry
     }
 
     try{
-        #Read the global configuration
+        ## Read the global configuration
         [xml]$Configuration = (Get-Content $PSScriptRoot\KeePassConfiguration.xml)
         $KPProgramfolder = $Configuration.Settings.KeePassSettings.KPProgramFolder
         $DBDefaultpathPath = $Configuration.Settings.KeePassSettings.DBDefaultpathPath
@@ -406,9 +410,9 @@ function New-KeePassEntry
             Throw $ErrorMessage
         }
 
-        #check if an entry with this title in this group already exists
+        ## check if an entry with this title in this group already exists
 
-        #$Entryexists = (get-KeePassEntry -DBcredential $DBcredential -Title $Title -TopLevelGroupname $TopLevelGroupName)
+        ## $Entryexists = (get-KeePassEntry -DBcredential $DBcredential -Title $Title -TopLevelGroupname $TopLevelGroupName)
         if ($Entryexists -like 'ERROR: * not found')
         {
 
@@ -461,6 +465,8 @@ function New-KeePassEntry
     }
 }
 
+##DEV
+## This can be Updated to be a wrapper to set-kpentry 
 function Set-KeePassEntry
 {
     <#
@@ -791,7 +797,7 @@ function Set-KeePassEntry
   }
 }
 
-## Generates a Password Using the KeePass Password Generator
+##DEV
 ## Need to check if profile by name exists and prompt for what to do
 ## Need to add option to generate via profile
 function Get-KeePassPassword
@@ -1123,7 +1129,6 @@ function Get-KeePassConfiguration
 # *Their intended purpose is to be used for advanced scripting.
 #>
 
-## Saves a Password Profile to XML Config
 function New-KPPasswordProfile
 {
     <#
@@ -1142,13 +1147,13 @@ function New-KPPasswordProfile
     if (Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml)
     {
         [xml] $XML = Get-Content("$PSScriptRoot\KeePassConfiguration.xml")
-        #Create New Profile Element with Name of the new profile
+        ## Create New Profile Element with Name of the new profile
         $PasswordProfile = $XML.CreateElement('Profile')
         $PasswordProfileAtribute = $XML.CreateAttribute('Name')
         $PasswordProfileAtribute.Value = $KeePassPasswordObject.ProfileName
         $PasswordProfile.Attributes.Append($PasswordProfileAtribute) | Out-Null
         
-        #Build and Add Element Nodes
+        ## Build and Add Element Nodes
         $CharacterSetNode = $XML.CreateNode('element','CharacterSet','')
         $CharacterSetNode.InnerText = $KeePassPasswordObject.CharacterSet
         $PasswordProfile.AppendChild($CharacterSetNode) | Out-Null
@@ -1179,6 +1184,7 @@ function New-KPPasswordProfile
     }
 }
 
+##DEV
 ## Need to build out this dummy function
 function Get-KPPasswordProfile
 {
@@ -1188,6 +1194,7 @@ function Get-KPPasswordProfile
     param()  
 }
 
+##DEV
 ## Need to build out this dummy function
 function Set-KPPasswordProfile
 {
@@ -1260,7 +1267,7 @@ function Get-KPCredential
     {
         try
         {
-            $output = [Ordered]@{
+            $Output = [Ordered] @{
                 'DatabaseFile' = $DatabaseFile
                 'KeyFile' = $KeyFile
                 'MasterKey' = $MasterKey
@@ -1274,7 +1281,7 @@ function Get-KPCredential
         }
         finally
         {
-            [PSCustomObject]$output
+            [PSCustomObject] $Output
         }
     }
 }
@@ -1318,7 +1325,7 @@ function Get-KPConnection
     )
     process
     {
-        #Create IOConnectionInfo to KPDB using KPLib
+        ## Create IOConnectionInfo to KPDB using KPLib
         try
         {
             $KeePassIOConnectionInfo = New-Object KeePassLib.Serialization.IOConnectionInfo
@@ -1331,11 +1338,9 @@ function Get-KPConnection
             Throw $_.Exception
         }
 
-        #Determine AuthenticationType and Create KPLib CompositeKey
+        ## Determine AuthenticationType and Create KPLib CompositeKey
         try
         {
-            
-
             if ($KeePassCredential.AuthenticationType -eq "Key")
             {
                 $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpKeyFile($KeePassCredential.KeyFile)))
@@ -1349,7 +1354,6 @@ function Get-KPConnection
                 $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpKeyFile($KeePassCredential.KeyFile)))
 
                 $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpPassword([Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($KeePassCredential.MasterKey)))))
-                
                 # $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpUserAccount))
             }
             elseif ($KeePassCredential.AuthenticationType -eq "Master")
@@ -1360,8 +1364,6 @@ function Get-KPConnection
                     $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpUserAccount))
                 }
             }
-
-            
         }
         catch [Exception]
         {
@@ -1370,17 +1372,14 @@ function Get-KPConnection
         }
         finally
         {
-            Remove-Variable -Name KeePassCredential
-            # $KeePassCompositeKey = $null
+            if($KeePassCredential){Remove-Variable -Name KeePassCredential}
         }
 
-        #Open KPDB Connection
+        ## Open KPDB Connection
         try
         {
             $KeePassDatabase = New-Object KeePassLib.PwDatabase
-            $KeePassDatabase.Open($KeePassIOConnectionInfo,$KeePassCompositeKey,$null)
-           
-            
+            $KeePassDatabase.Open($KeePassIOConnectionInfo, $KeePassCompositeKey, $null)
         }
         catch [Exception]
         {
@@ -1389,9 +1388,10 @@ function Get-KPConnection
         }
         finally
         {
-             Remove-Variable -Name KeePassCompositeKey
+            if($KeePassCompositeKey){Remove-Variable -Name KeePassCompositeKey}
         }
         
+        ## Return Open KeePass Database
         $KeePassDatabase
     }
 }
@@ -1421,7 +1421,16 @@ function Remove-KPConnection
     {
         try
         {
-            $KeePassConnection.Close()
+            ## Close KeePass Database Connection
+            if( $KeePassConnection.IsOpen)
+            {
+                $KeePassConnection.Close()
+            }
+            else
+            {
+                Write-Warning -Message "[PROCESS] The KeePass Database Specified is already closed or does not exist."    
+            }
+            
         }
         catch [Exception]
         {
@@ -1486,6 +1495,15 @@ function Get-KPEntry
         [ValidateNotNullOrEmpty()]
         [string] $UserName
     )
+    begin
+    {
+        ## Check if database is open.
+        if(-not $KeePassConnection.IsOpen)
+        {
+            Write-Warning -Message '[BEGIN] The KeePass Connection Sepcified is not open or does not exist.'
+            break
+        }
+    }
     process
     {
         ## Get Entries and Filter
@@ -1522,6 +1540,8 @@ function Get-KPEntry
                  }
              }
         }
+
+        ## Return results
         $KeePassItems
     }
 }
@@ -1587,6 +1607,14 @@ function Add-KPEntry
     )
     begin
     {
+
+        ## Check if database is open.
+        if(-not $KeePassConnection.IsOpen)
+        {
+            Write-Warning -Message '[BEGIN] The KeePass Connection Sepcified is not open or does not exist.'
+            break
+        }
+
         try
         {
             $KeePassEntry = New-Object KeePassLib.PwEntry($true, $true) -ErrorAction Stop -ErrorVariable ErrorNewPwEntryObject
@@ -1725,6 +1753,12 @@ function Set-KPEntry
     )
     begin
     {
+        ## Check if database is open.
+        if(-not $KeePassConnection.IsOpen)
+        {
+            Write-Warning -Message '[BEGIN] The KeePass Connection Sepcified is not open or does not exist.'
+            break
+        }
         # try
         # {
         #     $KeePassEntry = New-Object KeePassLib.PwEntry($true, $true) -ErrorAction Stop -ErrorVariable ErrorNewPwEntryObject
@@ -1838,6 +1872,14 @@ function Remove-KPEntry
     )
     begin
     {
+
+        ## Check if database is open.
+        if(-not $KeePassConnection.IsOpen)
+        {
+            Write-Warning -Message '[BEGIN] The KeePass Connection Sepcified is not open or does not exist.'
+            break
+        }
+
         $RecycleBin = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'Recycle Bin'
         $EntryDisplayName = "$($KeePassEntry.ParentGroup.GetFullPath('/',$false))/$($KeePassEntry.Strings.ReadSafe('Title'))"
         
@@ -1946,6 +1988,13 @@ function Get-KPGroup
     )
     begin
     {
+        ## Check if database is open.
+        if(-not $KeePassConnection.IsOpen)
+        {
+            Write-Warning -Message '[BEGIN] The KeePass Connection Sepcified is not open or does not exist.'
+            break
+        }
+
         try
         {
             [KeePassLib.PwGroup[]] $KeePassOutGroups = $null
@@ -2047,6 +2096,13 @@ function Add-KPGroup
     )
     begin
     {
+        ## Check if database is open.
+        if(-not $KeePassConnection.IsOpen)
+        {
+            Write-Warning -Message '[BEGIN] The KeePass Connection Sepcified is not open or does not exist.'
+            break
+        }
+
         try
         {
             [KeePassLib.PwGroup] $KeePassGroup = New-Object KeePassLib.PwGroup -ErrorAction Stop -ErrorVariable ErrorNewPwGroupObject
@@ -2136,6 +2192,12 @@ function Set-KPGroup
     )
     begin
     {
+        ## Check if database is open.
+        if(-not $KeePassConnection.IsOpen)
+        {
+            Write-Warning -Message '[BEGIN] The KeePass Connection Sepcified is not open or does not exist.'
+            break
+        }
         # try
         # {
         #     [KeePassLib.PwGroup] $KeePassGroup = New-Object KeePassLib.PwGroup -ErrorAction Stop -ErrorVariable ErrorNewPwGroupObject
@@ -2224,6 +2286,13 @@ function Remove-KPGroup
     )
     begin
     {
+        ## Check if database is open.
+        if(-not $KeePassConnection.IsOpen)
+        {
+            Write-Warning -Message '[BEGIN] The KeePass Connection Sepcified is not open or does not exist.'
+            break
+        }
+
         $RecycleBin = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'Recycle Bin'
         
         if ( $Force -or $PSCmdlet.ShouldProcess($($KeePassGroup.GetFullPath('/',$false))))
@@ -2271,7 +2340,7 @@ function Remove-KPGroup
         # }
     }
     process
-    {        
+    {
         if($RecycleBin -and -not $NoRecycle)
         {
             #Make Copy of the group to be recycled.
