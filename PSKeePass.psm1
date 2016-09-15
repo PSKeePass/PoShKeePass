@@ -221,6 +221,37 @@ function Get-KeePassEntry
     }
 }
 
+function Get-KeePassEntry_1
+{
+    param
+    (
+        #Params
+        #matching parameter sets as get-kpentry
+        #db file
+        #db auth Params
+        #group name/path
+        #username
+        #title
+        #switch to return as powershell object (aka plain text)
+        #allow username from pipeline 
+    )
+    begin
+    {
+        #build connection if no db params are specified.
+        ##use config file
+        ###error if no db params and no config file
+        #open connection
+    }
+    process
+    {
+        #make get-kpentry call and return data
+    }
+    end
+    {
+        #clean up connection details
+    }
+}
+
 ##DEV
 ## This can be updated to be a wrapper to add-kpentry
 function New-KeePassEntry
