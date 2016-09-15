@@ -899,14 +899,14 @@ function Get-KeePassPassword
     )
     process
     {
-        #Create New Password Profile.
+        ## Create New Password Profile.
         $PassProfile = New-Object KeePassLib.Cryptography.PasswordGenerator.PwProfile
         $NewProfileObject = '' | Select-Object ProfileName,CharacterSet,ExcludeLookAlike,NoRepeatingCharacters,ExcludeCharacters,Length
         
         if($PSBoundParameters.Count -gt 0)
         {
             $PassProfile.CharSet = New-Object KeePassLib.Cryptography.PasswordGenerator.PwCharSet
-            #Build Profile With Options.
+            ## Build Profile With Options.
             if($UpperCase)
             { 
                 $NewProfileObject.CharacterSet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -995,14 +995,13 @@ function Get-KeePassPassword
                 New-KPPasswordProfile -KeePassPasswordObject $NewProfileObject
             }
         }
-        #Create Pass Generator Profile Pool.
+        ## Create Pass Generator Profile Pool.
         $GenPassPool = New-Object KeePassLib.Cryptography.PasswordGenerator.CustomPwGeneratorPool
-        #Create Out Parameter aka [rel] param.
+        ## Create Out Parameter aka [rel] param.
         [KeePassLib.Security.ProtectedString]$PSOut = New-Object KeePassLib.Security.ProtectedString
-        #Generate Password.
+        ## Generate Password.
         [KeePassLib.Cryptography.PasswordGenerator.PwGenerator]::Generate([ref] $PSOut, $PassProfile, $null, $GenPassPool) > $null
         # $PSOut.GetType();
-
         $PSOut
     }
 }
@@ -1052,7 +1051,7 @@ function Set-KeePassConfiguration
         [PSCustomObject] $PassProfile
     )
 
-    #Check if there already is a KeePassConfiguration.xml which can be used / overwritten
+    ## Check if there already is a KeePassConfiguration.xml which can be used / overwritten
     if (Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml)
     {
 
@@ -1090,7 +1089,6 @@ function Set-KeePassConfiguration
 
         Write-Output 'KeePass configuration successfully created. To update, run Set-KeePassConfiguration again'
     }
-
 }
 
 function Get-KeePassConfiguration
@@ -1102,7 +1100,7 @@ function Get-KeePassConfiguration
             Reads the current KeePassConfiguration and displays values for DBDefaultpathPath and KPProgramfolder for the PowerShell KeePass Module.
             The KeePassConfiguration.xml is located in the PSKeePass module root folder.
     #>
-    #Check if there already is a KeePassConfiguration.xml and write out the configuration
+    ## Check if there already is a KeePassConfiguration.xml and write out the configuration
     if (Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml)
     {
         [xml]$XML = (Get-Content $PSScriptRoot\KeePassConfiguration.xml)
@@ -1199,7 +1197,6 @@ function Set-KPPasswordProfile
     param()  
 }
 
-## Create a KeePass Credential Object
 function Get-KPCredential
 {
 	<#
@@ -1282,7 +1279,6 @@ function Get-KPCredential
     }
 }
 
-## Open KeePass DB Connection
 function Get-KPConnection
 {
     <#
@@ -1400,7 +1396,6 @@ function Get-KPConnection
     }
 }
 
-## Close KeePass DB connection
 function Remove-KPConnection
 {
     <#
@@ -1435,7 +1430,6 @@ function Remove-KPConnection
     }
 }
 
-## Fetch a KeePass entry
 function Get-KPEntry
 {
     <#
@@ -1494,10 +1488,10 @@ function Get-KPEntry
     )
     process
     {
-        #Get Entries and Filter
+        ## Get Entries and Filter
         $KeePassItems = $KeePassConnection.RootGroup.GetEntries($true)
 
-        #This a lame way of filtering.
+        ## This a lame way of filtering.
         if ($KeePassGroup)
         {
             $KeePassItems = foreach($_keepassItem in $KeePassItems)
@@ -1532,7 +1526,6 @@ function Get-KPEntry
     }
 }
 
-## Add New KeePass Entry
 function Add-KPEntry
 {
     <#
@@ -1784,29 +1777,25 @@ function Set-KPEntry
             $KeePassEntry.Strings.Set("URL", $SecureURL)
         }
         
-        #If specified group is different than current group
+        ## If specified group is different than current group
         if($KeePassGroup.Uuid -ne $KeePassEntry.Uuid)
         {
-            #Make Full Copy of Entry
+            ## Make Full Copy of Entry
             $NewKeePassEntry = $KeePassEntry.CloneDeep()
-            #Assign New Uuid to CloneDeep
+            ## Assign New Uuid to CloneDeep
             $NewKeePassEntry.Uuid = New-Object KeePassLib.PwUuid($true)
-            #Add Clone to Specified group
+            ## Add Clone to Specified group
             $KeePassGroup.AddEntry($NewKeePassEntry)
-            
-            #Save for safety
+            ## Save for safety
             $KeePassConnection.Save($null)
-            
-            #Delete previous entry
+            ## Delete previous entry
             $KeePassEntry.ParentGroup.Entries.Remove($KeePassEntry)
         }
-
-        #save database
+        ## save database
         $KeePassConnection.Save($null)
     }
 }
 
-## Removes a KeePassEntry
 function Remove-KPEntry
 {
     <#
@@ -1896,7 +1885,6 @@ function Remove-KPEntry
     }
 }
 
-## Gets a KeePass Group object
 function Get-KPGroup
 {
     <#
@@ -2009,7 +1997,6 @@ function Get-KPGroup
     end{ $KeePassOutGroups }
 }
 
-## Create a New KeePass Group
 function Add-KPGroup
 {
     <#
@@ -2195,7 +2182,6 @@ function Set-KPGroup
     }
 }
 
-## Removes a KeePassGroup
 function Remove-KPGroup
 {
     <#
@@ -2313,7 +2299,6 @@ function Remove-KPGroup
     }
 }
 
-#reads string from KeePassLib.Security.ProtectedString
 function ConvertFrom-KPProtectedString
 {
     <#
@@ -2344,7 +2329,6 @@ function ConvertFrom-KPProtectedString
     }
 }
 
-#creates a powershell object from one or more keepass entries.
 function ConvertTo-KPPSObject
 {
     <#
