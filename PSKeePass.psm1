@@ -874,6 +874,7 @@ function Set-KeePassEntry
 ##DEV
 ## Need to check if profile by name exists and prompt for what to do
 ## Need to add option to generate via profile
+## Needs Documentation
 function New-KeePassPassword
 {
     <#
@@ -1086,59 +1087,9 @@ function New-KeePassPassword
     }
 }
 
-
-function New-KPConfigurationFile
-{
-    [CmdletBinding()]
-    param
-    (
-        [Parameter(
-            Position = 0,
-            Mandatory = $false
-        )]
-        [Switch] $Force
-    )
-    process
-    {
-        if ((Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml) -and -not $Force)
-        {
-            Write-Warning -Message "[PROCESS] A KeePass Configuration File already exists. Please rerun with -force to overwrite the existing configuration."
-        }
-        else
-        {
-            try
-            {
-                $Path = "$PSScriptRoot\KeePassConfiguration.xml"
-
-                $XML = New-Object System.Xml.XmlTextWriter($Path,$null)
-                $XML.Formatting = 'Indented'
-                $XML.Indentation = 1
-                $XML.IndentChar = "`t"
-                $XML.WriteStartDocument()
-                $XML.WriteProcessingInstruction('xml-stylesheet', "type='text/xsl' href='style.xsl'")
-                $XML.WriteStartElement('Settings')
-                $XML.WriteStartElement('DatabaseProfiles')
-                $XML.WriteEndElement()
-                $XML.WriteStartElement("PasswordProfiles")
-                $XML.WriteEndElement()
-                $XML.WriteEndElement()
-                $XML.WriteEndDocument()
-                $xml.Flush()
-                $xml.Close()
-            }
-            catch
-            {
-                Write-Warning -Message "[PROCESS] An exception occured while trying to create a new keepass configuration file."
-                Write-Warning -Message "[PROCESS] $($_.Exception.Message)"
-                Throw $_
-            }
-            
-        }
-    }
-}
-
 ##DEV
 ## Add Parameter Sets so only valid authentication combinations are added.
+## Needs Documentation
 function New-KeePassDatabaseConfiguration
 {
     [CmdletBinding()]
@@ -1233,9 +1184,10 @@ function New-KeePassDatabaseConfiguration
 
 ##DEV
 ## Add Dynamic parameter to get a list of profiles
+## Needs Documentation
 function Remove-KeePassDatabaseConfiguration 
 {
-    [CmdletBinding(SupportsShouldProcess = $true)]
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact='High')]
     param
     (
         [Parameter(
@@ -1286,6 +1238,7 @@ function Remove-KeePassDatabaseConfiguration
 
 ##DEV
 ## Add Dynamic parameter to get a list of profiles
+## Needs Documentation
 function Get-KeePassDatabaseConfiguration
 {
     [CmdletBinding()]
@@ -1325,6 +1278,60 @@ function Get-KeePassDatabaseConfiguration
 # *Their intended purpose is to be used for advanced scripting.
 #>
 
+##DEV
+## Needs Documentation
+function New-KPConfigurationFile
+{
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(
+            Position = 0,
+            Mandatory = $false
+        )]
+        [Switch] $Force
+    )
+    process
+    {
+        if ((Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml) -and -not $Force)
+        {
+            Write-Warning -Message "[PROCESS] A KeePass Configuration File already exists. Please rerun with -force to overwrite the existing configuration."
+        }
+        else
+        {
+            try
+            {
+                $Path = "$PSScriptRoot\KeePassConfiguration.xml"
+
+                $XML = New-Object System.Xml.XmlTextWriter($Path,$null)
+                $XML.Formatting = 'Indented'
+                $XML.Indentation = 1
+                $XML.IndentChar = "`t"
+                $XML.WriteStartDocument()
+                $XML.WriteProcessingInstruction('xml-stylesheet', "type='text/xsl' href='style.xsl'")
+                $XML.WriteStartElement('Settings')
+                $XML.WriteStartElement('DatabaseProfiles')
+                $XML.WriteEndElement()
+                $XML.WriteStartElement("PasswordProfiles")
+                $XML.WriteEndElement()
+                $XML.WriteEndElement()
+                $XML.WriteEndDocument()
+                $xml.Flush()
+                $xml.Close()
+            }
+            catch
+            {
+                Write-Warning -Message "[PROCESS] An exception occured while trying to create a new keepass configuration file."
+                Write-Warning -Message "[PROCESS] $($_.Exception.Message)"
+                Throw $_
+            }
+            
+        }
+    }
+}
+
+##DEV
+## Needs Documentation
 function New-KPPasswordProfile
 {
     <#
@@ -1381,24 +1388,97 @@ function New-KPPasswordProfile
 }
 
 ##DEV
-## Need to build out this dummy function
+## Add Dynamic parameter to get a list of profiles
+## Needs Documentation
 function Get-KPPasswordProfile
 {
     <#
     #>
     [CmdletBinding()]
-    param()  
+    param
+    (
+        [Parameter(
+            Position = 0,
+            Mandatory = $false
+        )]
+        [ValidateNotNullOrEmpty()]
+        [String] $PasswordProfileName
+    )
+    process
+    {
+        if (Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml)
+        {
+            [xml]$XML = (Get-Content $PSScriptRoot\KeePassConfiguration.xml)
+            if($PasswordProfileName)
+            {
+                $XML.Settings.PasswordProfiles.Profile | Where-Object { $_.Name -ilike $PasswordProfileName}
+            }
+            else
+            {
+                $XML.Settings.PasswordProfiles.Profile
+            }
+        }
+        else
+        {
+            Write-Warning 'No KeePass Configuration has been created.'
+        }
+    }
 }
 
 ##DEV
-## Need to build out this dummy function
-function Set-KPPasswordProfile
+## Add Dynamic parameter to get a list of profiles
+## Needs Documentation
+function Remove-KPPasswordProfile 
 {
-    <#
-    #>
-    [CmdletBinding()]
-    param()  
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact='High')]
+    param
+    (
+        [Parameter(
+            Position = 0,
+            Mandatory = $true,
+            ValueFromPipelineByPropertyName = $true
+        )]
+        [ValidateNotNullOrEmpty()]
+        [Alias('Name')]
+        [String] $PasswordProfileName
+    )
+    process
+    {
+        if (-not (Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml))
+        {
+            Write-Verbose -Message "[PROCESS] A KeePass Configuration File does not exist."
+        }
+        else
+        {
+            $CheckIfProfileExists = Get-KPPasswordProfile -PasswordProfileName $PasswordProfileName
+
+            if($CheckIfProfileExists)
+            {
+                if($PSCmdlet.ShouldProcess($PasswordProfileName))
+                {
+                    try
+                    {
+                        [xml]$XML = (Get-Content $PSScriptRoot\KeePassConfiguration.xml)
+                        $XML.Settings.PasswordProfiles.Profile  | Where-Object { $_.Name -eq $PasswordProfileName } | ForEach-Object { $xml.Settings.PasswordProfiles.RemoveChild($_) } | Out-Null
+                        $XML.Save("$PSScriptRoot\KeePassConfiguration.xml")
+                    }
+                    catch [exception]
+                    {
+                        Write-Warning -Message "[PROCESS] An exception occured while attempting to remove a KeePass Password Profile ($PasswordProfileName)."
+                        Write-Warning -Message "[PROCESS] $($_.Exception.Message)"
+                        Throw $_
+                    }
+                }
+            }
+            else
+            {
+                Write-Warning -Message "[PROCESS] A KeePass Password Profile does not exists with the specified name: $PasswordProfileName."
+            }
+        }
+        
+    }
 }
+
 
 function Get-KPCredential
 {
