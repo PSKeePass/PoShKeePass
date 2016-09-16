@@ -1229,22 +1229,53 @@ function New-KeePassDatabaseConfiguration
 }
 
 ##DEV
-## Add Dynamic parameter to get a list of profiles
 ## Needs Documentation
 function Remove-KeePassDatabaseConfiguration 
 {
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact='High')]
-    param
-    (
-        [Parameter(
-            Position = 0,
-            Mandatory = $true,
-            ValueFromPipelineByPropertyName = $true
-        )]
-        [ValidateNotNullOrEmpty()]
-        [Alias('Name')]
-        [String] $DatabaseProfileName
-    )
+    param()
+    dynamicparam
+    {
+        ##Create and Define Validate Set Attribute
+        $DatabaseProfileList =  (Get-KeePassDatabaseConfiguration).Name
+        if($DatabaseProfileList)
+        {
+            $ParameterName = 'DatabaseProfileName'
+            $AttributeCollection = New-Object -TypeName System.Collections.ObjectModel.Collection[System.Attribute]
+            ###ParameterSet Host
+            $ParameterAttribute = New-Object -TypeName System.Management.Automation.ParameterAttribute
+            $ParameterAttribute.Mandatory = $true
+            $ParameterAttribute.Position = 0
+            $ParameterAttribute.ValueFromPipelineByPropertyName = $true
+            # $ParameterAttribute.ParameterSetName = 'Profile'
+            $AttributeCollection.Add($ParameterAttribute)
+
+            $ValidateSetAttribute = New-Object -TypeName System.Management.Automation.ValidateSetAttribute($DatabaseProfileList)
+            $AttributeCollection.Add($ValidateSetAttribute)
+
+            ##Create and Define Allias Attribute
+            $AliasAttribute = New-Object -TypeName System.Management.Automation.AliasAttribute('Name')
+            $AttributeCollection.Add($AliasAttribute)
+
+            ##Create,Define, and Return DynamicParam
+            $RuntimeParameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter($ParameterName, [string], $AttributeCollection)
+            $RuntimeParameterDictionary = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameterDictionary
+            $RuntimeParameterDictionary.Add($ParameterName,$RuntimeParameter)
+            return $RuntimeParameterDictionary
+        }
+    }
+    begin
+    {
+        if($DatabaseProfileList)
+        {
+            $DatabaseProfileName = $PSBoundParameters[$ParameterName]
+        }
+        else
+        {
+            Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles." 
+            break
+        }
+    }
     process
     {
         if (-not (Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml))
@@ -1283,7 +1314,6 @@ function Remove-KeePassDatabaseConfiguration
 }
 
 ##DEV
-## Add Dynamic parameter to get a list of profiles
 ## Needs Documentation
 function Get-KeePassDatabaseConfiguration
 {
