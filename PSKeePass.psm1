@@ -109,579 +109,232 @@ function Get-KeePassEntry
 }
 
 ##DEV
-## This can be updated to be a wrapper to add-kpentry
+## Documentation Needed
 function New-KeePassEntry
 {
-    <#
-        .SYNOPSIS
-            Adds a new KeePass entry.
-        .DESCRIPTION
-            Adds a new KeePass entry. The name
-            of a top-level group/folder in KeePass and an entry title are mandatory,
-            but all other arguments are optional. The group/folder must be at the top
-            level in KeePass, i.e., it cannot be a nested subgroup. The username + password
-            have to be provided as a PSCredential object. The secure string from the PSCredential
-            is converted to plaintext and then saved to the KeePass entry. The PSCredential object
-            is normally created using the Get-Credential cmdlet.
-        .PARAMETER DBCredential
-            The Credentials to open the KeePass Database must be provided as PSCredential object.
-            The Username of the PSCredential object is a dummy name and is only needed to create
-            the PSCredential obejct. The password however has to be the MasterKey of your KeePass
-            database.
-        .PARAMETER TopLevelGroupName
-            Name of the KeePass folder (mandatory). Must be top level, cannot be
-            nested, and must be unique, i.e., no other groups of the same name.
-        .PARAMETER Title
-            The title of the entry to add (mandatory). If an entry with the same title is already
-            present in the provided TopLevelGroup, the new entry will not be created.
-        .PARAMETER DBPath
-            Alternative path of a KeePass Database File.
-            If no value is provieded, the default database defined with Set-KeePassConfiguration
-            will be used.
-        .PARAMETER EntryCredential
-            A PowerShell secure string credential object, typically
-            created with the Get-Credential cmdlet. The KeePass entry
-            will be created using the user name and plaintext password of
-            the PSCredential object. Other data, such as Notes or URL, may
-            still be added. The KeePass entry will have the plaintext password
-            from the PSCredential in the KeePass GUI, not the secure string.
-        .PARAMETER URL
-            The URL of the entry to add.
-        .PARAMETER Notes
-            The Notes of the entry to add.
-        .EXAMPLE
-            New-KeePassEntry -DBcredential $mycred -TopLevelGroupName Internet -Title NewTestEntry -EntryCredential $NewEntryCred -URL www.testurl.com -Notes "This is a test entry"
-            Description:
-            Creates a new entry with Username, password, URL and notes in the Internet TopLevelGroup of the default KeePass Database (defined with Set-KeePassConfiguration).
-            $NewEntryCred has been created with get-credential.
-            Output:
-            GAC    Version        Location
-            ---    -------        --------
-            False  v2.0.50727     C:\Program Files (x86)\KeePass Password Safe 2\KeePass.exe
-            Entry NewTestEntry successfully created
-        .EXAMPLE
-            New-KeePassEntry -DBcredential $mycred -TopLevelGroupName Internet -Title NewTestEntry -EntryCredential $NewEntryCred -DBPath C:\TEMP\Test-Database.kdbx
-            Description:
-            Creates a new entry with Username and password in the Internet TopLevelGroup in the KeePass Database provided with $DBPath.
-            $NewEntryCred has been created with get-credential.
-            Output:
-            GAC    Version        Location
-            ---    -------        --------
-            False  v2.0.50727     C:\Program Files (x86)\KeePass Password Safe 2\KeePass.exe
-            Entry NewTestEntry successfully created
-    #>
-    [CmdletBinding()]
     param
     (
-        #[Parameter(Mandatory=$true)] [KeePassLib.PwDatabase] $PwDatabase,
-        [Parameter(Mandatory=$true,
-            ValueFromPipeline=$true,
-            ValueFromPipelineByPropertyName=$true,
-            Position=0)]
-        [System.Management.Automation.PSCredential]$DBcredential,
+        [Parameter(Position = 0 ,Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [String] $KeePassEntryGroupPath,
 
-        [string]$DBPath,
+        [Parameter(Position=1,Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Title,
 
-        [Parameter(Mandatory=$true)]
-        [String] $TopLevelGroupName,
+        [Parameter(Position=3,Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [string] $UserName,
 
-        [Parameter(Mandatory=$true)]
-        [String] $Title,
+        [Parameter(Position=4,Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [KeePassLib.Security.ProtectedString] $KeePassPassword,
 
-        [Parameter(Mandatory=$false)]
-        [System.Management.Automation.PSCredential] $EntryCredential,
+        [Parameter(Position=5,Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Notes,
 
-        [String] $URL,
-
-        [String] $Notes
+        [Parameter(Position=6,Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [string] $URL
     )
-
-    ## Check if an entry with the same name already exists in the same database in the same TopLevelGroup
-
-    if ($DBPath)
+    dynamicparam
     {
-        $Entryexists = (get-KeePassEntry -DBcredential $DBcredential -Title $Title -TopLevelGroupname $TopLevelGroupName -DBPath $DBPath)
+        ##Create and Define Validate Set Attribute
+        $DatabaseProfileList =  (Get-KeePassDatabaseConfiguration).Name
+        if($DatabaseProfileList)
+        {
+            $ParameterName = 'DatabaseProfileName'
+            $AttributeCollection = New-Object -TypeName System.Collections.ObjectModel.Collection[System.Attribute]
+            ###ParameterSet Host
+            $ParameterAttribute = New-Object -TypeName System.Management.Automation.ParameterAttribute
+            $ParameterAttribute.Mandatory = $true
+            $ParameterAttribute.Position = 4
+            # $ParameterAttribute.ValueFromPipelineByPropertyName = $true
+            # $ParameterAttribute.ParameterSetName = 'Profile'
+            $AttributeCollection.Add($ParameterAttribute)
+
+            $ValidateSetAttribute = New-Object -TypeName System.Management.Automation.ValidateSetAttribute($DatabaseProfileList)
+            $AttributeCollection.Add($ValidateSetAttribute)
+
+            ##Create and Define Allias Attribute
+            $AliasAttribute = New-Object -TypeName System.Management.Automation.AliasAttribute('Name')
+            $AttributeCollection.Add($AliasAttribute)
+
+            ##Create,Define, and Return DynamicParam
+            $RuntimeParameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter($ParameterName, [string], $AttributeCollection)
+            $RuntimeParameterDictionary = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameterDictionary
+            $RuntimeParameterDictionary.Add($ParameterName,$RuntimeParameter)
+            return $RuntimeParameterDictionary
+        }
     }
-    else
+    begin
     {
-        $Entryexists = (get-KeePassEntry -DBcredential $DBcredential -Title $Title -TopLevelGroupname $TopLevelGroupName)
-    }
-
-    try{
-        ## Read the global configuration
-        [xml]$Configuration = (Get-Content $PSScriptRoot\KeePassConfiguration.xml)
-        $KPProgramfolder = $Configuration.Settings.KeePassSettings.KPProgramFolder
-        $DBDefaultpathPath = $Configuration.Settings.KeePassSettings.DBDefaultpathPath
-
-
-        #Check if a KeePass Database File path has been provided.
-        #If not, set standardpath defined in KeePassConfiguration.xml.
-        #Then Check if KeePass Database exists.
-        if (-not $DBPath)
+        if($DatabaseProfileList)
         {
-            $DBPath = $DBDefaultpathPath
-
-            if (-not (Test-Path $DBPath))
-            {
-                $ErrorMessage = 'The provided database path does not exist. Please check your settings. You can define a default Database with Set-KeePassConfiguration'
-                Write-Warning -Message $ErrorMessage
-                Exit
-            }
-        }
-
-        # Load the classes from KeePass.exe:
-        $KeePassEXE = Join-Path -Path $KPProgramFolder -ChildPath 'KeePass.exe'
-        [Reflection.Assembly]::LoadFile($KeePassEXE)
-
-
-        ###########################################################################
-        # To open a KeePass database, the decryption key is required, and this key
-        # may be a constructed from a password, key file, Windows user account,
-        # and/or other information sources. In the current implementation, only the
-        # password option is available.
-        ###########################################################################
-
-        # $CompositeKey represents a key, possibly constructed from multiple sources of data.
-        # The other key-related objects are added to this composite key.
-        $CompositeKey = New-Object -TypeName KeePassLib.Keys.CompositeKey #From KeePass.exe
-
-        # A password can be added to a composite key.
-        $Password = ($DBcredential.getnetworkcredential()).password
-        $KcpPassword = New-Object -TypeName KeePassLib.Keys.KcpPassword($Password)
-
-        # Add the Windows user account key to the $CompositeKey, if necessary:
-        ##$CompositeKey.AddUserKey( $KcpUserAccount )
-        $CompositeKey.AddUserKey( $KcpPassword )
-        #$CompositeKey.AddUserKey( $KcpKeyFile )
-
-        ###########################################################################
-        # To open a KeePass database, the path to the .KDBX file is required.
-        ###########################################################################
-
-        $IOConnectionInfo = New-Object KeePassLib.Serialization.IOConnectionInfo
-        $IOConnectionInfo.Path = $DBPath
-
-        ###########################################################################
-        # To open a KeePass database, an object is needed to record status info.
-        # In this case, the progress status information is ignored.
-        ############################################################################
-
-        $StatusLogger = New-Object KeePassLib.Interfaces.NullStatusLogger
-
-        ###########################################################################
-        # Open the KeePass database with key, path and logger objects.
-        # $PwDatabase represents a KeePass database.
-        ############################################################################
-        try{
-            $PwDatabase = New-Object -TypeName KeePassLib.PwDatabase #From KeePass.exe
-            $PwDatabase.Open($IOConnectionInfo, $CompositeKey, $StatusLogger)
-        }
-        catch{
-            $ErrorMessage= 'Error opening the KeePass Password database. Make sure the credentials and KeePass Database filepath are correct.'
-            Throw $ErrorMessage
-        }
-
-        #. .\openKPDB.ps1
-        # This only works for a top-level group, not a nested subgroup:
-        $PwGroup = @( $PwDatabase.RootGroup.Groups | Where-Object { $_.name -eq $TopLevelGroupName } )
-
-        # Confirm that one and only one matching group was found
-        if ($PwGroup.Count -eq 0)
-        {
-            $ErrorMessage = "ERROR: $TopLevelGroupName group not found"
-            Throw $ErrorMessage
-        }
-        elseif ($PwGroup.Count -gt 1)
-        {
-            $ErrorMessage = "ERROR: Multiple groups named $TopLevelGroupName"
-            Throw $ErrorMessage
-        }
-
-        ## check if an entry with this title in this group already exists
-
-        ## $Entryexists = (get-KeePassEntry -DBcredential $DBcredential -Title $Title -TopLevelGroupname $TopLevelGroupName)
-        if ($Entryexists -like 'ERROR: * not found')
-        {
-
-            #Use PSCredential, if provided, for username and password:
-            #if ($EntryCredential)
-            #{
-            $UserName = $EntryCredential.UserName
-            $Entrypassword = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($EntryCredential.Password))
-            #}
-
-            # The $True arguments allow new UUID and timestamps to be created automatically:
-            $PwEntry = New-Object -TypeName KeePassLib.PwEntry( $PwGroup[0], $True, $True )
-
-            # Protected strings are encrypted in memory:
-            $pTitle = New-Object KeePassLib.Security.ProtectedString($True, $Title)
-            $pUser = New-Object KeePassLib.Security.ProtectedString($True, $UserName)
-            $pPW = New-Object KeePassLib.Security.ProtectedString($True, $EntryPassword)
-            $pURL = New-Object KeePassLib.Security.ProtectedString($True, $URL)
-            $pNotes = New-Object KeePassLib.Security.ProtectedString($True, $Notes)
-
-            $PwEntry.Strings.Set('Title', $pTitle)
-            $PwEntry.Strings.Set('UserName', $pUser)
-            $PwEntry.Strings.Set('Password', $pPW)
-            $PwEntry.Strings.Set('URL', $pURL)
-            $PwEntry.Strings.Set('Notes', $pNotes)
-
-            $PwGroup[0].AddEntry($PwEntry, $True)
-
-            # Notice that the database is automatically saved here!
-            $StatusLogger = New-Object KeePassLib.Interfaces.NullStatusLogger
-            $PwDatabase.Save($StatusLogger)
-            Write-Output "Entry $Title successfully created"
+            $DatabaseProfileName = $PSBoundParameters[$ParameterName]
         }
         else
         {
-            $ErrorMessage = 'An Entry with this Title already exists in the provided group'
-            Throw $ErrorMessage
+            Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles."
+            Write-Warning -Message "[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function."
+            break
         }
+
+        $DatabaseProfileObject = Get-KeePassDatabaseConfiguration -DatabaseProfileName $DatabaseProfileName
+    
+        if($DatabaseProfileObject.UseMasterKey -eq 'True')
+        {
+            $MasterKeySecureString = Read-Host -Prompt "Database MasterKey" -AsSecureString
+        }
+
+        if($DatabaseProfileObject.UseNetworkAccount -eq 'True'){$UseNetworkAccount = $true}else {$UseNetworkAccount=$false}
+
+        $KeePassCredentialObject = switch ($DatabaseProfileObject.AuthenticationType) {
+            'KeyAndMaster'
+            {
+                Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -KeyFile $DatabaseProfileObject.KeyPath -MasterKey $MasterKeySecureString
+            }
+            'Key'
+            {
+                Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -KeyFile $DatabaseProfileObject.KeyPath -UseNetworkAccount:$UseNetworkAccount
+            }
+            'Master'
+            {
+                Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -MasterKey $MasterKeySecureString -UseNetworkAccount:$UseNetworkAccount
+            }
+        }
+
+        $KeePassConnectionObject = Get-KPConnection -KeePassCredential $KeePassCredentialObject
+        if($MasterKeySecureString){Remove-Variable -Name MasterKeySecureString}
+        if($KeePassCredentialObject){Remove-Variable -Name KeePassCredentialObject}
     }
-    catch{
-        Write-Warning -Message "$($_.Exception.Message)"
+    process
+    {
+        $KeePassGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassEntryGroupPath
+        Add-KpEntry -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroup -Title $Title -UserName $UserName -KeePassPassword $KeePassPassword -Notes $Notes -URL $URL
     }
-    finally{
-        $PwDatabase.close()
-        if($Entrypassword){ Clear-Variable Entrypassword}
-        if($Password) {Clear-Variable Password}
-        if($output) {Clear-Variable output}
-        if($PwDatabase) {Clear-Variable PwDatabase}
-        if($pPW) {Clear-Variable pPW}
+    end
+    {
+        Remove-KPConnection -KeePassConnection $KeePassConnectionObject
     }
 }
 
+
 ##DEV
-## This can be Updated to be a wrapper to set-kpentry 
+## Documentation Needed
 function Set-KeePassEntry
 {
-    <#
-        .SYNOPSIS
-            Sets single or multiple properties of a KeePass entry based on the tirle of
-            the entry.
-        .DESCRIPTION
-            Adds or changes properties of an existing KeePass entry. The name
-            of a top-level group/folder in KeePass and an entry title are mandatory,
-            but all other arguments are optional. The group/folder must be at the top
-            level in KeePass, i.e., it cannot be a nested subgroup. The username + password
-            must be provided as a PSCredential object.
-            in which case the secure string from the PSCredential is converted to
-            plaintext and then saved to the KeePass entry. The PSCredential object
-            is normally created using the Get-Credential cmdlet.
-        .PARAMETER DBCredential
-            The Credentials to open the KeePass Database must be provided as PSCredential object.
-            The Username of the PSCredential object is a dummy name and is only needed to create
-            the PSCredential obejct. The password however has to be the MasterKey of your KeePass
-            database.
-        .PARAMETER TopLevelGroupName
-            Name of the KeePass folder (mandatory). Must be top level, cannot be
-            nested, and must be unique, i.e., no other groups of the same name.
-        .PARAMETER Title
-            The title of the entry to add (mandatory). If an entry with the same title is already
-            present in the provided TopLevelGroup, the new entry will not be created.
-        .PARAMETER DBPath
-            Alternative path of a KeePass Database File.
-            If no value is provieded, the default database defined with Set-KeePassConfiguration
-            will be used.
-        .PARAMETER EntryCredential
-            A PowerShell secure string credential object, typically
-            created with the Get-Credential cmdlet. The KeePass entry
-            will be created using the user name and plaintext password of
-            the PSCredential object. Other data, such as Notes or URL, may
-            still be added. The KeePass entry will have the plaintext password
-            from the PSCredential in the KeePass GUI, not the secure string.
-        .PARAMETER PwDatabase
-            The previously-opened KeePass database object (mandatory).
-        .PARAMETER URL
-            The URL of the entry to add. If no new URL is provided, the existing value will be kept.
-        .PARAMETER Notes
-            The Notes of the entry to add. If no new notes are provided, the existing value will be kept.
-        .PARAMETER appendnotes
-            Switch to decide if the provided notes should overwrite the existing entry or append the new notes to the
-        .EXAMPLE
-            Set-KeePassEntry -DBcredential $mycred -TopLevelGroupName Internet -Title NewTestEntry -EntryCredential $NewEntryCred -DBPath C:\TEMP\Test-Database.kdbx
-            Description: Set´s new values for username and password that are provided as a PSCredential object in the NewTestEntry
-            entry in the Internet TopLevelGroup of the KeePass database provided with the DBPath parameter.
-            $NewentryCred can be created with Get-Credential.
-            Output:
-            GAC    Version        Location
-            ---    -------        --------
-            False  v2.0.50727     C:\Program Files (x86)\KeePass Password Safe 2\KeePass.exe
-            Entry NewTestEntry has been successfully set
-        .EXAMPLE
-            Set-KeePassEntry -DBcredential $mycred -TopLevelGroupName Internet -Title TestEntry -EntryCredential $NewEntryCred -URL "www.test.com" -notes "TestNotes for TestEntry entry"
-            Description:
-            Set´s new values for username and password that are provided as a PSCredential object and new values for the URL and notes in the TestEntry
-            entry in the Internet TopLevelGroup of the default KeePass database. The default KeePass database can be set with Set-KeePassConfiguration.
-            $NewentryCred can be created with Get-Credential.
-            Output:
-            GAC    Version        Location
-            ---    -------        --------
-            False  v2.0.50727     C:\Program Files (x86)\KeePass Password Safe 2\KeePass.exe
-            Entry TestEntry has been successfully set
-        .EXAMPLE
-            Set-KeePassEntry -DBcredential $mycred -TopLevelGroupName Internet -Title TestEntry -EntryCredential $NewEntryCred -URL "www.test.com" -notes "TestNotes for TestEntry entry" -appendnotes
-            Description:
-            Set´s new values for username and password that are provided as a PSCredential object and new values for the URL and notes in the TestEntry
-            entry in the Internet TopLevelGroup of the default KeePass database. The new value for notes is appended to the existing notes of the entry.
-            The default KeePass database can be set with Set-KeePassConfiguration. $NewentryCred can be created with Get-Credential.
-            Output:
-            GAC    Version        Location
-            ---    -------        --------
-            False  v2.0.50727     C:\Program Files (x86)\KeePass Password Safe 2\KeePass.exe
-            Entry TestEntry has been successfully set
-    #>
-  [CmdletBinding()]
-  param
-  (
-    #[Parameter(Mandatory=$true)] [KeePassLib.PwDatabase] $PwDatabase,
-    [Parameter(Mandatory=$true,
-        ValueFromPipeline=$true,
-        ValueFromPipelineByPropertyName=$true,
-    Position=0)]
-    [System.Management.Automation.PSCredential]$DBcredential,
+    param
+    (
+        [Parameter(Position=0,Mandatory=$true)]
+        [ValidateNotNullOrEmpty()]
+        [KeePassLib.PwEntry] $KeePassEntry,
 
-    [string]$DBPath,
+        [Parameter(Position=1,Mandatory=$true)]
+        [ValidateNotNullOrEmpty()]
+        [String] $KeePassEntryGroupPath,
 
-    [Parameter(Mandatory=$true)]
-    [String] $TopLevelGroupName,
+        [Parameter(Position=2,Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Title,
 
-    [Parameter(Mandatory=$true)]
-    [String] $Title,
+        [Parameter(Position=3,Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [string] $UserName,
 
-    [Parameter(Mandatory=$true)]
-    [System.Management.Automation.PSCredential] $EntryCredential,
+        [Parameter(Position=4,Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [KeePassLib.Security.ProtectedString] $KeePassPassword,
 
-    [String] $URL,
+        [Parameter(Position=5,Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Notes,
 
-    [String] $Notes,
-
-    [switch] $appendnotes
-  )
-
-  #Check if an entry with the same name already exists in the same database in the same TopLevelGroup
-    if ($DBPath)
+        [Parameter(Position=6,Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [string] $URL
+    )
+    dynamicparam
     {
-        $Entryexists = (get-KeePassEntry -DBcredential $DBcredential -Title $Title -TopLevelGroupname $TopLevelGroupName -DBPath $DBPath)
-    }
-    else
-    {
-        $Entryexists = (get-KeePassEntry -DBcredential $DBcredential -Title $Title -TopLevelGroupname $TopLevelGroupName)
-    }
+        ##Create and Define Validate Set Attribute
+        $DatabaseProfileList =  (Get-KeePassDatabaseConfiguration).Name
+        if($DatabaseProfileList)
+        {
+            $ParameterName = 'DatabaseProfileName'
+            $AttributeCollection = New-Object -TypeName System.Collections.ObjectModel.Collection[System.Attribute]
+            ###ParameterSet Host
+            $ParameterAttribute = New-Object -TypeName System.Management.Automation.ParameterAttribute
+            $ParameterAttribute.Mandatory = $true
+            $ParameterAttribute.Position = 4
+            # $ParameterAttribute.ValueFromPipelineByPropertyName = $true
+            # $ParameterAttribute.ParameterSetName = 'Profile'
+            $AttributeCollection.Add($ParameterAttribute)
 
+            $ValidateSetAttribute = New-Object -TypeName System.Management.Automation.ValidateSetAttribute($DatabaseProfileList)
+            $AttributeCollection.Add($ValidateSetAttribute)
 
-    Write-Verbose "$Entryexists"
-    if ($Entryexists -like 'ERROR: * not found')
-    {
-        $ErrorMessage = "No entry with title $Title exists"
-        Write-Warning -Message $ErrorMessage
-    }
-    else
-    {
+            ##Create and Define Allias Attribute
+            $AliasAttribute = New-Object -TypeName System.Management.Automation.AliasAttribute('Name')
+            $AttributeCollection.Add($AliasAttribute)
 
-        try{
-            #Read the global configuration
-            [xml]$Configuration = (Get-Content $PSScriptRoot\KeePassConfiguration.xml)
-            $KPProgramfolder = $Configuration.Settings.KeePassSettings.KPProgramFolder
-            $DBDefaultpathPath = $Configuration.Settings.KeePassSettings.DBDefaultpathPath
-
-
-            #Check if a KeePass Database File path has been provided.
-            #If not, set standardpath defined in KeePassConfiguration.xml.
-            #Then Check if KeePass Database exists.
-            if (-not $DBPath)
-            {
-                $DBPath = $DBDefaultpathPath
-
-                if (-not (Test-Path $DBPath))
-                {
-                    $ErrorMessage = 'The provided database path does not exist. Please check your settings. You can define a default Database with Set-KeePassConfiguration'
-                    Write-Warning -Message $ErrorMessage
-                    Exit
-                }
-            }
-
-            # Load the classes from KeePass.exe:
-            $KeePassEXE = Join-Path -Path $KPProgramFolder -ChildPath 'KeePass.exe'
-            [Reflection.Assembly]::LoadFile($KeePassEXE)
-
-            ###########################################################################
-            # To open a KeePass database, the decryption key is required, and this key
-            # may be a constructed from a password, key file, Windows user account,
-            # and/or other information sources. In the current implementation, only the
-            # password option is available.
-            ###########################################################################
-
-            # $CompositeKey represents a key, possibly constructed from multiple sources of data.
-            # The other key-related objects are added to this composite key.
-            $CompositeKey = New-Object -TypeName KeePassLib.Keys.CompositeKey #From KeePass.exe
-
-            # A password can be added to a composite key.
-            $Password = ($DBcredential.getnetworkcredential()).password
-            $KcpPassword = New-Object -TypeName KeePassLib.Keys.KcpPassword($Password)
-
-            # Add the Windows user account key to the $CompositeKey, if necessary:
-            ##$CompositeKey.AddUserKey( $KcpUserAccount )
-            $CompositeKey.AddUserKey( $KcpPassword )
-            #$CompositeKey.AddUserKey( $KcpKeyFile )
-
-            ###########################################################################
-            # To open a KeePass database, the path to the .KDBX file is required.
-            ###########################################################################
-
-            $IOConnectionInfo = New-Object KeePassLib.Serialization.IOConnectionInfo
-            $IOConnectionInfo.Path = $DBPath
-
-            ###########################################################################
-            # To open a KeePass database, an object is needed to record status info.
-            # In this case, the progress status information is ignored.
-            ############################################################################
-
-            $StatusLogger = New-Object KeePassLib.Interfaces.NullStatusLogger
-
-            ###########################################################################
-            # Open the KeePass database with key, path and logger objects.
-            # $PwDatabase represents a KeePass database.
-            ############################################################################
-            try{
-                $PwDatabase = New-Object -TypeName KeePassLib.PwDatabase #From KeePass.exe
-                $PwDatabase.Open($IOConnectionInfo, $CompositeKey, $StatusLogger)
-            }
-            catch{
-                $ErrorMessage= 'Error opening the KeePass Password database. Make sure the credentials and KeePass Database filepath are correct.'
-                Throw $ErrorMessage
-            }
-
-            #try {
-
-            # This only works for a top-level group, not a nested subgroup (lazy).
-            $PwGroup = @( $PwDatabase.RootGroup.Groups | Where-Object { $_.name -eq $TopLevelGroupName } )
-
-            # Confirm that one and only one matching group was found
-            if ($PwGroup.Count -eq 0)
-            {
-                $ErrorMessage = "ERROR: $TopLevelGroupName group not found"
-                Throw $ErrorMessage
-            }
-            elseif ($PwGroup.Count -gt 1)
-            {
-                $ErrorMessage = "ERROR: Multiple groups named $TopLevelGroupName"
-                Throw $ErrorMessage
-            }
-
-            # Confirm that one and only one matching title was found
-            $entry = @( $PwGroup[0].GetEntries($True) | Where-Object { $_.Strings.ReadSafe('Title') -eq "$Title" } )
-
-            if ($entry.Count -eq 0)
-            {
-                $ErrorMessage = "ERROR: $Title not found"
-                Throw $ErrorMessage
-            }
-            elseif ($entry.Count -gt 1)
-            {
-                $ErrorMessage= "ERROR: Multiple entries named $Title"
-                Throw $ErrorMessage
-            }
-
-            $output = '' | Select-Object Title,UserName,Password,URL,Notes,UUID
-            $output.Title = $entry[0].Strings.ReadSafe('Title')
-            $output.UserName = $entry[0].Strings.ReadSafe('UserName')
-            $output.Password = $entry[0].Strings.ReadSafe('Password')
-            $output.URL = $entry[0].Strings.ReadSafe('URL')
-            $output.Notes = $entry[0].Strings.ReadSafe('Notes')
-            $output.UUID = $entry[0].UUID
-            #}
-            # }
-            #  catch {Write-Output $Errorcode
-
-            # }
-            #Assign the changed properties to the entry
-            $UserName = $EntryCredential.UserName
-            #get password from credentials object
-            $Entrypassword = $EntryCredential.GetNetworkCredential().Password
-
-            #prepare object to set new values if new values are provided
-            # The $True arguments allow new UUID and timestamps to be created automatically:
-            $NewEntry = New-Object -TypeName KeePassLib.PwEntry( $PwGroup[0], $True, $True )
-
-            # Protected strings are encrypted in memory:
-            $pTitle = New-Object KeePassLib.Security.ProtectedString($True, $Title)
-
-            if (!($output.username -eq $UserName ))
-            {
-                $pUser = New-Object KeePassLib.Security.ProtectedString($True, $UserName)
-            }
-            else
-            {
-                $pUser = New-Object KeePassLib.Security.ProtectedString($True, $Output.username)
-            }
-            if (!($output.Password -eq $EntryPassword))
-            {
-                $pPW = New-Object KeePassLib.Security.ProtectedString($True, $EntryPassword)
-            }
-            else
-            {
-                $pPW = New-Object KeePassLib.Security.ProtectedString($True, $Output.Password)
-            }
-
-            if (!($Url))
-            {
-                $pURL = New-Object KeePassLib.Security.ProtectedString($True, $Output.url)
-            }
-            else
-            {
-                $pURL = New-Object KeePassLib.Security.ProtectedString($True, $url)
-            }
-
-            if (!($Notes))
-            {
-                $pNotes = New-Object KeePassLib.Security.ProtectedString($True, $output.notes)
-            }
-            else
-            {
-                if ($appendnotes)
-                {
-                    $Notes = $output.Notes + ' ' + $notes
-                    $pNotes = New-Object KeePassLib.Security.ProtectedString($True, $Notes)
-                }
-                else
-                {
-                    $pNotes = New-Object KeePassLib.Security.ProtectedString($True, $Notes)
-                }
-            }
-
-            $NewEntry.Strings.Set('Title', $pTitle)
-            $NewEntry.Strings.Set('UserName', $pUser)
-            $NewEntry.Strings.Set('Password', $pPW)
-            $NewEntry.Strings.Set('URL', $pURL)
-            $NewEntry.Strings.Set('Notes', $pNotes)
-            $NewEntry.UUID = $output.UUID
-
-            Write-Verbose $Entry[0].Strings.Readsafe('URL')
-            Write-Verbose $Entry[0].Strings.Readsafe('Title')
-
-            $entry[0].AssignProperties($NewEntry,$true,$true,$true)
-
-            # Notice that the database is automatically saved here!
-            $StatusLogger = New-Object KeePassLib.Interfaces.NullStatusLogger
-            $PwDatabase.Save($StatusLogger)
-
-            Write-Output "Entry $Title has been successfully set"
-            #}
+            ##Create,Define, and Return DynamicParam
+            $RuntimeParameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter($ParameterName, [string], $AttributeCollection)
+            $RuntimeParameterDictionary = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameterDictionary
+            $RuntimeParameterDictionary.Add($ParameterName,$RuntimeParameter)
+            return $RuntimeParameterDictionary
         }
-        catch{
-            Write-output $Errorcode
+    }
+    begin
+    {
+        if($DatabaseProfileList)
+        {
+            $DatabaseProfileName = $PSBoundParameters[$ParameterName]
         }
-        finally{
-            $PwDatabase.close()
-            if($Entrypassword) {Clear-Variable Entrypassword}
-            if($Password) {Clear-Variable Password}
-            if($Output){Clear-Variable output}
-            if($PWDatabase){Clear-Variable PWDatabase}
-            if($pWp){Clear-Variable pPw}
+        else
+        {
+            Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles."
+            Write-Warning -Message "[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function."
+            break
         }
-  }
+
+        $DatabaseProfileObject = Get-KeePassDatabaseConfiguration -DatabaseProfileName $DatabaseProfileName
+    
+        if($DatabaseProfileObject.UseMasterKey -eq 'True')
+        {
+            $MasterKeySecureString = Read-Host -Prompt "Database MasterKey" -AsSecureString
+        }
+
+        if($DatabaseProfileObject.UseNetworkAccount -eq 'True'){$UseNetworkAccount = $true}else {$UseNetworkAccount=$false}
+
+        $KeePassCredentialObject = switch ($DatabaseProfileObject.AuthenticationType) {
+            'KeyAndMaster'
+            {
+                Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -KeyFile $DatabaseProfileObject.KeyPath -MasterKey $MasterKeySecureString
+            }
+            'Key'
+            {
+                Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -KeyFile $DatabaseProfileObject.KeyPath -UseNetworkAccount:$UseNetworkAccount
+            }
+            'Master'
+            {
+                Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -MasterKey $MasterKeySecureString -UseNetworkAccount:$UseNetworkAccount
+            }
+        }
+
+        $KeePassConnectionObject = Get-KPConnection -KeePassCredential $KeePassCredentialObject
+        if($MasterKeySecureString){Remove-Variable -Name MasterKeySecureString}
+        if($KeePassCredentialObject){Remove-Variable -Name KeePassCredentialObject}
+    }
+    process
+    {
+        $KeePassGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassEntryGroupPath
+        Set-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassEntry $KeePassEntry -Title $Title -UserName $UserName -KeePassPassword $KeePassPassword -Notes $Notes -URL $URL -KeePassGroup $KeePassGroup
+    }
+    end
+    {
+        Remove-KPConnection -KeePassConnection $KeePassConnectionObject
+    }
 }
 
 ##DEV
@@ -1787,23 +1440,23 @@ function Add-KPEntry
         [KeePassLib.PwGroup] $KeePassGroup,
 
         [Parameter(Position=2,Mandatory=$false)]
-        [ValidateNotNullOrEmpty()]
+        # [ValidateNotNullOrEmpty()]
         [string] $Title,
 
         [Parameter(Position=3,Mandatory=$false)]
-        [ValidateNotNullOrEmpty()]
+        # [ValidateNotNullOrEmpty()]
         [string] $UserName,
 
         [Parameter(Position=4,Mandatory=$false)]
-        [ValidateNotNullOrEmpty()]
+        # [ValidateNotNullOrEmpty()]
         [KeePassLib.Security.ProtectedString] $KeePassPassword,
 
         [Parameter(Position=5,Mandatory=$false)]
-        [ValidateNotNullOrEmpty()]
+        # [ValidateNotNullOrEmpty()]
         [string] $Notes,
 
         [Parameter(Position=6,Mandatory=$false)]
-        [ValidateNotNullOrEmpty()]
+        # [ValidateNotNullOrEmpty()]
         [string] $URL
     )
     begin
@@ -1929,23 +1582,23 @@ function Set-KPEntry
         [KeePassLib.PwEntry] $KeePassEntry,
 
         [Parameter(Position=2,Mandatory=$false)]
-        [ValidateNotNullOrEmpty()]
+        # [ValidateNotNullOrEmpty()]
         [string] $Title,
 
         [Parameter(Position=3,Mandatory=$false)]
-        [ValidateNotNullOrEmpty()]
+        # [ValidateNotNullOrEmpty()]
         [string] $UserName,
 
         [Parameter(Position=4,Mandatory=$false)]
-        [ValidateNotNullOrEmpty()]
+        # [ValidateNotNullOrEmpty()]
         [KeePassLib.Security.ProtectedString] $KeePassPassword,
 
         [Parameter(Position=5,Mandatory=$false)]
-        [ValidateNotNullOrEmpty()]
+        # [ValidateNotNullOrEmpty()]
         [string] $Notes,
 
         [Parameter(Position=6,Mandatory=$false)]
-        [ValidateNotNullOrEmpty()]
+        # [ValidateNotNullOrEmpty()]
         [string] $URL,
         
         [Parameter(Position=7,Mandatory)]
