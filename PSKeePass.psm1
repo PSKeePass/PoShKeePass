@@ -931,151 +931,197 @@ function New-KeePassPassword
             This will specify the length of the resulting password. If not used it will use KeePass's Default Password Profile
             Length Value which I believe is 20.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName='NoProfile')]
     [OutputType('KeePassLib.Security.ProtectedString')]
     param
     (
-        [Parameter(Position=0)]
+        [Parameter(Position=0, ParameterSetName='NoProfile')]
         [ValidateNotNull()]
         [Switch] $UpperCase,
-        [Parameter(Position=1)]
+        [Parameter(Position=1, ParameterSetName='NoProfile')]
         [ValidateNotNull()]
         [Switch] $LowerCase,
-        [Parameter(Position=2)]
+        [Parameter(Position=2, ParameterSetName='NoProfile')]
         [ValidateNotNull()]
         [Switch] $Digits,
-        [Parameter(Position=3)]
+        [Parameter(Position=3, ParameterSetName='NoProfile')]
         [ValidateNotNull()]
         [Switch] $SpecialCharacters,
-        # [Parameter(Position=4)]
-        # [ValidateNotNull()]
-        # [Switch] $HighANSICharacters,
-        [Parameter(Position=5)]
+        [Parameter(Position=4, ParameterSetName='NoProfile')]
         [ValidateNotNull()]
         [Switch] $Minus,
-        [Parameter(Position=6)]
+        [Parameter(Position=5, ParameterSetName='NoProfile')]
         [ValidateNotNull()]
         [Switch] $UnderScore,
-        [Parameter(Position=7)]
+        [Parameter(Position=6, ParameterSetName='NoProfile')]
         [ValidateNotNull()]
         [Switch] $Space,
-        [Parameter(Position=8)]
+        [Parameter(Position=7, ParameterSetName='NoProfile')]
         [ValidateNotNull()]
         [Switch] $Brackets,
-        [Parameter(Position=9)]
+        [Parameter(Position=8, ParameterSetName='NoProfile')]
         [ValidateNotNull()]
         [Switch] $ExcludeLookALike,
-        [Parameter(Position=10)]
+        [Parameter(Position=9, ParameterSetName='NoProfile')]
         [ValidateNotNull()]
         [Switch] $NoRepeatingCharacters,
-        [Parameter(Position=11)]
+        [Parameter(Position=10, ParameterSetName='NoProfile')]
         [ValidateNotNullOrEmpty()]
         [string] $ExcludeCharacters,
-        [Parameter(Position=12)]
+        [Parameter(Position=11, ParameterSetName='NoProfile')]
         [ValidateNotNullOrEmpty()]
         [int] $Length,
-        [Parameter(Position=13)]
+        [Parameter(Position=12, ParameterSetName='NoProfile')]
         [ValidateNotNullOrEmpty()]
         [String] $SaveAs
     )
+    dynamicparam
+    {
+        ##Create and Define Validate Set Attribute
+        $PasswordProfileList =  (Get-KPPasswordProfile).Name
+        if($PasswordProfileList)
+        {
+            $ParameterName = 'PasswordProfileName'
+            $AttributeCollection = New-Object -TypeName System.Collections.ObjectModel.Collection[System.Attribute]
+            ###ParameterSet Host
+            $ParameterAttribute = New-Object -TypeName System.Management.Automation.ParameterAttribute
+            $ParameterAttribute.Mandatory = $true
+            $ParameterAttribute.Position = 0
+            $ParameterAttribute.ParameterSetName = 'Profile'
+            $AttributeCollection.Add($ParameterAttribute)
+
+            $ValidateSetAttribute = New-Object -TypeName System.Management.Automation.ValidateSetAttribute($PasswordProfileList)
+            $AttributeCollection.Add($ValidateSetAttribute)
+
+            ##Create and Define Allias Attribute
+            $AliasAttribute = New-Object -TypeName System.Management.Automation.AliasAttribute('Name')
+            $AttributeCollection.Add($AliasAttribute)
+
+            ##Create,Define, and Return DynamicParam
+            $RuntimeParameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter($ParameterName, [string], $AttributeCollection)
+            $RuntimeParameterDictionary = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameterDictionary
+            $RuntimeParameterDictionary.Add($ParameterName,$RuntimeParameter)
+            return $RuntimeParameterDictionary
+        }
+    }
+    begin
+    {
+        if($PasswordProfileList)
+        {
+            $PasswordProfileName = $PSBoundParameters[$ParameterName]
+        }
+    }
     process
     {
         ## Create New Password Profile.
         $PassProfile = New-Object KeePassLib.Cryptography.PasswordGenerator.PwProfile
-        $NewProfileObject = '' | Select-Object ProfileName,CharacterSet,ExcludeLookAlike,NoRepeatingCharacters,ExcludeCharacters,Length
         
-        if($PSBoundParameters.Count -gt 0)
+        if($PSCmdlet.ParameterSetName -eq 'NoProfile')
         {
-            $PassProfile.CharSet = New-Object KeePassLib.Cryptography.PasswordGenerator.PwCharSet
-            ## Build Profile With Options.
-            if($UpperCase)
-            { 
-                $NewProfileObject.CharacterSet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-            }
-            
-            if($LowerCase)
-            { 
-                $NewProfileObject.CharacterSet += 'abcdefghijklmnopqrstuvwxyz'
-            }
-            
-            if($Digits)
-            {   
-                $NewProfileObject.CharacterSet += '0123456789' 
-            }
-            
-            if($SpecialCharacters)
-            { 
-                $NewProfileObject.CharacterSet += '!"#$%&''*+,./:;=?@\^`|~' 
-            }
-            
-            if($Minus)
-            { 
-                $NewProfileObject.CharacterSet += '-'  
-            }
-            
-            if($UnderScore)
-            { 
-                $NewProfileObject.CharacterSet += '_' 
-            }
-            
-            if($Space)
-            { 
-                $NewProfileObject.CharacterSet += ' ' 
-            }
-            
-            if($Brackets)
-            { 
-                $NewProfileObject.CharacterSet += '[]{}()<>' 
-            }
-            
-            if($ExcludeLookALike)
-            { 
-                $NewProfileObject.ExcludeLookAlike = $true 
-            }
-            else
+            $NewProfileObject = '' | Select-Object ProfileName,CharacterSet,ExcludeLookAlike,NoRepeatingCharacters,ExcludeCharacters,Length
+            if($PSBoundParameters.Count -gt 0)
             {
-                $NewProfileObject.ExcludeLookAlike = $false    
-            }
-            
-            if($NoRepeatingCharacters)
-            { 
-                $NewProfileObject.NoRepeatingCharacters = $true 
-            }
-            else
-            {
-                $NewProfileObject.NoRepeatingCharacters = $false
-            }
-            
-            if($ExcludeCharacters)
-            { 
-                $NewProfileObject.ExcludeCharacters = $ExcludeCharacters 
-            }
-            else
-            {
-                $NewProfileObject.ExcludeCharacters = ''
-            }
-            
-            if($Length)
-            {
-                $NewProfileObject.Length = $Length 
-            }
-            else
-            {
-                $NewProfileObject.Length = '20'
-            }
-            
-            $PassProfile.CharSet.Add($NewProfileObject.CharacterSet)
-            $PassProfile.ExcludeLookAlike = $NewProfileObject.ExlcudeLookAlike
-            $PassProfile.NoRepeatingCharacters = $NewProfileObject.NoRepeatingCharacters
-            $PassProfile.ExcludeCharacters = $NewProfileObject.ExcludeCharacters
-            $PassProfile.Length = $NewProfileObject.Length
-             
-            if($SaveAs)
-            {
-                $NewProfileObject.ProfileName = $SaveAs
-                New-KPPasswordProfile -KeePassPasswordObject $NewProfileObject
+                $PassProfile.CharSet = New-Object KeePassLib.Cryptography.PasswordGenerator.PwCharSet
+                ## Build Profile With Options.
+                if($UpperCase)
+                { 
+                    $NewProfileObject.CharacterSet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+                }
+                
+                if($LowerCase)
+                { 
+                    $NewProfileObject.CharacterSet += 'abcdefghijklmnopqrstuvwxyz'
+                }
+                
+                if($Digits)
+                {   
+                    $NewProfileObject.CharacterSet += '0123456789' 
+                }
+                
+                if($SpecialCharacters)
+                { 
+                    $NewProfileObject.CharacterSet += '!"#$%&''*+,./:;=?@\^`|~' 
+                }
+                
+                if($Minus)
+                { 
+                    $NewProfileObject.CharacterSet += '-'  
+                }
+                
+                if($UnderScore)
+                { 
+                    $NewProfileObject.CharacterSet += '_' 
+                }
+                
+                if($Space)
+                { 
+                    $NewProfileObject.CharacterSet += ' ' 
+                }
+                
+                if($Brackets)
+                { 
+                    $NewProfileObject.CharacterSet += '[]{}()<>' 
+                }
+                
+                if($ExcludeLookALike)
+                { 
+                    $NewProfileObject.ExcludeLookAlike = $true 
+                }
+                else
+                {
+                    $NewProfileObject.ExcludeLookAlike = $false    
+                }
+                
+                if($NoRepeatingCharacters)
+                { 
+                    $NewProfileObject.NoRepeatingCharacters = $true 
+                }
+                else
+                {
+                    $NewProfileObject.NoRepeatingCharacters = $false
+                }
+                
+                if($ExcludeCharacters)
+                { 
+                    $NewProfileObject.ExcludeCharacters = $ExcludeCharacters 
+                }
+                else
+                {
+                    $NewProfileObject.ExcludeCharacters = ''
+                }
+                
+                if($Length)
+                {
+                    $NewProfileObject.Length = $Length 
+                }
+                else
+                {
+                    $NewProfileObject.Length = '20'
+                }
+                
+                $PassProfile.CharSet.Add($NewProfileObject.CharacterSet)
+                $PassProfile.ExcludeLookAlike = $NewProfileObject.ExlcudeLookAlike
+                $PassProfile.NoRepeatingCharacters = $NewProfileObject.NoRepeatingCharacters
+                $PassProfile.ExcludeCharacters = $NewProfileObject.ExcludeCharacters
+                $PassProfile.Length = $NewProfileObject.Length
+                
+                if($SaveAs)
+                {
+                    $NewProfileObject.ProfileName = $SaveAs
+                    New-KPPasswordProfile -KeePassPasswordObject $NewProfileObject
+                }
             }
         }
+        elseif($PSCmdlet.ParameterSetName -eq 'Profile')
+        {
+            $PasswordProfileObject=Get-KPPasswordProfile -PasswordProfileName $PasswordProfileName
+            $PassProfile.CharSet.Add($PasswordProfileObject.CharacterSet)
+            $PassProfile.ExcludeLookAlike = $PasswordProfileObject.ExlcudeLookAlike
+            $PassProfile.NoRepeatingCharacters = $PasswordProfileObject.NoRepeatingCharacters
+            $PassProfile.ExcludeCharacters = $PasswordProfileObject.ExcludeCharacters
+            $PassProfile.Length = $PasswordProfileObject.Length
+        }
+       
         ## Create Pass Generator Profile Pool.
         $GenPassPool = New-Object KeePassLib.Cryptography.PasswordGenerator.CustomPwGeneratorPool
         ## Create Out Parameter aka [rel] param.
@@ -1346,49 +1392,58 @@ function New-KPPasswordProfile
         [ValidateNotNullOrEmpty()]
         [PSCustomObject] $KeePassPasswordObject
     )
+    process
+    {
+        if (Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml)
+        {
+            $CheckIfExists = Get-KPPasswordProfile -PasswordProfileName $KeePassPasswordObject.ProfileName
+            if($CheckIfExists)
+            {
+                Write-Warning -Message "[PROCESS] A Password Profile with the specified name ($($KeePassPasswordObject.ProfileName)) already exists."
+                break
+            }
+
+            [xml] $XML = Get-Content("$PSScriptRoot\KeePassConfiguration.xml")
+            ## Create New Profile Element with Name of the new profile
+            $PasswordProfile = $XML.CreateElement('Profile')
+            $PasswordProfileAtribute = $XML.CreateAttribute('Name')
+            $PasswordProfileAtribute.Value = $KeePassPasswordObject.ProfileName
+            $PasswordProfile.Attributes.Append($PasswordProfileAtribute) | Out-Null
+            
+            ## Build and Add Element Nodes
+            $CharacterSetNode = $XML.CreateNode('element','CharacterSet','')
+            $CharacterSetNode.InnerText = $KeePassPasswordObject.CharacterSet
+            $PasswordProfile.AppendChild($CharacterSetNode) | Out-Null
+            
+            $ExcludeLookAlikeNode = $XML.CreateNode('element','ExcludeLookAlike','')
+            $ExcludeLookAlikeNode.InnerText = $KeePassPasswordObject.ExcludeLookAlike
+            $PasswordProfile.AppendChild($ExcludeLookAlikeNode) | Out-Null
+            
+            $NoRepeatingCharactersNode = $XML.CreateNode('element','NoRepeatingCharacters','')
+            $NoRepeatingCharactersNode.InnerText = $KeePassPasswordObject.NoRepeatingCharacters
+            $PasswordProfile.AppendChild($NoRepeatingCharactersNode) | Out-Null
+            
+            $ExcludeCharactersNode = $XML.CreateNode('element','ExcludeCharacters','')
+            $ExcludeCharactersNode.InnerText = $KeePassPasswordObject.ExcludeCharacters
+            $PasswordProfile.AppendChild($ExcludeCharactersNode) | Out-Null
+            
+            $LengthNode = $XML.CreateNode('element','Length','')
+            $LengthNode.InnerText = $KeePassPasswordObject.Length
+            $PasswordProfile.AppendChild($LengthNode) | Out-Null
+            
+            $XML.SelectSingleNode('/Settings/PasswordProfiles').AppendChild($PasswordProfile) | Out-Null
+            
+            $XML.Save("$PSScriptRoot\KeePassConfiguration.xml")   
+        }
+        else
+        {
+            Write-Output 'No KeePass Configuration has been created. You can create one with Set-KeePassConfiguration'
+        }
+    }
     
-    if (Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml)
-    {
-        [xml] $XML = Get-Content("$PSScriptRoot\KeePassConfiguration.xml")
-        ## Create New Profile Element with Name of the new profile
-        $PasswordProfile = $XML.CreateElement('Profile')
-        $PasswordProfileAtribute = $XML.CreateAttribute('Name')
-        $PasswordProfileAtribute.Value = $KeePassPasswordObject.ProfileName
-        $PasswordProfile.Attributes.Append($PasswordProfileAtribute) | Out-Null
-        
-        ## Build and Add Element Nodes
-        $CharacterSetNode = $XML.CreateNode('element','CharacterSet','')
-        $CharacterSetNode.InnerText = $KeePassPasswordObject.CharacterSet
-        $PasswordProfile.AppendChild($CharacterSetNode) | Out-Null
-        
-        $ExcludeLookAlikeNode = $XML.CreateNode('element','ExcludeLookAlike','')
-        $ExcludeLookAlikeNode.InnerText = $KeePassPasswordObject.ExcludeLookAlike
-        $PasswordProfile.AppendChild($ExcludeLookAlikeNode) | Out-Null
-        
-        $NoRepeatingCharactersNode = $XML.CreateNode('element','NoRepeatingCharacters','')
-        $NoRepeatingCharactersNode.InnerText = $KeePassPasswordObject.NoRepeatingCharacters
-        $PasswordProfile.AppendChild($NoRepeatingCharactersNode) | Out-Null
-        
-        $ExcludeCharactersNode = $XML.CreateNode('element','ExcludeCharacters','')
-        $ExcludeCharactersNode.InnerText = $KeePassPasswordObject.ExcludeCharacters
-        $PasswordProfile.AppendChild($ExcludeCharactersNode) | Out-Null
-        
-        $LengthNode = $XML.CreateNode('element','Length','')
-        $LengthNode.InnerText = $KeePassPasswordObject.Length
-        $PasswordProfile.AppendChild($LengthNode) | Out-Null
-        
-        $XML.SelectSingleNode('/Settings/PasswordProfiles').AppendChild($PasswordProfile) | Out-Null
-        
-        $XML.Save("$PSScriptRoot\KeePassConfiguration.xml")   
-    }
-    else
-    {
-        Write-Output 'No KeePass Configuration has been created. You can create one with Set-KeePassConfiguration'
-    }
 }
 
 ##DEV
-## Add Dynamic parameter to get a list of profiles
 ## Needs Documentation
 function Get-KPPasswordProfile
 {
@@ -1420,28 +1475,59 @@ function Get-KPPasswordProfile
         }
         else
         {
-            Write-Warning 'No KeePass Configuration has been created.'
+            Write-Verbose 'No KeePass Configuration has been created.'
         }
     }
 }
 
 ##DEV
-## Add Dynamic parameter to get a list of profiles
 ## Needs Documentation
 function Remove-KPPasswordProfile 
 {
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact='High')]
-    param
-    (
-        [Parameter(
-            Position = 0,
-            Mandatory = $true,
-            ValueFromPipelineByPropertyName = $true
-        )]
-        [ValidateNotNullOrEmpty()]
-        [Alias('Name')]
-        [String] $PasswordProfileName
-    )
+    param()
+    dynamicparam
+    {
+        ##Create and Define Validate Set Attribute
+        $PasswordProfileList =  (Get-KPPasswordProfile).Name
+        if($PasswordProfileList)
+        {
+            $ParameterName = 'PasswordProfileName'
+            $AttributeCollection = New-Object -TypeName System.Collections.ObjectModel.Collection[System.Attribute]
+            ###ParameterSet Host
+            $ParameterAttribute = New-Object -TypeName System.Management.Automation.ParameterAttribute
+            $ParameterAttribute.Mandatory = $true
+            $ParameterAttribute.Position = 0
+            $ParameterAttribute.ValueFromPipelineByPropertyName = $true
+            # $ParameterAttribute.ParameterSetName = 'Profile'
+            $AttributeCollection.Add($ParameterAttribute)
+
+            $ValidateSetAttribute = New-Object -TypeName System.Management.Automation.ValidateSetAttribute($PasswordProfileList)
+            $AttributeCollection.Add($ValidateSetAttribute)
+
+            ##Create and Define Allias Attribute
+            $AliasAttribute = New-Object -TypeName System.Management.Automation.AliasAttribute('Name')
+            $AttributeCollection.Add($AliasAttribute)
+
+            ##Create,Define, and Return DynamicParam
+            $RuntimeParameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter($ParameterName, [string], $AttributeCollection)
+            $RuntimeParameterDictionary = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameterDictionary
+            $RuntimeParameterDictionary.Add($ParameterName,$RuntimeParameter)
+            return $RuntimeParameterDictionary
+        }
+    }
+    begin
+    {
+        if($PasswordProfileList)
+        {
+            $PasswordProfileName = $PSBoundParameters[$ParameterName]
+        }
+        else
+        {
+            Write-Warning -Message "[BEGIN] There are Currently No Password Profiles." 
+            break
+        }
+    }
     process
     {
         if (-not (Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml))
@@ -1450,10 +1536,10 @@ function Remove-KPPasswordProfile
         }
         else
         {
-            $CheckIfProfileExists = Get-KPPasswordProfile -PasswordProfileName $PasswordProfileName
+            # $CheckIfProfileExists = Get-KPPasswordProfile -PasswordProfileName $PasswordProfileName
 
-            if($CheckIfProfileExists)
-            {
+            # if($CheckIfProfileExists)
+            # {
                 if($PSCmdlet.ShouldProcess($PasswordProfileName))
                 {
                     try
@@ -1469,16 +1555,15 @@ function Remove-KPPasswordProfile
                         Throw $_
                     }
                 }
-            }
-            else
-            {
-                Write-Warning -Message "[PROCESS] A KeePass Password Profile does not exists with the specified name: $PasswordProfileName."
-            }
+            # }
+            # else
+            # {
+            #     Write-Warning -Message "[PROCESS] A KeePass Password Profile does not exists with the specified name: $PasswordProfileName."
+            # }
         }
         
     }
 }
-
 
 function Get-KPCredential
 {
