@@ -596,28 +596,28 @@ function Remove-KeePassEntry
 }
 
 ##DEV
-## Fill out Dumby function
+## Fill out holder function
 function New-KeePassGroup
 {
 
 }
 
 ##DEV
-## Fill out Dumby function
+## Fill out holder function
 function Get-KeePassGroup
 {
 
 }
 
 ##DEV
-## Fill out Dumby function
+## Fill out holder function
 function Update-KeePassGroup
 {
 
 }
 
 ##DEV
-## Fill out Dumby function
+## Fill out holder function
 function Remove-KeePassGroup
 {
 
