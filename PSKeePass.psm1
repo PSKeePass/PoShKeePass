@@ -126,7 +126,7 @@
         else
         {
             ## Get all entries in all groups.
-            $ResultEntries = Get-KpEntry -KeePassConnection $KeePassConnectionObject
+            $ResultEntries = Get-KPEntry -KeePassConnection $KeePassConnectionObject
         }
 
         ## return results in plain text or not.
@@ -313,16 +313,61 @@ function New-KeePassEntry
     }
 }
 
-
 ##DEV
 ## Documentation Needed
-function Set-KeePassEntry
+function Update-KeePassEntry
 {
+    <#
+        .SYNOPSIS
+            Function to update a KeePass Database Entry.
+        .DESCRIPTION
+            This function updates a KeePass Database Entry with basic properites available for specification.
+        .PARAMETER KeePassEntry
+            The KeePass Entry to be updated. Use the Get-KeePassEntry function to get this object.
+        .PARAMETER KeePassEntryGroupPath
+            Specify this parameter if you wish to only return entries form a specific folder path.
+            Notes: 
+                * Path Separator is the foward slash character '/'
+                * The top level directory aka the database name should not be included in the path.
+        .PARAMETER DatabaseProfileName
+            *This Parameter is required in order to access your KeePass database.
+            *This is a Dynamic Parameter that is populated from the KeePassConfiguration.xml. 
+                *You can generated this file by running the New-KeePassDatabaseConfiguration function.
+        .PARAMETER Title
+            Specify the Title of the new KeePass Database Entry.
+        .PARAMETER UserName
+            Specify the UserName of the new KeePass Database Entry.
+        .PARAMETER KeePassPassword
+            *Specify the KeePassPassword of the new KeePass Database Entry.
+            *Notes:
+                *This Must be of the type SecureString
+        .PARAMETER Notes
+            Specify the Notes of the new KeePass Database Entry.
+        .PARAMETER URL
+            Specify the URL of the new KeePass Database Entry.
+        .EXAMPLE
+            PS> New-KeePassEntry -DatabaseProfileName TEST -KeePassEntryGroupPath 'General/TestAccounts' -Title 'Test Title' -UserName 'Domain\svcAccount' -KeePassPassword $(New-KeePassPassword -upper -lower -digits -length 20)
+
+            This example creates a new keepass database entry in the General/TestAccounts database group, with the specified Title and UserName. Also the function New-KeePassPassword is used to generated a random password with the specified options.
+        .EXAMPLE
+            PS> New-KeePassEntry -DatabaseProfileName TEST -KeePassEntryGroupPath 'General/TestAccounts' -Title 'Test Title' -UserName 'Domain\svcAccount' -KeePassPassword $(New-KeePassPassword -PasswordProfileName 'Default' )
+
+            This example creates a new keepass database entry in the General/TestAccounts database group, with the specified Title and UserName. Also the function New-KeePassPassword with a password profile specifed to create a new password genereated from options saved to a profile.
+        .EXAMPLE
+            PS> New-KeePassEntry -DatabaseProfileName TEST -Title 'Test Title' -UserName 'Domain\svcAccount' -KeePassPassword $(ConvertTo-SecureString -String 'apassword' -AsPlainText -Force)
+
+            This example creates a new keepass database entry with the specified Title, UserName and manually specified password converted to a securestring. 
+        .INPUTS
+            String
+            SecureString
+        .OUTPUTS
+            $null
+    #>
     param
     (
-        [Parameter(Position=0,Mandatory=$true)]
+        [Parameter(Position=0,Mandatory=$true,ValueFromPipeline)]
         [ValidateNotNullOrEmpty()]
-        [KeePassLib.PwEntry] $KeePassEntry,
+        [PSObject] $KeePassEntry,
 
         [Parameter(Position=1,Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
@@ -416,13 +461,18 @@ function Set-KeePassEntry
         }
 
         $KeePassConnectionObject = Get-KPConnection -KeePassCredential $KeePassCredentialObject
+
+        
+
         if($MasterKeySecureString){Remove-Variable -Name MasterKeySecureString}
         if($KeePassCredentialObject){Remove-Variable -Name KeePassCredentialObject}
     }
     process
     {
+        
+        $KPEntry=Get-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassUuid $KeePassEntry.Uuid
         $KeePassGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassEntryGroupPath
-        Set-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassEntry $KeePassEntry -Title $Title -UserName $UserName -KeePassPassword $KeePassPassword -Notes $Notes -URL $URL -KeePassGroup $KeePassGroup
+        Set-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassEntry $KPEntry -Title $Title -UserName $UserName -KeePassPassword $KeePassPassword -Notes $Notes -URL $URL -KeePassGroup $KeePassGroup
     }
     end
     {
@@ -431,7 +481,6 @@ function Set-KeePassEntry
 }
 
 ##DEV
-## Needs Documentation
 function New-KeePassPassword
 {
     <#
@@ -450,16 +499,25 @@ function New-KeePassPassword
             This Simply Applies the Rules specified and generates a new password that is returned in the form-
             of a KeePassLib.Security.ProtectedString.
         .EXAMPLE
-            PS> Get-KpPass
+            PS> New-KeePassPassword
 
             This Example will generate a Password using the Default KeePass Password Profile.
-            Which I believe is -UpperCase -LowerCase -Digites -Length 20
+            Which is is -UpperCase -LowerCase -Digites -Length 20
         .EXAMPLE
-            PS> Get-KpPass -UpperCase -LowerCase -Digits -Length 20
+            PS> New-KeePassPassword -UpperCase -LowerCase -Digits -Length 20
 
             This Example will generate a 20 character password that contains Upper and Lower case letters ans numbers 0-9
         .EXAMPLE
-            PS> Get-KpPass -UpperCase -LowerCase -Digits -SpecialCharacters -ExcludeCharacters '"' -Length 20
+            PS> New-KeePassPassword -UpperCase -LowerCase -Digits -Length 20 -SaveAs 'Basic Password'
+
+            This Example will generate a 20 character password that contains Upper and Lower case letters ans numbers 0-9.
+            Then it will save it as a password profile with the bane 'Basic Password' for future reuse.
+        .EXAMPLE
+            PS> New-KeePassPassword -PasswordProfileName 'Basic Password'
+
+            This Example will generate a password using the password profile name Basic Password.
+        .EXAMPLE
+            PS> New-KeePassPassword -UpperCase -LowerCase -Digits -SpecialCharacters -ExcludeCharacters '"' -Length 20
 
             This Example will generate a Password with the Specified Options and Exclude the Double Quote Character
         .PARAMETER UpperCase
@@ -487,6 +545,19 @@ function New-KeePassPassword
         .PARAMETER Length
             This will specify the length of the resulting password. If not used it will use KeePass's Default Password Profile
             Length Value which I believe is 20.
+        .PARAMETER SaveAS
+            Specify the name in which you wish to save the password configuration as.
+            This will save all specified settings the KeePassConfiguration.xml file, which can then be specifed later when genreating a password to match the same settings.
+        .PARAMETER PasswordProfileName
+            *Specify this parameter to use a previously saved password profile to genreate a password.
+            *Note:
+                *This supports Tab completion as it will get all saved profiles. (ie its a dynamic parameter.)
+                *Since it is a dynamic parameter it will only show up if there are already profiles to use.
+        .INPUTS
+            String
+            Switch
+        .OUTPUTS
+            SecureString
     #>
     [CmdletBinding(DefaultParameterSetName='NoProfile')]
     [OutputType('SecureString')]
@@ -673,20 +744,50 @@ function New-KeePassPassword
         {
             $PasswordProfileObject=Get-KPPasswordProfile -PasswordProfileName $PasswordProfileName
             $PassProfile.CharSet.Add($PasswordProfileObject.CharacterSet)
-            $PassProfile.ExcludeLookAlike = $PasswordProfileObject.ExlcudeLookAlike
-            $PassProfile.NoRepeatingCharacters = $PasswordProfileObject.NoRepeatingCharacters
+            $PassProfile.ExcludeLookAlike = if($PasswordProfileObject.ExlcudeLookAlike -eq 'True'){$true}else{$false}
+            $PassProfile.NoRepeatingCharacters = if($PasswordProfileObject.NoRepeatingCharacters -eq 'True'){$true}else{$false}
             $PassProfile.ExcludeCharacters = $PasswordProfileObject.ExcludeCharacters
             $PassProfile.Length = $PasswordProfileObject.Length
         }
-       
+
         ## Create Pass Generator Profile Pool.
         $GenPassPool = New-Object KeePassLib.Cryptography.PasswordGenerator.CustomPwGeneratorPool
         ## Create Out Parameter aka [rel] param.
         [KeePassLib.Security.ProtectedString]$PSOut = New-Object KeePassLib.Security.ProtectedString
         ## Generate Password.
-        [KeePassLib.Cryptography.PasswordGenerator.PwGenerator]::Generate([ref] $PSOut, $PassProfile, $null, $GenPassPool) > $null
-        ## Return as SecureString
-        ConvertTo-SecureString -String $PSOut.ReadString() -AsPlainText -Force
+        $ResultMessage = [KeePassLib.Cryptography.PasswordGenerator.PwGenerator]::Generate([ref] $PSOut, $PassProfile, $null, $GenPassPool)
+        ## Check if Password Generation was successful
+        if($ResultMessage -ne 'Success')
+        {
+            Write-Warning -Message "[PROCESS] Failure while attempting to generate a password with the specified settings or profile."
+            Write-Warning -Message "[PROCESS] Password Generation Failed with the Result Text: $ResultMessage."
+            if($ResultMessage -eq 'TooFewCharacters')
+            {
+                Write-Warning -Message "[PROCESS] Result Text $ResultMessage, typically means that you specified a length that is longer than the possible generated outcome."
+                $ExcludeCharacterCount=if($PassProfile.ExcludeCharacters){($PassProfile.ExcludeCharacters -split ',').Count}else{0}
+                if($PassProfile.NoRepeatingCharacters -and $PassProfile.Length -gt ($PassProfile.CharSet.Size - $ExcludeCharacterCount)) 
+                {
+                    Write-Warning -Message "[PROCESS] Checked for the invalid specification. `n`tSpecified Length: $($PassProfile.Length). `n`tCharacterSet Count: $($PassProfile.CharSet.Size). `n`tNo Repeating Characters is set to: $($PassProfile.NoRepeatingCharacters). `n`tExclude Character Count: $ExcludeCharacterCount."
+                    Write-Warning -Message "[PROCESS] Specify More characters, shorten the length, remove the no repeating characters option, or removed excluded characters."
+                    break
+                }
+            }
+        }
+        try
+        {
+            ## Return as SecureString
+            ConvertTo-SecureString -String $PSOut.ReadString() -AsPlainText -Force
+        }
+        catch
+        {
+            
+            Write-Warning -Message "[PROCESS] An exception occured while trying to convert the KeePassLib.Securtiy.ProtectedString to a SecureString."
+            Write-Warning -Message "[PROCESS] Exception Message: $($_.Exception.Message)"
+            Throw $_
+        }
+    }
+    end
+    {
         ## Clean up out varaible
         if($PSOut){Remove-Variable -Name PSOUT}
     }
@@ -1414,11 +1515,15 @@ function Get-KPEntry
             This is a Title of one or more KeePass Entries.
         .PARAMETER UserName
             This is the UserName of one or more KeePass Entries.
+        .PARAMETER KeePassUuid
+            Specify the KeePass Entry Uuid for reverse lookup.
     #>
-    [CmdletBinding(DefaultParameterSetName="")]
+    [CmdletBinding(DefaultParameterSetName="None")]
     [OutputType('KeePassLib.PwEntry')]
     param
     (
+        [Parameter(Position=0,Mandatory,ParameterSetName="None")]
+        [Parameter(Position=0,Mandatory,ParameterSetName="UUID")]
         [Parameter(Position=0,Mandatory,ParameterSetName="Group")]
         [Parameter(Position=0,Mandatory,ParameterSetName="Title")]
         [Parameter(Position=0,Mandatory,ParameterSetName="UserName")]
@@ -1429,6 +1534,11 @@ function Get-KPEntry
         [Parameter(Position=1,Mandatory,ParameterSetName="Group")]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwGroup[]] $KeePassGroup,
+
+        [Parameter(Position=1,Mandatory,ParameterSetName="UUID",ValueFromPipelineByPropertyName=$true,ValueFromPipeline=$true)]
+        [ValidateNotNullOrEmpty()]
+        [Alias('Uuid')]
+        [KeePassLib.PwUuid] $KeePassUuid,
 
         [Parameter(Position=2,Mandatory=$false,ParameterSetName="Group")]
         [Parameter(Position=1,Mandatory,ParameterSetName="Title")]
@@ -1455,40 +1565,48 @@ function Get-KPEntry
         ## Get Entries and Filter
         $KeePassItems = $KeePassConnection.RootGroup.GetEntries($true)
 
-        ## This a lame way of filtering.
-        if ($KeePassGroup)
+        if($PSCmdlet.ParameterSetName -eq 'UUID')
         {
-            $KeePassItems = foreach($_keepassItem in $KeePassItems)
+            $KeePassItems  | Where-Object { $KeePassUuid.CompareTo($_.Uuid) -eq 0 }
+        }
+        else
+        {
+            ## This a lame way of filtering.
+            if ($KeePassGroup)
             {
-                if($KeePassGroup.Contains($_keepassItem.ParentGroup))
+                $KeePassItems = foreach($_keepassItem in $KeePassItems)
                 {
-                    $_keepassItem
+                    if($KeePassGroup.Contains($_keepassItem.ParentGroup))
+                    {
+                        $_keepassItem
+                    }
                 }
             }
-        }
-        if ($Title)
-        {
-            $KeePassItems = foreach($_keepassItem in $KeePassItems)
+            if ($Title)
             {
-                if($_keepassItem.Strings.ReadSafe("Title").ToLower().Equals($Title.ToLower()))
+                $KeePassItems = foreach($_keepassItem in $KeePassItems)
                 {
-                    $_keepassItem
+                    if($_keepassItem.Strings.ReadSafe("Title").ToLower().Equals($Title.ToLower()))
+                    {
+                        $_keepassItem
+                    }
                 }
             }
-        }
-        if ($UserName)
-        {
-             $KeePassItems = foreach($_keepassItem in $KeePassItems)
-             {
-                 if($_keepassItem.Strings.ReadSafe("UserName").ToLower().Equals($UserName.ToLower()))
-                 {
-                    $_keepassItem
-                 }
-             }
-        }
+            if ($UserName)
+            {
+                $KeePassItems = foreach($_keepassItem in $KeePassItems)
+                {
+                    if($_keepassItem.Strings.ReadSafe("UserName").ToLower().Equals($UserName.ToLower()))
+                    {
+                        $_keepassItem
+                    }
+                }
+            }
 
-        ## Return results
-        $KeePassItems
+            ## Return results
+            $KeePassItems
+        }
+        
     }
 }
 
@@ -1666,7 +1784,7 @@ function Set-KPEntry
         .NOTES
             This Cmdlet will autosave on exit
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='High')]
     param
     (
         [Parameter(Position=0,Mandatory)]
@@ -1697,7 +1815,7 @@ function Set-KPEntry
         # [ValidateNotNullOrEmpty()]
         [string] $URL,
         
-        [Parameter(Position=7,Mandatory)]
+        [Parameter(Position=7,Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwGroup] $KeePassGroup
     )
@@ -1709,74 +1827,58 @@ function Set-KPEntry
             Write-Warning -Message '[BEGIN] The KeePass Connection Sepcified is not open or does not exist.'
             break
         }
-        # try
-        # {
-        #     $KeePassEntry = New-Object KeePassLib.PwEntry($true, $true) -ErrorAction Stop -ErrorVariable ErrorNewPwEntryObject
-        # }
-        # catch
-        # {
-        #     Write-Warning -Message '[BEGIN] An error occured in the Add-KpEntry Cmdlet.'
-        #     if($ErrorNewPwGroupObject)
-        #     {
-        #         Write-Warning -Message '[BEGIN] An error occured while creating a new KeePassLib.PwEntry Object.'
-        #         Write-Warning -Message "[BEGIN] $($ErrorNewPwEntryObject.ErrorRecord.Message)"
-        #         Throw $_
-        #     }
-        #     else
-        #     {
-        #         Write-Warning -Message '[BEGIN] An unhandled exception occured.'
-        #         Write-Warning -Message '[BEGIN] Verify your KeePass Database Connection is Open.'
-        #         Throw $_
-        #     }
-        # }
     }
     process
     {
-        if($Title)
-        {
-            $SecureTitle = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectTitle, $Title)
-            $KeePassEntry.Strings.Set("Title", $SecureTitle)
-        }
-
-        if($UserName)
-        {
-            $SecureUser = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectUserName, $UserName)
-            $KeePassEntry.Strings.Set("UserName", $SecureUser)
-        }
-
-        if($KeePassPassword)
-        {
-            $KeePassEntry.Strings.Set("Password", $KeePassPassword)
-        }
-
-        if($Notes)
-        {
-            $SecureNotes = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectNotes, $Notes)
-            $KeePassEntry.Strings.Set("Notes", $SecureNotes)
-        }
-
-        if($URL)
-        {
-            $SecureURL = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectUrl, $URL)
-            $KeePassEntry.Strings.Set("URL", $SecureURL)
-        }
         
-        ## If specified group is different than current group
-        if($KeePassGroup.Uuid -ne $KeePassEntry.Uuid)
+        
+        if($PSCmdlet.ShouldProcess("Title: $($KeePassEntry.Strings.ReadSafe('Title')). UserName: $($KeePassEntry.Strings.ReadSafe('UserName')). Group Path $($KeePassEntry.ParentGroup.GetFullPath("/", $false))"))
         {
-            ## Make Full Copy of Entry
-            $NewKeePassEntry = $KeePassEntry.CloneDeep()
-            ## Assign New Uuid to CloneDeep
-            $NewKeePassEntry.Uuid = New-Object KeePassLib.PwUuid($true)
-            ## Add Clone to Specified group
-            $KeePassGroup.AddEntry($NewKeePassEntry)
-            ## Save for safety
+            if($Title)
+            {
+                $SecureTitle = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectTitle, $Title)
+                $KeePassEntry.Strings.Set("Title", $SecureTitle)
+            }
+
+            if($UserName)
+            {
+                $SecureUser = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectUserName, $UserName)
+                $KeePassEntry.Strings.Set("UserName", $SecureUser)
+            }
+
+            if($KeePassPassword)
+            {
+                $KeePassEntry.Strings.Set("Password", $KeePassPassword)
+            }
+
+            if($Notes)
+            {
+                $SecureNotes = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectNotes, $Notes)
+                $KeePassEntry.Strings.Set("Notes", $SecureNotes)
+            }
+
+            if($URL)
+            {
+                $SecureURL = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectUrl, $URL)
+                $KeePassEntry.Strings.Set("URL", $SecureURL)
+            }
+            ## If you are moving the entry to another group then take these actions.
+            if($KeePassGroup -and $KeePassGroup.Uuid.CompareTo($KeePassEntry.ParentGroup.Uuid) -ne 0)
+            {
+                ## Make Full Copy of Entry
+                $NewKeePassEntry = $KeePassEntry.CloneDeep()
+                ## Assign New Uuid to CloneDeep
+                $NewKeePassEntry.Uuid = New-Object KeePassLib.PwUuid($true)
+                ## Add Clone to Specified group
+                $KeePassGroup.AddEntry($NewKeePassEntry,$true)
+                ## Save for safety
+                $KeePassConnection.Save($null)
+                ## Delete previous entry 
+                ## Hide output
+                $KeePassEntry.ParentGroup.Entries.Remove($KeePassEntry) > $null
+            }
             $KeePassConnection.Save($null)
-            ## Delete previous entry
-            $KeePassEntry.ParentGroup.Entries.Remove($KeePassEntry)
         }
-        ## save database
-        $KeePassConnection.Save($null)
     }
 }
 
@@ -2390,6 +2492,7 @@ function ConvertTo-KPPSObject
         foreach ($_keepassItem in $KeePassEntry)
         {
             $KeePassPsObject = New-Object -TypeName PSObject
+            $KeePassPsObject | Add-Member -Name 'Uuid' -MemberType NoteProperty -Value $_keepassItem.Uuid
             $KeePassPsObject | Add-Member -Name 'CreationTime' -MemberType NoteProperty -Value $_keepassItem.CreationTime
             $KeePassPsObject | Add-Member -Name 'Expires' -MemberType NoteProperty -Value $_keepassItem.Expires
             $KeePassPsObject | Add-Member -Name 'ExpireTime' -MemberType NoteProperty -Value $_keepassItem.ExpiryTime
