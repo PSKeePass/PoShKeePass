@@ -313,8 +313,6 @@ function New-KeePassEntry
     }
 }
 
-##DEV
-## Documentation Needed
 function Update-KeePassEntry
 {
     <#
@@ -480,7 +478,6 @@ function Update-KeePassEntry
     }
 }
 
-##DEV
 function New-KeePassPassword
 {
     <#
@@ -793,10 +790,40 @@ function New-KeePassPassword
     }
 }
 
-##DEV
-## Needs Documentation
 function New-KeePassDatabaseConfiguration
 {
+    <#
+        .SYNOPSIS
+            Function to Create or Add a new KeePass Database Configuration Profile to the KeePassConfiguration.xml
+        .DESCRIPTION
+            The Profile Created will be accessible from the core functions Get,Update,New,Remove KeePassEntry and ect.
+            The Profile stores database configuration for opening and authenticating to a keepass database.
+            Using the configuration allows for speedier authentication and less complex commands. 
+        .PARAMETER DatabaseProfileName
+            Specify the Name of the new Database Configuration Profile.
+        .PARAMETER DatabasePath 
+            Specify the Path to the database (.kdbx) file.
+        .PARAMETER KeyPath
+            Specify the Path to the database (.key) key file if there is one.
+        .PARAMETER UseNetworkAccount
+            Specify this flag if the database uses NetworkAccount Authentication.
+        .PARAMETER UseMasterKey
+            Specify this flag if the database uses a Master Key Password for Authentication.
+        .EXAMPLE
+            PS> New-KeePassDatabaseConfiguration -DatabaseProfileName 'Personal' -DatabasePath 'c:\users\username\documents\personal.kdbx' -KeyPath 'c:\users\username\documents\personal.key' -UseNetworkAccount
+            
+            This Example adds a Database Configuration Profile to the KeePassConfiguration.xml file with the Name Personal specifying the database file and authentication components; Key File and Uses NetworkAccount.
+        .EXAMPLE 
+            PS> New-KeePassDatabaseConfiguration -DatabaseProfileName 'Personal' -DatabasePath 'c:\users\username\documents\personal.kdbx' -UseNetworkAccount
+
+            This Example adds a Database Configuration Profile to the KeePassConfiguration.xml file with the Name Personal specifying the database file and authentication components; Uses NetworkAccount.
+        .NOTES
+            1. Currently all authentication combinations are supported except keyfile, masterkey password, and network authentication together.
+        .INPUTS
+            Strings
+        .OUTPUTS
+            $null
+    #>
     [CmdletBinding()]
     param
     (
@@ -887,10 +914,25 @@ function New-KeePassDatabaseConfiguration
     }
 }
 
-##DEV
-## Needs Documentation
 function Remove-KeePassDatabaseConfiguration 
 {
+    <#
+        .SYNOPSIS
+            Function to remove a KeePass Database Configuration Profile.
+        .DESCRIPTION
+            This function allows a specified database configuration profile to be removed from the KeePassConfiguration.xml file.
+        .PARAMETER DatabaseProfileName
+            Specify the name of the profile to be deleted.
+            Note this is a Dynamic Parameter and will only be available if there are profiles to be removed.
+        .EXAMPLE
+            PS> Remove-KeePassDatabaseConfiguration -DatabaseProfileName 'Personal'
+
+            This Example will remove the database configuration profile 'Personal' from the KeePassConfiguration.xml file.
+        .INPUTS
+            Strings
+        .OUTPUTS
+            $null
+    #>
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact='High')]
     param()
     dynamicparam
@@ -972,10 +1014,29 @@ function Remove-KeePassDatabaseConfiguration
     }
 }
 
-##DEV
-## Needs Documentation
 function Get-KeePassDatabaseConfiguration
 {
+    <#
+        .SYNOPSIS
+            Function to Retrieve a or all KeePass Database Configuration Profiles saved to the KeePassConfiguration.xml file.
+        .DESCRIPTION
+            Function to Retrieve a or all KeePass Database Configuration Profiles saved to the KeePassConfiguration.xml file.
+        .PARAMETER DatabaseProfileName
+            Specify the name of the profile to lookup.
+            Note this is a Dynamic Parameter and will only be available if there are profiles in the KeePassConfiguration.xml.
+        .EXAMPLE
+            PS> Get-KeePassDatabaseConfiguration
+
+            This Example will return all Database Configuration Profiles if any.
+        .EXAMPLE
+            PS> Get-KeePassDatabaseConfiguration -DatabaseProfileName 'Personal'
+
+            This Example returns the Database Configuration Profile with the name Personal.
+        .INPUTS
+            Strings
+        .OUTPUTS
+            PSObject
+    #>
     [CmdletBinding()]
     param
     (
