@@ -147,9 +147,53 @@
 }
 
 ##DEV
-## Documentation Needed
+## Add support for PassThru option
 function New-KeePassEntry
 {
+    <#
+        .SYNOPSIS
+            Function to create a new KeePass Database Entry.
+        .DESCRIPTION
+            This function allows for the creation of KeePass Database Entries with basic properites available for specification.
+        .PARAMETER KeePassEntryGroupPath
+            Specify this parameter if you wish to only return entries form a specific folder path.
+            Notes: 
+                * Path Separator is the foward slash character '/'
+                * The top level directory aka the database name should not be included in the path.
+        .PARAMETER DatabaseProfileName
+            *This Parameter is required in order to access your KeePass database.
+            *This is a Dynamic Parameter that is populated from the KeePassConfiguration.xml. 
+                *You can generated this file by running the New-KeePassDatabaseConfiguration function.
+        .PARAMETER Title
+            Specify the Title of the new KeePass Database Entry.
+        .PARAMETER UserName
+            Specify the UserName of the new KeePass Database Entry.
+        .PARAMETER KeePassPassword
+            *Specify the KeePassPassword of the new KeePass Database Entry.
+            *Notes:
+                *This Must be of the type SecureString
+        .PARAMETER Notes
+            Specify the Notes of the new KeePass Database Entry.
+        .PARAMETER URL
+            Specify the URL of the new KeePass Database Entry.
+        .EXAMPLE
+            PS> New-KeePassEntry -DatabaseProfileName TEST -KeePassEntryGroupPath 'General/TestAccounts' -Title 'Test Title' -UserName 'Domain\svcAccount' -KeePassPassword $(New-KeePassPassword -upper -lower -digits -length 20)
+
+            This example creates a new keepass database entry in the General/TestAccounts database group, with the specified Title and UserName. Also the function New-KeePassPassword is used to generated a random password with the specified options.
+        .EXAMPLE
+            PS> New-KeePassEntry -DatabaseProfileName TEST -KeePassEntryGroupPath 'General/TestAccounts' -Title 'Test Title' -UserName 'Domain\svcAccount' -KeePassPassword $(New-KeePassPassword -PasswordProfileName 'Default' )
+
+            This example creates a new keepass database entry in the General/TestAccounts database group, with the specified Title and UserName. Also the function New-KeePassPassword with a password profile specifed to create a new password genereated from options saved to a profile.
+        .EXAMPLE
+            PS> New-KeePassEntry -DatabaseProfileName TEST -Title 'Test Title' -UserName 'Domain\svcAccount' -KeePassPassword $(ConvertTo-SecureString -String 'apassword' -AsPlainText -Force)
+
+            This example creates a new keepass database entry with the specified Title, UserName and manually specified password converted to a securestring. 
+        .INPUTS
+            String
+            SecureString
+        .OUTPUTS
+            $null
+    #>
     param
     (
         [Parameter(Position = 0 ,Mandatory = $true)]
@@ -166,7 +210,7 @@ function New-KeePassEntry
 
         [Parameter(Position=4,Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
-        [KeePassLib.Security.ProtectedString] $KeePassPassword,
+        [SecureString] $KeePassPassword,
 
         [Parameter(Position=5,Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
@@ -178,8 +222,9 @@ function New-KeePassEntry
     )
     dynamicparam
     {
-        ##Create and Define Validate Set Attribute
+        ## Get a list of all database profiles saved to the config xml.
         $DatabaseProfileList =  (Get-KeePassDatabaseConfiguration).Name
+        ## If no profiles exists do not return the parameter.
         if($DatabaseProfileList)
         {
             $ParameterName = 'DatabaseProfileName'
@@ -208,6 +253,7 @@ function New-KeePassEntry
     }
     begin
     {
+        ## If there are no database profiles in the the config or the config does not exist error out and prompt use to create a config.
         if($DatabaseProfileList)
         {
             $DatabaseProfileName = $PSBoundParameters[$ParameterName]
@@ -219,15 +265,19 @@ function New-KeePassEntry
             break
         }
 
+        ## Get the database profile definition
         $DatabaseProfileObject = Get-KeePassDatabaseConfiguration -DatabaseProfileName $DatabaseProfileName
     
+        ## prompt user for master key password as SecureString if the profile specifies it uses a master key
         if($DatabaseProfileObject.UseMasterKey -eq 'True')
         {
             $MasterKeySecureString = Read-Host -Prompt "Database MasterKey" -AsSecureString
         }
 
+        ## Convert xml string to boolean
         if($DatabaseProfileObject.UseNetworkAccount -eq 'True'){$UseNetworkAccount = $true}else {$UseNetworkAccount=$false}
 
+        ## Get the KeePass credential object based on the authentication type in the profile definition.
         $KeePassCredentialObject = switch ($DatabaseProfileObject.AuthenticationType) {
             'KeyAndMaster'
             {
@@ -243,17 +293,22 @@ function New-KeePassEntry
             }
         }
 
+        ## Open the database
         $KeePassConnectionObject = Get-KPConnection -KeePassCredential $KeePassCredentialObject
+        ## remove any sensitive data
         if($MasterKeySecureString){Remove-Variable -Name MasterKeySecureString}
         if($KeePassCredentialObject){Remove-Variable -Name KeePassCredentialObject}
     }
     process
     {
+        ## Get the keepass group 
         $KeePassGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassEntryGroupPath
+        ## Add the KeePass Entry
         Add-KpEntry -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroup -Title $Title -UserName $UserName -KeePassPassword $KeePassPassword -Notes $Notes -URL $URL
     }
     end
     {
+        ## Clean up keepass database connection
         Remove-KPConnection -KeePassConnection $KeePassConnectionObject
     }
 }
@@ -376,8 +431,6 @@ function Set-KeePassEntry
 }
 
 ##DEV
-## Need to check if profile by name exists and prompt for what to do
-## Need to add option to generate via profile
 ## Needs Documentation
 function New-KeePassPassword
 {
@@ -436,7 +489,7 @@ function New-KeePassPassword
             Length Value which I believe is 20.
     #>
     [CmdletBinding(DefaultParameterSetName='NoProfile')]
-    [OutputType('KeePassLib.Security.ProtectedString')]
+    [OutputType('SecureString')]
     param
     (
         [Parameter(Position=0, ParameterSetName='NoProfile')]
@@ -632,8 +685,10 @@ function New-KeePassPassword
         [KeePassLib.Security.ProtectedString]$PSOut = New-Object KeePassLib.Security.ProtectedString
         ## Generate Password.
         [KeePassLib.Cryptography.PasswordGenerator.PwGenerator]::Generate([ref] $PSOut, $PassProfile, $null, $GenPassPool) > $null
-        # $PSOut.GetType();
-        $PSOut
+        ## Return as SecureString
+        ConvertTo-SecureString -String $PSOut.ReadString() -AsPlainText -Force
+        ## Clean up out varaible
+        if($PSOut){Remove-Variable -Name PSOUT}
     }
 }
 
@@ -1015,7 +1070,7 @@ function Get-KPPasswordProfile
 
 ##DEV
 ## Needs Documentation
-function Remove-KPPasswordProfile 
+function Remove-KPPasswordProfile
 {
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact='High')]
     param()
@@ -1486,7 +1541,7 @@ function Add-KPEntry
 
         [Parameter(Position=4,Mandatory=$false)]
         # [ValidateNotNullOrEmpty()]
-        [KeePassLib.Security.ProtectedString] $KeePassPassword,
+        [securestring] $KeePassPassword,
 
         [Parameter(Position=5,Mandatory=$false)]
         # [ValidateNotNullOrEmpty()]
@@ -1543,13 +1598,17 @@ function Add-KPEntry
 
         if($KeePassPassword)
         {
-            $KeePassEntry.Strings.Set("Password", $KeePassPassword)
+            $KeePassSecurePasswordString = New-Object KeePassLib.Security.ProtectedString
+            $KeePassSecurePasswordString = $KeePassSecurePasswordString.Insert(0,[Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($KeePassPassword))).WithProtection($true)
+            $KeePassEntry.Strings.Set("Password", $KeePassSecurePasswordString)
         }
         else
         {
-            #get password based on default pattern
+            ## get password based on default pattern
             $KeePassPassword = New-KeePassPassword
-            $KeePassEntry.Strings.Set("Password", $KeePassPassword)
+            $KeePassSecurePasswordString = New-Object KeePassLib.Security.ProtectedString
+            $KeePassSecurePasswordString = $KeePassSecurePasswordString.Insert(0,[Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($KeePassPassword))).WithProtection($true)
+            $KeePassEntry.Strings.Set("Password", $KeePassSecurePasswordString)
         }
 
         if($Notes)
