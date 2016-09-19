@@ -1876,20 +1876,15 @@ function Add-KPEntry
     }
 }
 
-## Set/Update a KeePass Group
-## Needs Parameter Sets 
-## needs parameter atrributes updates
-## needs help text update
-## Add funcitonality from Set-KeePassEntry above (append notes) or only have that in wrapper funcion
 function Set-KPEntry
 {
     <#
         .SYNOPSIS
-            This Function will add a new entry to a KeePass Database Group.
+            This Function will update a entry.
         .DESCRIPTION
-            This Function will add a new entry to a KeePass Database Group.
+            This Function will update a entry.
 
-            Currently This function supportes the basic fields for creating a new KeePass Entry.
+            Currently This function supportes the basic fields for a KeePass Entry.
         .PARAMETER KeePassConnection
             This is the Open KeePass Database Connection
 
@@ -1899,15 +1894,15 @@ function Set-KPEntry
         .PARAMETER KeePassGroup
             Specifiy this if you want Move the KeePassEntry to another Group
         .PARAMETER Title
-            This is the Title of the New KeePass Entry.
+            This is the Title to update/set.
         .PARAMETER UserName
-            This is the UserName of the New KeePass Entry.
+            This is the UserName to update/set.
         .PARAMETER KeePassPassword
-            This is the Password of the New KeePass Entry.
+            This is the Password to update/set.
         .PARAMETER Notes
-            This is the Notes of the New KeePass Entry.
+            This is the Notes to update/set.
         .PARAMETER URL
-            This is the URL of the New KeePass Entry.
+            This is the URL to update/set.
         .NOTES
             This Cmdlet will autosave on exit
     #>
@@ -1923,23 +1918,18 @@ function Set-KPEntry
         [KeePassLib.PwEntry] $KeePassEntry,
 
         [Parameter(Position=2,Mandatory=$false)]
-        # [ValidateNotNullOrEmpty()]
         [string] $Title,
 
         [Parameter(Position=3,Mandatory=$false)]
-        # [ValidateNotNullOrEmpty()]
         [string] $UserName,
 
         [Parameter(Position=4,Mandatory=$false)]
-        # [ValidateNotNullOrEmpty()]
         [KeePassLib.Security.ProtectedString] $KeePassPassword,
 
         [Parameter(Position=5,Mandatory=$false)]
-        # [ValidateNotNullOrEmpty()]
         [string] $Notes,
 
         [Parameter(Position=6,Mandatory=$false)]
-        # [ValidateNotNullOrEmpty()]
         [string] $URL,
         
         [Parameter(Position=7,Mandatory=$false)]
@@ -1957,8 +1947,6 @@ function Set-KPEntry
     }
     process
     {
-        
-        
         if($PSCmdlet.ShouldProcess("Title: $($KeePassEntry.Strings.ReadSafe('Title')). UserName: $($KeePassEntry.Strings.ReadSafe('UserName')). Group Path $($KeePassEntry.ParentGroup.GetFullPath("/", $false))"))
         {
             if($Title)
@@ -2012,6 +2000,31 @@ function Set-KPEntry
 function Remove-KPEntry
 {
     <#
+        .SYNOPSIS
+            Remove a Specific KeePass Entry.
+        .DESCRIPTION
+            Remove a Specified KeePass Database Entry.
+         .PARAMETER KeePassConnection
+            This is the Open KeePass Database Connection
+
+            See Get-KPConnection to Create the conneciton Object.
+        .PARAMETER KeePassEntry
+            This is the KeePass Entry Object to be deleted.
+        .PARAMETER NoRecycle
+            Specify this flag to Permanently delete an entry. (ei skip the recycle bin)
+        .PARAMETER Force
+            Specify this flag to forcefully delete an entry.
+        .EXAMPLE
+            PS> Remove-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassEntry $KeePassEntryObject
+
+            This Will remove a keepass database entry and prompt for confirmation.
+        .INPUTS
+            Strings
+            KeePassLib.PwDatabase
+            KeePassLib.PwEntry
+            Switch
+        .OUTPUTS
+            $null
     #>
     [CmdletBinding(
         SupportsShouldProcess = $true,
@@ -2311,9 +2324,6 @@ function Add-KPGroup
     }
 }
 
-## Set/Update a KeePass Group
-## needs parameter sets 
-## checks to see if the changes are valid
 function Set-KPGroup
 {
     <#
@@ -2377,38 +2387,16 @@ function Set-KPGroup
             Write-Warning -Message '[BEGIN] The KeePass Connection Sepcified is not open or does not exist.'
             break
         }
-        # try
-        # {
-        #     [KeePassLib.PwGroup] $KeePassGroup = New-Object KeePassLib.PwGroup -ErrorAction Stop -ErrorVariable ErrorNewPwGroupObject
-        # }
-        # catch
-        # {
-        #     Write-Warning -Message '[BEGIN] An error occured in the Add-KpGroup Cmdlet.'
-        #     if($ErrorNewPwGroupObject)
-        #     {
-        #         Write-Warning -Message '[BEGIN] An error occured while creating a new KeePassLib.PwGroup Object.'
-        #         Write-Warning -Message "[BEGIN] $($ErrorNewPwGroupObject.ErrorRecord.Message)"
-        #         Throw $_
-        #     }
-        #     else
-        #     {
-        #         Write-Warning -Message '[BEGIN] An unhandled exception occured.'
-        #         Write-Warning -Message '[BEGIN] Verify your KeePass Database Connection is Open.'
-        #         Throw $_
-        #     }
-        # }
     }
     process
     {
-        
         if($GroupName)
         {
             $KeePassGroup.Name = $GroupName
         }
-        
         if($KeePassParentGroup)
         {
-            if($KeePassGroup.ParentGroup.Uuid -ne $KeePassParentGroup.Uuid)
+            if( $KeePassGroup.ParentGroup.Uuid.CompareTo($KeePassParentGroup.Uuid) -ne 0 )
             {
                 $UpdatedKeePassGroup = $KeePassGroup.CloneDeep()
                 $UpdatedKeePassGroup.Uuid = New-Object KeePassLib.PwUuid($true)
@@ -2416,9 +2404,7 @@ function Set-KPGroup
                 $KeePassConnection.Save($null)
                 $KeePassGroup.ParentGroup.Entries.Remove($KeePassGroup)
             }
-            
         }
-        
         $KeePassConnection.Save($null)
     }
 }
@@ -2426,6 +2412,30 @@ function Set-KPGroup
 function Remove-KPGroup
 {
     <#
+        .SYNOPSIS
+            Function to remove a KeePass Group
+        .DESCRIPTION
+            Function to remove a specified KeePass Group.
+        .PARAMETER KeePassConnection
+            This is the Open KeePass Database Connection
+
+            See Get-KeePassConnection to Create the conneciton Object.
+        .PARAMETER KeePassGroup
+            Specify the Group to be removed.
+        .PARAMETER NoRecycle
+            Specify if you do not want the group to go to the Recycle Bin.
+        .PARAMETER Force
+            Specify to forcefully remove a group.
+        .EXAMPLE
+            PS> Remove-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroupObject
+
+            Removes the specified account. Prompts before deletion and will put to recyclebin if there is one.
+        .INPUTS
+            KeePassLib.PwDatabase
+            KeePassLib.PwGroup
+            Switch
+        .OUTPUTS
+            $null
     #>
     [CmdletBinding(
         SupportsShouldProcess = $true,
@@ -2488,35 +2498,6 @@ function Remove-KPGroup
         {
             break
         }
-        ###Force only verses shouldprocess confirmation.
-        # if (-not $Force)
-        # {
-        #     $caption = "Please Confirm"
-        #     if( -not $RecycleBin -or $NoRecycle)
-        #     {
-        #         $Message = "Are you Sure You Want To Permanently Delete Group ($($KeePassGroup.GetFullPath('/',$false))) and all of its Entries and SubGroups." 
-        #     }
-        #     else
-        #     {
-        #         $Message = "Are you Sure You Want To Recycle Group ($($KeePassGroup.GetFullPath('/',$false))) and all of its Entries and SubGroups."    
-        #     }  
-            
-        #     [int]$defaultChoice = 1
-        #     $yes = New-Object System.Management.Automation.Host.ChoiceDescription "&Yes", "Do the job."
-        #     $no = New-Object System.Management.Automation.Host.ChoiceDescription "&No", "Do not do the job."
-        #     $options = [System.Management.Automation.Host.ChoiceDescription[]]($yes, $no)
-        #     $choiceRTN = $host.ui.PromptForChoice($caption,$message, $options, $defaultChoice)
-
-        #     if ( $choiceRTN -ne 1 )
-        #     {
-        #         Write-Warning -Message "Continueing with Operation."
-        #     }
-        #     else
-        #     {
-        #         Write-Warning -Message "Cancellation Requested. Aborting operation."
-        #         Break
-        #     }
-        # }
     }
     process
     {
@@ -2692,5 +2673,5 @@ function Import-KPLibrary
     }
 }
 
-#Source KpLib
+## Source KpLib
 Import-KPLibrary
