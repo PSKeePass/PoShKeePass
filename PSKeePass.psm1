@@ -595,11 +595,134 @@ function Remove-KeePassEntry
     }
 }
 
-##DEV
-## Fill out holder function
 function New-KeePassGroup
 {
+    <#
+        .SYNOPSIS
+            Function to create a new KeePass Database Entry.
+        .DESCRIPTION
+            This function allows for the creation of KeePass Database Entries with basic properites available for specification.
+        .PARAMETER KeePassParentGroupPath
+            Specify this parameter if you wish to only return entries form a specific folder path.
+            Notes: 
+                * Path Separator is the foward slash character '/'
+                * The top level directory aka the database name should not be included in the path.
+        .PARAMETER DatabaseProfileName
+            *This Parameter is required in order to access your KeePass database.
+            *This is a Dynamic Parameter that is populated from the KeePassConfiguration.xml. 
+                *You can generated this file by running the New-KeePassDatabaseConfiguration function.
+        .PARAMETER KeePassGroupName
+            Specify the Name of the new KeePass Group.
+        .EXAMPLE
+            PS> New-KeePassGroup -DatabaseProfileName TEST -KeePassParentGroupPath 'General/TestAccounts' -KeePassGroupName 'TestGroup'
 
+            This Example Creates a Group Called 'TestGroup' in the Group Path 'General/TestAccounts'
+        .INPUTS
+            Strings
+        .OUTPUTS
+            $null
+    #>
+    param
+    (
+        [Parameter(Position = 0, Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [String] $KeePassGroupParentPath,
+
+        [Parameter(Position = 1, Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [String] $KeePassGroupName
+    )
+    dynamicparam
+    {
+        ## Get a list of all database profiles saved to the config xml.
+        $DatabaseProfileList =  (Get-KeePassDatabaseConfiguration).Name
+        ## If no profiles exists do not return the parameter.
+        if($DatabaseProfileList)
+        {
+            $ParameterName = 'DatabaseProfileName'
+            $AttributeCollection = New-Object -TypeName System.Collections.ObjectModel.Collection[System.Attribute]
+            ###ParameterSet Host
+            $ParameterAttribute = New-Object -TypeName System.Management.Automation.ParameterAttribute
+            $ParameterAttribute.Mandatory = $true
+            $ParameterAttribute.Position = 4
+            # $ParameterAttribute.ValueFromPipelineByPropertyName = $true
+            # $ParameterAttribute.ParameterSetName = 'Profile'
+            $AttributeCollection.Add($ParameterAttribute)
+
+            $ValidateSetAttribute = New-Object -TypeName System.Management.Automation.ValidateSetAttribute($DatabaseProfileList)
+            $AttributeCollection.Add($ValidateSetAttribute)
+
+            ##Create and Define Allias Attribute
+            $AliasAttribute = New-Object -TypeName System.Management.Automation.AliasAttribute('Name')
+            $AttributeCollection.Add($AliasAttribute)
+
+            ##Create,Define, and Return DynamicParam
+            $RuntimeParameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter($ParameterName, [string], $AttributeCollection)
+            $RuntimeParameterDictionary = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameterDictionary
+            $RuntimeParameterDictionary.Add($ParameterName,$RuntimeParameter)
+            return $RuntimeParameterDictionary
+        }
+    }
+    begin
+    {
+        ## If there are no database profiles in the the config or the config does not exist error out and prompt use to create a config.
+        if($DatabaseProfileList)
+        {
+            $DatabaseProfileName = $PSBoundParameters[$ParameterName]
+        }
+        else
+        {
+            Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles."
+            Write-Warning -Message "[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function."
+            break
+        }
+
+        ## Get the database profile definition
+        $DatabaseProfileObject = Get-KeePassDatabaseConfiguration -DatabaseProfileName $DatabaseProfileName
+    
+        ## prompt user for master key password as SecureString if the profile specifies it uses a master key
+        if($DatabaseProfileObject.UseMasterKey -eq 'True')
+        {
+            $MasterKeySecureString = Read-Host -Prompt "Database MasterKey" -AsSecureString
+        }
+
+        ## Convert xml string to boolean
+        if($DatabaseProfileObject.UseNetworkAccount -eq 'True'){$UseNetworkAccount = $true}else {$UseNetworkAccount=$false}
+
+        ## Get the KeePass credential object based on the authentication type in the profile definition.
+        $KeePassCredentialObject = switch ($DatabaseProfileObject.AuthenticationType) {
+            'KeyAndMaster'
+            {
+                Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -KeyFile $DatabaseProfileObject.KeyPath -MasterKey $MasterKeySecureString
+            }
+            'Key'
+            {
+                Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -KeyFile $DatabaseProfileObject.KeyPath -UseNetworkAccount:$UseNetworkAccount
+            }
+            'Master'
+            {
+                Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -MasterKey $MasterKeySecureString -UseNetworkAccount:$UseNetworkAccount
+            }
+        }
+
+        ## Open the database
+        $KeePassConnectionObject = Get-KPConnection -KeePassCredential $KeePassCredentialObject
+        ## remove any sensitive data
+        if($MasterKeySecureString){Remove-Variable -Name MasterKeySecureString}
+        if($KeePassCredentialObject){Remove-Variable -Name KeePassCredentialObject}
+    }
+    process
+    {
+        ## Get the keepass group 
+        $KeePassParentGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroupParentPath
+        ## Add the KeePass Group
+        Add-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassParentGroup $KeePassParentGroup -GroupName $KeePassGroupName
+    }
+    end
+    {
+        ## Clean up keepass database connection
+        Remove-KPConnection -KeePassConnection $KeePassConnectionObject
+    }
 }
 
 function Get-KeePassGroup
@@ -637,7 +760,7 @@ function Get-KeePassGroup
     (
         [Parameter(Position = 0 ,Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
-        [String] $KeePassEntryGroupPath,
+        [String] $KeePassGroupPath,
         [Parameter(Position = 1 ,Mandatory = $false)]
         [Switch] $AsPlainText
     )
@@ -721,10 +844,10 @@ function Get-KeePassGroup
     }
     process
     {
-        if($KeePassEntryGroupPath)
+        if($KeePassGroupPath)
         {   
             ## Get All entries in the specified group
-            $ResultEntries = Get-KPGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassEntryGroupPath
+            $ResultEntries = Get-KPGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroupPath
         }
         else
         {
