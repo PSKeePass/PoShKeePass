@@ -313,6 +313,8 @@ function New-KeePassEntry
     }
 }
 
+##DEV
+## Add support for PassThru option
 function Update-KeePassEntry
 {
     <#
@@ -790,6 +792,8 @@ function New-KeePassPassword
     }
 }
 
+##DEV
+## Add support for PassThru option
 function New-KeePassDatabaseConfiguration
 {
     <#
@@ -1073,11 +1077,27 @@ function Get-KeePassDatabaseConfiguration
 # *These functions below support all of the functions above.
 # *Their intended purpose is to be used for advanced scripting.
 #>
-
-##DEV
-## Needs Documentation
 function New-KPConfigurationFile
 {
+    <#
+        .SYNOPSIS
+            This Internal Function Creates the KeePassConfiguration.xml file.
+        .DESCRIPTION
+            This Internal Function Creates the KeePassConfiguration.xml file.
+            This File is used to store database configuration for file locations, authentication settings and password profiles.
+        .PARAMETER Force
+            Specify this parameter to forcefully overwrite the existing config with a new fresh config.
+        .EXAMPLE
+            PS> New-KPConfigurationFile
+
+            This Example will create a new KeePassConfiguration.xml file.
+        .NOTES
+            Internal Function.
+        .INPUTS
+            Switch
+        .OUTPUTS
+            $null
+    #>
     [CmdletBinding()]
     param
     (
@@ -1126,11 +1146,26 @@ function New-KPConfigurationFile
     }
 }
 
-##DEV
-## Needs Documentation
 function New-KPPasswordProfile
 {
     <#
+        .SYNOPSIS
+            Function to save a password profile to the KeePassConfiguration.xml file.
+        .DESCRIPTION
+            This funciton will save a password profile to the config file. 
+            This is an internal function and is used in the -saveas option of the New-KeePassPassword function.
+        .PARAMETER KeePassPasswordObject
+            Specify the KeePass Password Profile Object to be saved to the config file.
+        .EXAMPLE
+            PS> New-KPPasswordProfile -KeePassPasswordObject $NewPasswordProfile
+
+            This Example adds the $NewPasswordProfile object to the KeePassConfiguration.xml file.
+        .NOTES
+            Internal Funciton
+        .INPUTS
+            PSObject
+        .OUTPUTS
+            $null
     #>
     [CmdletBinding()]
     param
@@ -1193,11 +1228,25 @@ function New-KPPasswordProfile
     
 }
 
-##DEV
-## Needs Documentation
 function Get-KPPasswordProfile
 {
     <#
+        .SYNOPSIS
+            Function to Retreive All or a Specified Password Profile.
+        .DESCRIPTION
+            Function to Retreive All or a Specified Password Profile from the KeePassConfiguration.xml file.
+        .PARAMETER PasswordProfileName
+            Specify the Password Profile Name to Retreive.
+        .EXAMPLE
+            PS> Get-KPPasswordProfile
+
+            Returns all Password Profile definitions if any.
+        .NOTES
+            Internal Funciton.
+        .INPUTS
+            String
+        .OUTPUTS
+            PSObject
     #>
     [CmdletBinding()]
     param
@@ -1230,16 +1279,33 @@ function Get-KPPasswordProfile
     }
 }
 
-##DEV
-## Needs Documentation
 function Remove-KPPasswordProfile
 {
+    <#
+        .SYNOPSIS
+            Function to remove a specifed Password Profile.
+        .DESCRIPTION
+            Removes a specified password profile from the KeePassConfiguration.xml file.
+        .PARAMETER PasswordProfileName
+            Specify the Password Profile to be delete from the config file.
+            Note this is a Dynamic Parameter.
+        .EXAMPLE
+            PS> Remove-KPPasswordProfile -PasswordProfileName 'Personal'
+
+            This example remove the password profile with the name 'Personal'
+        .NOTES
+            Internal Funciton.
+        .INPUTS
+            Strings
+        .OUTPUTS
+            $null
+    #>
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact='High')]
     param()
     dynamicparam
     {
         ##Create and Define Validate Set Attribute
-        $PasswordProfileList =  (Get-KPPasswordProfile).Name
+        $PasswordProfileList = (Get-KPPasswordProfile).Name
         if($PasswordProfileList)
         {
             $ParameterName = 'PasswordProfileName'
