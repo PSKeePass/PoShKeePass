@@ -874,9 +874,173 @@ function Get-KeePassGroup
 
 ##DEV
 ## Fill out holder function
+## BUG
 function Update-KeePassGroup
 {
+    <#
+        .SYNOPSIS
+            Function to update a KeePass Database Entry.
+        .DESCRIPTION
+            This function updates a KeePass Database Entry with basic properites available for specification.
+        .PARAMETER KeePassEntry
+            The KeePass Entry to be updated. Use the Get-KeePassEntry function to get this object.
+        .PARAMETER KeePassEntryGroupPath
+            Specify this parameter if you wish to only return entries form a specific folder path.
+            Notes: 
+                * Path Separator is the foward slash character '/'
+                * The top level directory aka the database name should not be included in the path.
+        .PARAMETER DatabaseProfileName
+            *This Parameter is required in order to access your KeePass database.
+            *This is a Dynamic Parameter that is populated from the KeePassConfiguration.xml. 
+                *You can generated this file by running the New-KeePassDatabaseConfiguration function.
+        .PARAMETER Title
+            Specify the Title of the new KeePass Database Entry.
+        .PARAMETER UserName
+            Specify the UserName of the new KeePass Database Entry.
+        .PARAMETER KeePassPassword
+            *Specify the KeePassPassword of the new KeePass Database Entry.
+            *Notes:
+                *This Must be of the type SecureString
+        .PARAMETER Notes
+            Specify the Notes of the new KeePass Database Entry.
+        .PARAMETER URL
+            Specify the URL of the new KeePass Database Entry.
+        .EXAMPLE
+            PS> New-KeePassEntry -DatabaseProfileName TEST -KeePassEntryGroupPath 'General/TestAccounts' -Title 'Test Title' -UserName 'Domain\svcAccount' -KeePassPassword $(New-KeePassPassword -upper -lower -digits -length 20)
 
+            This example creates a new keepass database entry in the General/TestAccounts database group, with the specified Title and UserName. Also the function New-KeePassPassword is used to generated a random password with the specified options.
+        .EXAMPLE
+            PS> New-KeePassEntry -DatabaseProfileName TEST -KeePassEntryGroupPath 'General/TestAccounts' -Title 'Test Title' -UserName 'Domain\svcAccount' -KeePassPassword $(New-KeePassPassword -PasswordProfileName 'Default' )
+
+            This example creates a new keepass database entry in the General/TestAccounts database group, with the specified Title and UserName. Also the function New-KeePassPassword with a password profile specifed to create a new password genereated from options saved to a profile.
+        .EXAMPLE
+            PS> New-KeePassEntry -DatabaseProfileName TEST -Title 'Test Title' -UserName 'Domain\svcAccount' -KeePassPassword $(ConvertTo-SecureString -String 'apassword' -AsPlainText -Force)
+
+            This example creates a new keepass database entry with the specified Title, UserName and manually specified password converted to a securestring. 
+        .INPUTS
+            String
+            SecureString
+        .OUTPUTS
+            $null
+    #>
+    param
+    (
+        [Parameter(Position=0,Mandatory=$true,ValueFromPipeline)]
+        [ValidateNotNullOrEmpty()]
+        [PSObject] $KeePassGroup,
+
+        [Parameter(Position=1,Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [String] $KeePassParentGroupPath,
+
+        [Parameter(Position=2,Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [string] $GroupName
+    )
+    dynamicparam
+    {
+        ##Create and Define Validate Set Attribute
+        $DatabaseProfileList =  (Get-KeePassDatabaseConfiguration).Name
+        if($DatabaseProfileList)
+        {
+            $ParameterName = 'DatabaseProfileName'
+            $AttributeCollection = New-Object -TypeName System.Collections.ObjectModel.Collection[System.Attribute]
+            ###ParameterSet Host
+            $ParameterAttribute = New-Object -TypeName System.Management.Automation.ParameterAttribute
+            $ParameterAttribute.Mandatory = $true
+            $ParameterAttribute.Position = 4
+            # $ParameterAttribute.ValueFromPipelineByPropertyName = $true
+            # $ParameterAttribute.ParameterSetName = 'Profile'
+            $AttributeCollection.Add($ParameterAttribute)
+
+            $ValidateSetAttribute = New-Object -TypeName System.Management.Automation.ValidateSetAttribute($DatabaseProfileList)
+            $AttributeCollection.Add($ValidateSetAttribute)
+
+            ##Create and Define Allias Attribute
+            $AliasAttribute = New-Object -TypeName System.Management.Automation.AliasAttribute('Name')
+            $AttributeCollection.Add($AliasAttribute)
+
+            ##Create,Define, and Return DynamicParam
+            $RuntimeParameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter($ParameterName, [string], $AttributeCollection)
+            $RuntimeParameterDictionary = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameterDictionary
+            $RuntimeParameterDictionary.Add($ParameterName,$RuntimeParameter)
+            return $RuntimeParameterDictionary
+        }
+    }
+    begin
+    {
+        $KeePassGroup
+        read-Host -Prompt '1'
+        if($DatabaseProfileList)
+        {
+            $DatabaseProfileName = $PSBoundParameters[$ParameterName]
+        }
+        else
+        {
+            Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles."
+            Write-Warning -Message "[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function."
+            break
+        }
+
+        $DatabaseProfileObject = Get-KeePassDatabaseConfiguration -DatabaseProfileName $DatabaseProfileName
+    
+        if($DatabaseProfileObject.UseMasterKey -eq 'True')
+        {
+            $MasterKeySecureString = Read-Host -Prompt "Database MasterKey" -AsSecureString
+        }
+
+        if($DatabaseProfileObject.UseNetworkAccount -eq 'True'){$UseNetworkAccount = $true}else {$UseNetworkAccount=$false}
+
+        $KeePassCredentialObject = switch ($DatabaseProfileObject.AuthenticationType) {
+            'KeyAndMaster'
+            {
+                Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -KeyFile $DatabaseProfileObject.KeyPath -MasterKey $MasterKeySecureString
+            }
+            'Key'
+            {
+                Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -KeyFile $DatabaseProfileObject.KeyPath -UseNetworkAccount:$UseNetworkAccount
+            }
+            'Master'
+            {
+                Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -MasterKey $MasterKeySecureString -UseNetworkAccount:$UseNetworkAccount
+            }
+        }
+
+        $KeePassConnectionObject = Get-KPConnection -KeePassCredential $KeePassCredentialObject
+
+        $KeePassGroup
+        read-Host -Prompt '2'
+
+        if($MasterKeySecureString){Remove-Variable -Name MasterKeySecureString}
+        if($KeePassCredentialObject){Remove-Variable -Name KeePassCredentialObject}
+    }
+    process
+    {
+        if($KeePassParentGroupPath)
+        {
+            $KeePassParentGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassParentGroupPath
+        }
+        
+        $KeePAssGroupFullPath = $KeePassGroup.
+        $KeePassGroupObject = Get-KPGroup -KeePassConnection $KeePassConnectionObject -FullPath
+        $KeePassGroupObject
+        read-Host -Prompt '3'
+        
+        $KeePassGroupObject
+        
+        if($KeePassParentGroup)
+        {
+            Set-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroupObject -KeePassParentGroup $KeePassParentGroup -GroupName $GroupName
+        }
+        else
+        {
+            Set-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroupObject -GroupName $GroupName
+        }
+    }
+    end
+    {
+        Remove-KPConnection -KeePassConnection $KeePassConnectionObject
+    }
 }
 
 function Remove-KeePassGroup
@@ -2656,6 +2820,8 @@ function Get-KPGroup
             Specify the FullPath of a Group or Groups in a KPDB
         .PARAMETER GroupName
             Specify the GroupName of a Group or Groups in a KPDB.
+        .PARAMETER KeePassUuid
+            Specify the Uuid of the Group.
     #>
     [CmdletBinding(DefaultParameterSetName = 'None')]
     [OutputType('KeePassLib.PwGroup')]
@@ -2729,7 +2895,6 @@ function Get-KPGroup
                 Throw $_
             }
         }
-
     }
     process
     {
@@ -2739,7 +2904,7 @@ function Get-KPGroup
             {
                 if($_keepassGroup.GetFullPath("/", $false).Equals($FullPath))
                 {
-                    $KeePassOutGroups += $_keepassGroup
+                    $_keepassGroup
                 }                   
             }
         }
@@ -2749,16 +2914,15 @@ function Get-KPGroup
             {
                 if($_keepassGroup.Name.Equals($GroupName))
                 {
-                    $KeePassOutGroups += $_keepassGroup
+                    $_keepassGroup
                 }
             }
         }
         elseif ($PSCmdlet.ParameterSetName -eq 'None')
         {
-            $KeePassOutGroups = $KeePassGroups
+            $KeePassGroups
         }
     }
-    end{ $KeePassOutGroups }
 }
 
 function Add-KPGroup
@@ -2881,7 +3045,7 @@ function Set-KPGroup
         [ValidateNotNull()]
         [KeePassLib.PwDatabase] $KeePassConnection,
 
-        [Paramter(
+        [Parameter(
             Position = 1,
             Mandatory = $true
         )]
@@ -2892,7 +3056,6 @@ function Set-KPGroup
             Position = 1,
             Mandatory = $false
         )]
-        [ValidateNotNullorEmpty()]
         [string] $GroupName,
 
         [Parameter(
