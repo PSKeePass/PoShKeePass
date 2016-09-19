@@ -1203,12 +1203,11 @@ function Get-KPConnection
                     $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpUserAccount))
                 }
             }
-            elseif ($KeePassCredential.AuthenicationType -eq "KeyAndMaster")
+            elseif ($KeePassCredential.AuthenticationType -eq "KeyAndMaster")
             {
-                $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpKeyFile($KeePassCredential.KeyFile)))
-
                 $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpPassword([Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($KeePassCredential.MasterKey)))))
                 # $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpUserAccount))
+                $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpKeyFile($KeePassCredential.KeyFile)))
             }
             elseif ($KeePassCredential.AuthenticationType -eq "Master")
             {
