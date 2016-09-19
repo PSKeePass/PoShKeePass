@@ -616,11 +616,119 @@ function Update-KeePassGroup
 
 }
 
-##DEV
-## Fill out holder function
 function Remove-KeePassGroup
 {
+    <#
+        .SYNOPSIS
+            Function to remove a KeePass Database Group.
+        .DESCRIPTION
+            This function removed a KeePass Database Group.
+        .PARAMETER KeePassGroup
+            The KeePass Group to be removed. Use the Get-KeePassEntry function to get this object.
+        .PARAMETER DatabaseProfileName
+            *This Parameter is required in order to access your KeePass database.
+            *This is a Dynamic Parameter that is populated from the KeePassConfiguration.xml. 
+                *You can generated this file by running the New-KeePassDatabaseConfiguration function.
+        .PARAMETER NoRecycle
+            Specify this option to Permanently delete the Group and not recycle it.
+        .PARAMETER Force
+            Specify this option to forcefully delete the Group. 
+        .EXAMPLE
+            PS> Remove-KeePassGroup -KeePassGroup $KeePassGroupObject
 
+            This example removed the specified kee pass Group.
+    #>
+    param
+    (
+        [Parameter(Position=0,Mandatory=$true,ValueFromPipeline)]
+        [ValidateNotNullOrEmpty()]
+        [PSObject] $KeePassGroup,
+        [Parameter(Position=1,Mandatory=$false)]
+        [Switch] $NoRecycle,
+        [Parameter(Position=2,Mandatory=$false)]
+        [Switch] $Force
+    )
+    dynamicparam
+    {
+        ##Create and Define Validate Set Attribute
+        $DatabaseProfileList =  (Get-KeePassDatabaseConfiguration).Name
+        if($DatabaseProfileList)
+        {
+            $ParameterName = 'DatabaseProfileName'
+            $AttributeCollection = New-Object -TypeName System.Collections.ObjectModel.Collection[System.Attribute]
+            ###ParameterSet Host
+            $ParameterAttribute = New-Object -TypeName System.Management.Automation.ParameterAttribute
+            $ParameterAttribute.Mandatory = $true
+            $ParameterAttribute.Position = 4
+            # $ParameterAttribute.ValueFromPipelineByPropertyName = $true
+            # $ParameterAttribute.ParameterSetName = 'Profile'
+            $AttributeCollection.Add($ParameterAttribute)
+
+            $ValidateSetAttribute = New-Object -TypeName System.Management.Automation.ValidateSetAttribute($DatabaseProfileList)
+            $AttributeCollection.Add($ValidateSetAttribute)
+
+            ##Create and Define Allias Attribute
+            $AliasAttribute = New-Object -TypeName System.Management.Automation.AliasAttribute('Name')
+            $AttributeCollection.Add($AliasAttribute)
+
+            ##Create,Define, and Return DynamicParam
+            $RuntimeParameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter($ParameterName, [string], $AttributeCollection)
+            $RuntimeParameterDictionary = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameterDictionary
+            $RuntimeParameterDictionary.Add($ParameterName,$RuntimeParameter)
+            return $RuntimeParameterDictionary
+        }
+    }
+    begin
+    {
+        if($DatabaseProfileList)
+        {
+            $DatabaseProfileName = $PSBoundParameters[$ParameterName]
+        }
+        else
+        {
+            Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles."
+            Write-Warning -Message "[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function."
+            break
+        }
+
+        $DatabaseProfileObject = Get-KeePassDatabaseConfiguration -DatabaseProfileName $DatabaseProfileName
+    
+        if($DatabaseProfileObject.UseMasterKey -eq 'True')
+        {
+            $MasterKeySecureString = Read-Host -Prompt "Database MasterKey" -AsSecureString
+        }
+
+        if($DatabaseProfileObject.UseNetworkAccount -eq 'True'){$UseNetworkAccount = $true}else {$UseNetworkAccount=$false}
+
+        $KeePassCredentialObject = switch ($DatabaseProfileObject.AuthenticationType) {
+            'KeyAndMaster'
+            {
+                Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -KeyFile $DatabaseProfileObject.KeyPath -MasterKey $MasterKeySecureString
+            }
+            'Key'
+            {
+                Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -KeyFile $DatabaseProfileObject.KeyPath -UseNetworkAccount:$UseNetworkAccount
+            }
+            'Master'
+            {
+                Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -MasterKey $MasterKeySecureString -UseNetworkAccount:$UseNetworkAccount
+            }
+        }
+
+        $KeePassConnectionObject = Get-KPConnection -KeePassCredential $KeePassCredentialObject
+
+        if($MasterKeySecureString){Remove-Variable -Name MasterKeySecureString}
+        if($KeePassCredentialObject){Remove-Variable -Name KeePassCredentialObject}
+    }
+    process
+    {
+        $KPGroup=Get-KpGroup -KeePassConnection $KeePassConnectionObject -KeePassUuid $KeePassGroup.Uuid
+        Remove-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassGroup $KPGroup -NoRecycle:$NoRecycle -Force:$Force
+    }
+    end
+    {
+        Remove-KPConnection -KeePassConnection $KeePassConnectionObject
+    }
 }
 
 function New-KeePassPassword
