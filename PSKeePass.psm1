@@ -602,11 +602,151 @@ function New-KeePassGroup
 
 }
 
-##DEV
-## Fill out holder function
 function Get-KeePassGroup
 {
+    <#
+        .SYNOPSIS
+            Function to get keepass database entries.
+        .DESCRIPTION
+            This Funciton gets all keepass database entries or a specified group/folder subset if the -KeePassEntryGroupPath parameter is Specified.
+        .PARAMETER KeePassEntryGroupPath
+            Specify this parameter if you wish to only return entries form a specific folder path.
+            Notes: 
+                * Path Separator is the foward slash character '/'
+                * The top level directory aka the database name should not be included in the path.
+        .PARAMETER AsPlainText
+            Specify this parameter if you want the KeePass database entries to be returns in plain text objects.
+        .PARAMETER DatabaseProfileName
+            *This Parameter is required in order to access your KeePass database.
+            *This is a Dynamic Parameter that is populated from the KeePassConfiguration.xml. 
+                *You can generated this file by running the New-KeePassDatabaseConfiguration function.
+        .EXAMPLE
+            PS> Get-KeePassEntry -DatabaseProfileName TEST -AsPlainText
 
+            This Example will return all enties in plain text format from that keepass database that was saved to the config with the name TEST.
+        .EXAMPLE
+            PS> Get-KeePassEntry -DatabaseProfileName TEST -KeePassEntryGroupPath 'General' -AsPlainText
+
+            This Example will return all entries in plain text format from the General folder of the keepass database with the profile name TEST.
+        .INPUTS
+            String
+        .OUTPUTS
+            PSObject
+    #>
+    param
+    (
+        [Parameter(Position = 0 ,Mandatory = $false)]
+        [ValidateNotNullOrEmpty()]
+        [String] $KeePassEntryGroupPath,
+        [Parameter(Position = 1 ,Mandatory = $false)]
+        [Switch] $AsPlainText
+    )
+    dynamicparam
+    {
+        ## Get a list of all database profiles saved to the config xml.
+        $DatabaseProfileList =  (Get-KeePassDatabaseConfiguration).Name
+        ## If no profiles exists do not return the parameter.
+        if($DatabaseProfileList)
+        {
+            $ParameterName = 'DatabaseProfileName'
+            $AttributeCollection = New-Object -TypeName System.Collections.ObjectModel.Collection[System.Attribute]
+            $ParameterAttribute = New-Object -TypeName System.Management.Automation.ParameterAttribute
+            $ParameterAttribute.Mandatory = $true
+            $ParameterAttribute.Position = 4
+            # $ParameterAttribute.ValueFromPipelineByPropertyName = $true
+            # $ParameterAttribute.ParameterSetName = 'Profile'
+            $AttributeCollection.Add($ParameterAttribute)
+
+            $ValidateSetAttribute = New-Object -TypeName System.Management.Automation.ValidateSetAttribute($DatabaseProfileList)
+            $AttributeCollection.Add($ValidateSetAttribute)
+
+            ## Create and Define Allias Attribute
+            $AliasAttribute = New-Object -TypeName System.Management.Automation.AliasAttribute('Name')
+            $AttributeCollection.Add($AliasAttribute)
+
+            ## Create,Define, and Return DynamicParam
+            $RuntimeParameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter($ParameterName, [string], $AttributeCollection)
+            $RuntimeParameterDictionary = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameterDictionary
+            $RuntimeParameterDictionary.Add($ParameterName,$RuntimeParameter)
+            return $RuntimeParameterDictionary
+        }
+    }
+    begin
+    {
+        ## If there are no database profiles in the the config or the config does not exist error out and prompt use to create a config.
+        if($DatabaseProfileList)
+        {
+            $DatabaseProfileName = $PSBoundParameters[$ParameterName]
+        }
+        else
+        {
+            Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles."
+            Write-Warning -Message "[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function."
+            break
+        }
+
+        ## Get the database profile definition
+        $DatabaseProfileObject = Get-KeePassDatabaseConfiguration -DatabaseProfileName $DatabaseProfileName
+    
+        ## prompt user for master key password as SecureString if the profile specifies it uses a master key
+        if($DatabaseProfileObject.UseMasterKey -eq 'True')
+        {
+            $MasterKeySecureString = Read-Host -Prompt "Database MasterKey" -AsSecureString
+        }
+
+        ## Convert xml string to boolean
+        if($DatabaseProfileObject.UseNetworkAccount -eq 'True'){$UseNetworkAccount = $true}else {$UseNetworkAccount=$false}
+
+        ## Get the KeePass credential object based on the authentication type in the profile definition.
+        $KeePassCredentialObject = switch ($DatabaseProfileObject.AuthenticationType) {
+            'KeyAndMaster'
+            {
+                Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -KeyFile $DatabaseProfileObject.KeyPath -MasterKey $MasterKeySecureString
+            }
+            'Key'
+            {
+                Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -KeyFile $DatabaseProfileObject.KeyPath -UseNetworkAccount:$UseNetworkAccount
+            }
+            'Master'
+            {
+                Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -MasterKey $MasterKeySecureString -UseNetworkAccount:$UseNetworkAccount
+            }
+        }
+
+        ## Open the database
+        $KeePassConnectionObject = Get-KPConnection -KeePassCredential $KeePassCredentialObject
+        ## remove any sensitive data
+        if($MasterKeySecureString){Remove-Variable -Name MasterKeySecureString}
+        if($KeePassCredentialObject){Remove-Variable -Name KeePassCredentialObject}
+    }
+    process
+    {
+        if($KeePassEntryGroupPath)
+        {   
+            ## Get All entries in the specified group
+            $ResultEntries = Get-KPGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassEntryGroupPath
+        }
+        else
+        {
+            ## Get all entries in all groups.
+            $ResultEntries = Get-KPGroup -KeePassConnection $KeePassConnectionObject
+        }
+
+        ## return results in plain text or not.
+        if($AsPlainText)
+        {
+            $ResultEntries | ConvertTo-KpPsObject
+        }
+        else
+        {
+            $ResultEntries
+        }
+    }
+    end
+    {
+        ## Clean up database connection 
+        Remove-KPConnection -KeePassConnection $KeePassConnectionObject
+    }
 }
 
 ##DEV
@@ -2394,7 +2534,7 @@ function Get-KPGroup
         .PARAMETER GroupName
             Specify the GroupName of a Group or Groups in a KPDB.
     #>
-    [CmdletBinding(DefaultParameterSetName = 'Full')]
+    [CmdletBinding(DefaultParameterSetName = 'None')]
     [OutputType('KeePassLib.PwGroup')]
     param
     (
@@ -2407,6 +2547,11 @@ function Get-KPGroup
             Position = 0,
             Mandatory,
             ParameterSetName = 'Partial'
+        )]
+        [Parameter(
+            Position = 0,
+            Mandatory,
+            ParameterSetName = 'None'
         )]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwDatabase] $KeePassConnection,
@@ -2442,7 +2587,7 @@ function Get-KPGroup
         {
             [KeePassLib.PwGroup[]] $KeePassOutGroups = $null
             #hmm not sure what this $KpGroup variable is for...
-            [KeePassLib.PwGroup] $KpGroup = New-Object KeePassLib.PwGroup -ErrorAction Stop -ErrorVariable ErrorNewPwGroupObject
+            # [KeePassLib.PwGroup] $KpGroup = New-Object KeePassLib.PwGroup -ErrorAction Stop -ErrorVariable ErrorNewPwGroupObject
             $KeePassGroups = $KeePassConnection.RootGroup.GetFlatGroupList()
         }
         catch
@@ -2484,6 +2629,10 @@ function Get-KPGroup
                     $KeePassOutGroups += $_keepassGroup
                 }
             }
+        }
+        elseif ($PSCmdlet.ParameterSetName -eq 'None')
+        {
+            $KeePassOutGroups = $KeePassGroups
         }
     }
     end{ $KeePassOutGroups }
@@ -2832,46 +2981,78 @@ function ConvertTo-KPPSObject
         .PARAMETER KeePassEntry
             This is the one or more KeePass Entries to be converted.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName='Entry')]
     [OutputType([PSCustomObject])]
     param
     (
         [Parameter(Position=0,
             Mandatory,
             ValueFromPipeline,
-            ValueFromPipelineByPropertyName
+            ValueFromPipelineByPropertyName,
+            ParameterSetName='Entry'
         )]
         [ValidateNotNullOrEmpty()]
-        [KeePassLib.PwEntry[]] $KeePassEntry
+        [KeePassLib.PwEntry[]] $KeePassEntry,
+        [Parameter(
+            Position=0,
+            Mandatory,
+            ValueFromPipeline,
+            ValueFromPipelineByPropertyName,
+            ParameterSetName='Group'
+        )]
+        [ValidateNotNullOrEmpty()]
+        [KeePassLib.PwGroup[]] $KeePassGroup
+
     )
-    begin{ $KeePassPSOutObject = @() }
     process
     {
-
-        foreach ($_keepassItem in $KeePassEntry)
+        if($PSCmdlet.ParameterSetName -eq 'Entry')
         {
-            $KeePassPsObject = New-Object -TypeName PSObject
-            $KeePassPsObject | Add-Member -Name 'Uuid' -MemberType NoteProperty -Value $_keepassItem.Uuid
-            $KeePassPsObject | Add-Member -Name 'CreationTime' -MemberType NoteProperty -Value $_keepassItem.CreationTime
-            $KeePassPsObject | Add-Member -Name 'Expires' -MemberType NoteProperty -Value $_keepassItem.Expires
-            $KeePassPsObject | Add-Member -Name 'ExpireTime' -MemberType NoteProperty -Value $_keepassItem.ExpiryTime
-            $KeePassPsObject | Add-Member -Name 'LastAccessTime' -MemberType NoteProperty -Value $_keepassItem.LastAccessTime
-            $KeePassPsObject | Add-Member -Name 'LastModificationTime' -MemberType NoteProperty -Value $_keepassItem.LastModificationTime
-            $KeePassPsObject | Add-Member -Name 'LocationChanged' -MemberType NoteProperty -Value $_keepassItem.LocationChanged
-            $KeePassPsObject | Add-Member -Name 'Tags' -MemberType NoteProperty -Value $_keepassItem.Tags
-            $KeePassPsObject | Add-Member -Name 'Touched' -MemberType NoteProperty -Value $_keepassItem.Touched
-            $KeePassPsObject | Add-Member -Name 'UsageCount' -MemberType NoteProperty -Value $_keepassItem.UsageCount
-            $KeePassPsObject | Add-Member -Name 'ParentGroup' -MemberType NoteProperty -Value $_keepassItem.ParentGroup.Name
-            $KeePassPsObject | Add-Member -Name 'FullPath' -MemberType NoteProperty -Value $_keepassItem.ParentGroup.GetFullPath("/", $false)
-            $KeePassPsObject | Add-Member -Name 'Title' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe("Title")
-            $KeePassPsObject | Add-Member -Name 'UserName' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe("UserName")
-            $KeePassPsObject | Add-Member -Name 'Password' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe("Password")
-            $KeePassPsObject | Add-Member -Name 'URL' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe("URL")
-            $KeePassPsObject | Add-Member -Name 'Notes' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe("Notes")
-            $KeePassPSOutObject += $KeePassPsObject
+            foreach ($_keepassItem in $KeePassEntry)
+            {
+                $KeePassPsObject = New-Object -TypeName PSObject
+                $KeePassPsObject | Add-Member -Name 'Uuid' -MemberType NoteProperty -Value $_keepassItem.Uuid
+                $KeePassPsObject | Add-Member -Name 'CreationTime' -MemberType NoteProperty -Value $_keepassItem.CreationTime
+                $KeePassPsObject | Add-Member -Name 'Expires' -MemberType NoteProperty -Value $_keepassItem.Expires
+                $KeePassPsObject | Add-Member -Name 'ExpireTime' -MemberType NoteProperty -Value $_keepassItem.ExpiryTime
+                $KeePassPsObject | Add-Member -Name 'LastAccessTime' -MemberType NoteProperty -Value $_keepassItem.LastAccessTime
+                $KeePassPsObject | Add-Member -Name 'LastModificationTime' -MemberType NoteProperty -Value $_keepassItem.LastModificationTime
+                $KeePassPsObject | Add-Member -Name 'LocationChanged' -MemberType NoteProperty -Value $_keepassItem.LocationChanged
+                $KeePassPsObject | Add-Member -Name 'Tags' -MemberType NoteProperty -Value $_keepassItem.Tags
+                $KeePassPsObject | Add-Member -Name 'Touched' -MemberType NoteProperty -Value $_keepassItem.Touched
+                $KeePassPsObject | Add-Member -Name 'UsageCount' -MemberType NoteProperty -Value $_keepassItem.UsageCount
+                $KeePassPsObject | Add-Member -Name 'ParentGroup' -MemberType NoteProperty -Value $_keepassItem.ParentGroup.Name
+                $KeePassPsObject | Add-Member -Name 'FullPath' -MemberType NoteProperty -Value $_keepassItem.ParentGroup.GetFullPath("/", $false)
+                $KeePassPsObject | Add-Member -Name 'Title' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe("Title")
+                $KeePassPsObject | Add-Member -Name 'UserName' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe("UserName")
+                $KeePassPsObject | Add-Member -Name 'Password' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe("Password")
+                $KeePassPsObject | Add-Member -Name 'URL' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe("URL")
+                $KeePassPsObject | Add-Member -Name 'Notes' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe("Notes")
+                $KeePassPsObject
+            }
+        }
+        elseif($PSCmdlet.ParameterSetName -eq 'Group')
+        {
+            foreach ($_keepassItem in $KeePassGroup)
+            {
+                $KeePassPsObject = New-Object -TypeName PSObject
+                $KeePassPsObject | Add-Member -Name 'Uuid' -MemberType NoteProperty -Value $_keepassItem.Uuid
+                $KeePassPsObject | Add-Member -Name 'Name' -MemberType NoteProperty -Value $_keepassItem.Name
+                $KeePassPsObject | Add-Member -Name 'CreationTime' -MemberType NoteProperty -Value $_keepassItem.CreationTime
+                $KeePassPsObject | Add-Member -Name 'Expires' -MemberType NoteProperty -Value $_keepassItem.Expires
+                $KeePassPsObject | Add-Member -Name 'ExpireTime' -MemberType NoteProperty -Value $_keepassItem.ExpiryTime
+                $KeePassPsObject | Add-Member -Name 'LastAccessTime' -MemberType NoteProperty -Value $_keepassItem.LastAccessTime
+                $KeePassPsObject | Add-Member -Name 'LastModificationTime' -MemberType NoteProperty -Value $_keepassItem.LastModificationTime
+                $KeePassPsObject | Add-Member -Name 'LocationChanged' -MemberType NoteProperty -Value $_keepassItem.LocationChanged
+                $KeePassPsObject | Add-Member -Name 'Touched' -MemberType NoteProperty -Value $_keepassItem.Touched
+                $KeePassPsObject | Add-Member -Name 'UsageCount' -MemberType NoteProperty -Value $_keepassItem.UsageCount
+                $KeePassPsObject | Add-Member -Name 'ParentGroup' -MemberType NoteProperty -Value $_keepassItem.ParentGroup.Name
+                $KeePassPsObject | Add-Member -Name 'FullPath' -MemberType NoteProperty -Value $_keepassItem.ParentGroup.GetFullPath("/", $false)
+                $KeePassPsObject | Add-Member -Name 'Groups' -MemberType NoteProperty -Value $_keepassItem.Groups
+                $KeePassPsObject
+            }
         }
     }
-    end{ $KeePassPSOutObject }
 }
 
 function Import-KPLibrary
