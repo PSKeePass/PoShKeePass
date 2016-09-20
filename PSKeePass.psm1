@@ -891,8 +891,6 @@ function Get-KeePassGroup
     }
 }
 
-##DEV
-## Fill out holder function
 function Update-KeePassGroup
 {
     <#
