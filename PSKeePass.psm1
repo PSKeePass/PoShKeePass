@@ -142,6 +142,10 @@ function New-KeePassEntry
             {
                 Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -MasterKey $MasterKeySecureString -UseNetworkAccount:$UseNetworkAccount
             }
+            'Network'
+            {
+                 Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -UseNetworkAccount:$UseNetworkAccount
+            }
         }
 
         ## Open the database
@@ -271,6 +275,10 @@ function Get-KeePassEntry
             'Master'
             {
                 Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -MasterKey $MasterKeySecureString -UseNetworkAccount:$UseNetworkAccount
+            }
+            'Network'
+            {
+                 Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -UseNetworkAccount:$UseNetworkAccount
             }
         }
 
@@ -455,6 +463,10 @@ function Update-KeePassEntry
             {
                 Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -MasterKey $MasterKeySecureString -UseNetworkAccount:$UseNetworkAccount
             }
+            'Network'
+            {
+                 Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -UseNetworkAccount:$UseNetworkAccount
+            }
         }
 
         $KeePassConnectionObject = Get-KPConnection -KeePassCredential $KeePassCredentialObject
@@ -573,6 +585,10 @@ function Remove-KeePassEntry
             'Master'
             {
                 Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -MasterKey $MasterKeySecureString -UseNetworkAccount:$UseNetworkAccount
+            }
+            'Network'
+            {
+                 Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -UseNetworkAccount:$UseNetworkAccount
             }
         }
 
@@ -699,6 +715,10 @@ function New-KeePassGroup
             {
                 Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -MasterKey $MasterKeySecureString -UseNetworkAccount:$UseNetworkAccount
             }
+            'Network'
+            {
+                 Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -UseNetworkAccount:$UseNetworkAccount
+            }
         }
 
         ## Open the database
@@ -728,7 +748,7 @@ function Get-KeePassGroup
             Function to get keepass database entries.
         .DESCRIPTION
             This Funciton gets all keepass database entries or a specified group/folder subset if the -KeePassEntryGroupPath parameter is Specified.
-        .PARAMETER KeePassEntryGroupPath
+        .PARAMETER KeePassGroupPath
             Specify this parameter if you wish to only return entries form a specific folder path.
             Notes: 
                 * Path Separator is the foward slash character '/'
@@ -829,6 +849,10 @@ function Get-KeePassGroup
             {
                 Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -MasterKey $MasterKeySecureString -UseNetworkAccount:$UseNetworkAccount
             }
+            'Network'
+            {
+                 Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -UseNetworkAccount:$UseNetworkAccount
+            }
         }
 
         ## Open the database
@@ -873,43 +897,33 @@ function Update-KeePassGroup
 {
     <#
         .SYNOPSIS
-            Function to update a KeePass Database Entry.
+            Function to update a KeePass Database Group.
         .DESCRIPTION
-            This function updates a KeePass Database Entry with basic properites available for specification.
-        .PARAMETER KeePassEntry
-            The KeePass Entry to be updated. Use the Get-KeePassEntry function to get this object.
-        .PARAMETER KeePassEntryGroupPath
-            Specify this parameter if you wish to only return entries form a specific folder path.
+            This function updates a KeePass Database Group.
+        .PARAMETER KeePassGroup
+            The KeePass Group to be updated. Use the Get-KeePassGroup function to get this object.
+        .PARAMETER KeePassParentGroupPath
+            Specify this parameter if you wish move the specified group to a different parent group.
             Notes: 
                 * Path Separator is the foward slash character '/'
         .PARAMETER DatabaseProfileName
             *This Parameter is required in order to access your KeePass database.
             *This is a Dynamic Parameter that is populated from the KeePassConfiguration.xml. 
                 *You can generated this file by running the New-KeePassDatabaseConfiguration function.
-        .PARAMETER Title
-            Specify the Title of the new KeePass Database Entry.
-        .PARAMETER UserName
-            Specify the UserName of the new KeePass Database Entry.
-        .PARAMETER KeePassPassword
-            *Specify the KeePassPassword of the new KeePass Database Entry.
-            *Notes:
-                *This Must be of the type SecureString
-        .PARAMETER Notes
-            Specify the Notes of the new KeePass Database Entry.
-        .PARAMETER URL
-            Specify the URL of the new KeePass Database Entry.
+        .PARAMETER GroupName
+            Specify the GroupName to change the specified group to.
         .EXAMPLE
-            PS> New-KeePassEntry -DatabaseProfileName TEST -KeePassEntryGroupPath 'General/TestAccounts' -Title 'Test Title' -UserName 'Domain\svcAccount' -KeePassPassword $(New-KeePassPassword -upper -lower -digits -length 20)
+            PS> Update-KeePassGroup -DatabaseProfileName TEST -KeePassGroup $KeePassGroupObject -KeePassParentGroupPath 'General/TestAccounts'
 
-            This example creates a new keepass database entry in the General/TestAccounts database group, with the specified Title and UserName. Also the function New-KeePassPassword is used to generated a random password with the specified options.
+            This Example moves the specified KeePassGroup to a New parent group path. 
         .EXAMPLE
-            PS> New-KeePassEntry -DatabaseProfileName TEST -KeePassEntryGroupPath 'General/TestAccounts' -Title 'Test Title' -UserName 'Domain\svcAccount' -KeePassPassword $(New-KeePassPassword -PasswordProfileName 'Default' )
+            PS> Get-KeePassGroup -DatabaseProfileName 'TEST' -KeePassGroupPath 'General/DevAccounts/testgroup' | Update-KeePassGroup -DatabaseProfileName TEST -KeePassParentGroupPath 'General/TestAccounts'
 
-            This example creates a new keepass database entry in the General/TestAccounts database group, with the specified Title and UserName. Also the function New-KeePassPassword with a password profile specifed to create a new password genereated from options saved to a profile.
+            This Example moves group specified via the pipeline to a New parent group path. 
         .EXAMPLE
-            PS> New-KeePassEntry -DatabaseProfileName TEST -Title 'Test Title' -UserName 'Domain\svcAccount' -KeePassPassword $(ConvertTo-SecureString -String 'apassword' -AsPlainText -Force)
+            PS> Get-KeePassGroup -DatabaseProfileName 'TEST' -KeePassGroupPath 'General/DevAccounts/testgroup' | Update-KeePassGroup -DatabaseProfileName TEST -GroupName 'DevGroup'
 
-            This example creates a new keepass database entry with the specified Title, UserName and manually specified password converted to a securestring. 
+            This Example renames the group specified via the pipeline to 'DevGroup' 
         .INPUTS
             String
             SecureString
@@ -962,8 +976,6 @@ function Update-KeePassGroup
     }
     begin
     {
-        $KeePassGroup
-        read-Host -Prompt '1'
         if($DatabaseProfileList)
         {
             $DatabaseProfileName = $PSBoundParameters[$ParameterName]
@@ -997,12 +1009,13 @@ function Update-KeePassGroup
             {
                 Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -MasterKey $MasterKeySecureString -UseNetworkAccount:$UseNetworkAccount
             }
+            'Network'
+            {
+                 Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -UseNetworkAccount:$UseNetworkAccount
+            }
         }
 
         $KeePassConnectionObject = Get-KPConnection -KeePassCredential $KeePassCredentialObject
-
-        $KeePassGroup
-        read-Host -Prompt '2'
 
         if($MasterKeySecureString){Remove-Variable -Name MasterKeySecureString}
         if($KeePassCredentialObject){Remove-Variable -Name KeePassCredentialObject}
@@ -1014,13 +1027,23 @@ function Update-KeePassGroup
             $KeePassParentGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassParentGroupPath
         }
         
-        $KeePAssGroupFullPath = $KeePassGroup.
-        $KeePassGroupObject = Get-KPGroup -KeePassConnection $KeePassConnectionObject -FullPath
-        $KeePassGroupObject
-        read-Host -Prompt '3'
+        if($KeePassGroup.GetType().Name -eq 'PwGroup')
+        {
+            $KeePassGroupFullPath = "$($KeePassGroup.GetFullPath('/',$true))"
+        }
+        else
+        {
+            $KeePassGroupFullPath = "$($KeePassGroup.FullPath)/$($KeePassGroup.Name)"
+        }
+        $KeePassGroupObject = Get-KPGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroupFullPath | Where-Object { $_.CreationTime -eq $KeePassGroup.CreationTime}
         
-        $KeePassGroupObject
-        
+        if($KeePassGroupObject.Count -gt 1)
+        {
+            Write-Warning -Message "[PROCESS] Found more than one group with the same path, name and creation time. Stoping Update."
+            Write-Warning -Message "[PROCESS] Found: $($KeePassGroupObject.Count) number of matching groups."
+            Break
+        }
+
         if($KeePassParentGroup)
         {
             Set-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroupObject -KeePassParentGroup $KeePassParentGroup -GroupName $GroupName
@@ -1133,6 +1156,10 @@ function Remove-KeePassGroup
             {
                 Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -MasterKey $MasterKeySecureString -UseNetworkAccount:$UseNetworkAccount
             }
+            'Network'
+            {
+                 Get-KPCredential -DatabaseFile $DatabaseProfileObject.DatabasePath -UseNetworkAccount:$UseNetworkAccount
+            }
         }
 
         $KeePassConnectionObject = Get-KPConnection -KeePassCredential $KeePassCredentialObject
@@ -1142,8 +1169,25 @@ function Remove-KeePassGroup
     }
     process
     {
-        $KPGroup=Get-KpGroup -KeePassConnection $KeePassConnectionObject -KeePassUuid $KeePassGroup.Uuid
-        Remove-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassGroup $KPGroup -NoRecycle:$NoRecycle -Force:$Force
+        if($KeePassGroup.GetType().Name -eq 'PwGroup')
+        {
+            $KeePassGroupFullPath = "$($KeePassGroup.GetFullPath('/',$true))"
+        }
+        else
+        {
+            $KeePassGroupFullPath = "$($KeePassGroup.FullPath)/$($KeePassGroup.Name)"
+        }
+        $KeePassGroupObject = Get-KPGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroupFullPath | Where-Object { $_.CreationTime -eq $KeePassGroup.CreationTime}
+        
+        if($KeePassGroupObject.Count -gt 1)
+        {
+            Write-Warning -Message "[PROCESS] Found more than one group with the same path, name and creation time. Stoping Removal."
+            Write-Warning -Message "[PROCESS] Found: $($KeePassGroupObject.Count) number of matching groups."
+            Break
+        }
+
+        $KPGroup=Get-KpGroup -KeePassConnection $KeePassConnectionObject 
+        Remove-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroupObject -NoRecycle:$NoRecycle -Force:$Force
     }
     end
     {
@@ -1521,6 +1565,7 @@ function New-KeePassDatabaseConfiguration
 
         [Parameter(Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Key')]
         [Parameter(Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Master')]
+        [Parameter(Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Network')]
         [Switch] $UseNetworkAccount,
 
         [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Master')]
@@ -2083,13 +2128,14 @@ function Get-KPCredential
         .OUTPUTS
             System.Management.Automation.PSCustomObject
 	#>
-    [CmdletBinding(DefaultParameterSetName='Key')]
+    [CmdletBinding(DefaultParameterSetName='Network')]
     [OutputType([PSCustomObject])]
     param
     (
         [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Key')]
         [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Master')]
         [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
+        [Parameter(Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Network')]
         [ValidateNotNullOrEmpty()]
         [ValidateScript({Test-Path $_})]
         [string] $DatabaseFile,
@@ -2107,6 +2153,7 @@ function Get-KPCredential
 
         [Parameter(Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Key')]
         [Parameter(Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Master')]
+        [Parameter(Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Network')]
         [switch] $UseNetworkAccount
     )
     process
@@ -2208,6 +2255,10 @@ function Get-KPConnection
                 {
                     $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpUserAccount))
                 }
+            }
+            elseif ($KeePassCredential.AuthenticationType -eq "Network")
+            {
+                $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpUserAccount))
             }
         }
         catch [Exception]
@@ -2743,7 +2794,7 @@ function Remove-KPEntry
             break
         }
 
-        $RecycleBin = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'Recycle Bin'
+        $RecycleBin = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath "$($KeePassConnection.RootGroup.Name)/Recycle Bin"
         $EntryDisplayName = "$($KeePassEntry.ParentGroup.GetFullPath('/', $true))/$($KeePassEntry.Strings.ReadSafe('Title'))"
         
         if ( $Force -or $PSCmdlet.ShouldProcess($($EntryDisplayName)))
@@ -2870,7 +2921,8 @@ function Get-KPGroup
             [KeePassLib.PwGroup[]] $KeePassOutGroups = $null
             #hmm not sure what this $KpGroup variable is for...
             # [KeePassLib.PwGroup] $KpGroup = New-Object KeePassLib.PwGroup -ErrorAction Stop -ErrorVariable ErrorNewPwGroupObject
-            $KeePassGroups = $KeePassConnection.RootGroup.GetFlatGroupList()
+            [KeePassLib.PwGroup[]] $KeePassGroups = $KeePassConnection.RootGroup
+            $KeePassGroups += $KeePassConnection.RootGroup.GetFlatGroupList()
         }
         catch
         {
@@ -3075,13 +3127,14 @@ function Set-KPGroup
         }
         if($KeePassParentGroup)
         {
-            if( $KeePassGroup.ParentGroup.Uuid.CompareTo($KeePassParentGroup.Uuid) -ne 0 )
+            if($KeePassGroup.ParentGroup.Uuid.CompareTo($KeePassParentGroup.Uuid) -ne 0 )
             {
                 $UpdatedKeePassGroup = $KeePassGroup.CloneDeep()
                 $UpdatedKeePassGroup.Uuid = New-Object KeePassLib.PwUuid($true)
-                $KeePassParentGroup.AddGroup($UpdatedKeePassGroup, $true)
+                $KeePassParentGroup.AddGroup($UpdatedKeePassGroup, $true, $true)
                 $KeePassConnection.Save($null)
-                $KeePassGroup.ParentGroup.Entries.Remove($KeePassGroup)
+                $KeePassGroup.ParentGroup.Groups.Remove($KeePassGroup) > $null
+                # $KeePassConnection.Save($null)
             }
         }
         $KeePassConnection.Save($null)
@@ -3161,7 +3214,7 @@ function Remove-KPGroup
             break
         }
 
-        $RecycleBin = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'Recycle Bin'
+        $RecycleBin = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath "$($KeePassConnection.RootGroup.Name)/Recycle Bin"
         
         if ( $Force -or $PSCmdlet.ShouldProcess($($KeePassGroup.GetFullPath('/', $true))))
         {
@@ -3184,25 +3237,29 @@ function Remove-KPGroup
         {
             #Make Copy of the group to be recycled.
             $DeletedKeePassGroup = $KeePassGroup.CloneDeep()
-            #Generate a new Uuid and update the copy fo the group
+            # #Generate a new Uuid and update the copy fo the group
             $DeletedKeePassGroup.Uuid = (New-Object KeePassLib.PwUuid($true))
             #Add the copy to the recycle bin, with take ownership set to true
-            $RecycleBin.AddGroup($DeletedKeePassGroup, $true)
+            $RecycleBin.AddGroup($DeletedKeePassGroup, $true, $true)
+            $KeePassConnection.Save($null)
+            $KeePassGroup.ParentGroup.Groups.Remove($KeePassGroup) > $null
+            $KeePassConnection.Save($null)
             Write-Verbose -Message "[PROCESS] Group has been Recycled."    
-        }
-        
-        #Deletes the specified group
-        $IsRemoved = $KeePassGroup.ParentGroup.Groups.Remove($KeePassGroup)
-        
-        if(-not $IsRemoved)
-        {
-            Write-Warning -Message "[PROCESS] Unknown Error has occured. Failed to Remove Group ($($KeePassGroup.GetFullPath('/', $true)))"
-            Throw "Failed to Remove Group $($KeePassGroup.GetFullPath('/', $true))"
         }
         else
         {
-            Write-Verbose -Message "[PROCESS] Group ($($KeePassGroup.GetFullPath('/', $true))) has been Removed."
-            $KeePassConnection.Save($null)
+            #Deletes the specified group
+            $IsRemoved = $KeePassGroup.ParentGroup.Groups.Remove($KeePassGroup)
+            if(-not $IsRemoved)
+            {
+                Write-Warning -Message "[PROCESS] Unknown Error has occured. Failed to Remove Group ($($KeePassGroup.GetFullPath('/', $true)))"
+                Throw "Failed to Remove Group $($KeePassGroup.GetFullPath('/', $true))"
+            }
+            else
+            {
+                Write-Verbose -Message "[PROCESS] Group ($($KeePassGroup.GetFullPath('/', $true))) has been Removed."
+                $KeePassConnection.Save($null)
+            }
         }
     }
 }
@@ -3314,6 +3371,14 @@ function ConvertTo-KPPSObject
         {
             foreach ($_keepassItem in $KeePassGroup)
             {
+                if($_keepassItem.ParentGroup.Name)
+                {
+                    $FullPath=$_keepassItem.ParentGroup.GetFullPath('/', $true)
+                }
+                else
+                {
+                    $FullPath = ''
+                }
                 $KeePassPsObject = New-Object -TypeName PSObject
                 $KeePassPsObject | Add-Member -Name 'Uuid' -MemberType NoteProperty -Value $_keepassItem.Uuid
                 $KeePassPsObject | Add-Member -Name 'Name' -MemberType NoteProperty -Value $_keepassItem.Name
@@ -3326,7 +3391,7 @@ function ConvertTo-KPPSObject
                 $KeePassPsObject | Add-Member -Name 'Touched' -MemberType NoteProperty -Value $_keepassItem.Touched
                 $KeePassPsObject | Add-Member -Name 'UsageCount' -MemberType NoteProperty -Value $_keepassItem.UsageCount
                 $KeePassPsObject | Add-Member -Name 'ParentGroup' -MemberType NoteProperty -Value $_keepassItem.ParentGroup.Name
-                $KeePassPsObject | Add-Member -Name 'FullPath' -MemberType NoteProperty -Value $_keepassItem.ParentGroup.GetFullPath('/', $true)
+                $KeePassPsObject | Add-Member -Name 'FullPath' -MemberType NoteProperty -Value $FullPath
                 $KeePassPsObject | Add-Member -Name 'Groups' -MemberType NoteProperty -Value $_keepassItem.Groups
                 $KeePassPsObject
             }
