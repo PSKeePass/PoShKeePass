@@ -11,7 +11,6 @@ function New-KeePassEntry
             Specify this parameter if you wish to only return entries form a specific folder path.
             Notes: 
                 * Path Separator is the foward slash character '/'
-                * The top level directory aka the database name should not be included in the path.
         .PARAMETER DatabaseProfileName
             *This Parameter is required in order to access your KeePass database.
             *This is a Dynamic Parameter that is populated from the KeePassConfiguration.xml. 
@@ -176,7 +175,6 @@ function Get-KeePassEntry
             Specify this parameter if you wish to only return entries form a specific folder path.
             Notes: 
                 * Path Separator is the foward slash character '/'
-                * The top level directory aka the database name should not be included in the path.
         .PARAMETER AsPlainText
             Specify this parameter if you want the KeePass database entries to be returns in plain text objects.
         .PARAMETER DatabaseProfileName
@@ -328,7 +326,6 @@ function Update-KeePassEntry
             Specify this parameter if you wish to only return entries form a specific folder path.
             Notes: 
                 * Path Separator is the foward slash character '/'
-                * The top level directory aka the database name should not be included in the path.
         .PARAMETER DatabaseProfileName
             *This Parameter is required in order to access your KeePass database.
             *This is a Dynamic Parameter that is populated from the KeePassConfiguration.xml. 
@@ -606,7 +603,6 @@ function New-KeePassGroup
             Specify this parameter if you wish to only return entries form a specific folder path.
             Notes: 
                 * Path Separator is the foward slash character '/'
-                * The top level directory aka the database name should not be included in the path.
         .PARAMETER DatabaseProfileName
             *This Parameter is required in order to access your KeePass database.
             *This is a Dynamic Parameter that is populated from the KeePassConfiguration.xml. 
@@ -736,7 +732,6 @@ function Get-KeePassGroup
             Specify this parameter if you wish to only return entries form a specific folder path.
             Notes: 
                 * Path Separator is the foward slash character '/'
-                * The top level directory aka the database name should not be included in the path.
         .PARAMETER AsPlainText
             Specify this parameter if you want the KeePass database entries to be returns in plain text objects.
         .PARAMETER DatabaseProfileName
@@ -874,7 +869,6 @@ function Get-KeePassGroup
 
 ##DEV
 ## Fill out holder function
-## BUG
 function Update-KeePassGroup
 {
     <#
@@ -888,7 +882,6 @@ function Update-KeePassGroup
             Specify this parameter if you wish to only return entries form a specific folder path.
             Notes: 
                 * Path Separator is the foward slash character '/'
-                * The top level directory aka the database name should not be included in the path.
         .PARAMETER DatabaseProfileName
             *This Parameter is required in order to access your KeePass database.
             *This is a Dynamic Parameter that is populated from the KeePassConfiguration.xml. 
@@ -2625,7 +2618,7 @@ function Set-KPEntry
     }
     process
     {
-        if($PSCmdlet.ShouldProcess("Title: $($KeePassEntry.Strings.ReadSafe('Title')). UserName: $($KeePassEntry.Strings.ReadSafe('UserName')). Group Path $($KeePassEntry.ParentGroup.GetFullPath("/", $false))"))
+        if($PSCmdlet.ShouldProcess("Title: $($KeePassEntry.Strings.ReadSafe('Title')). UserName: $($KeePassEntry.Strings.ReadSafe('UserName')). Group Path $($KeePassEntry.ParentGroup.GetFullPath('/', $true))"))
         {
             if($Title)
             {
@@ -2751,7 +2744,7 @@ function Remove-KPEntry
         }
 
         $RecycleBin = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'Recycle Bin'
-        $EntryDisplayName = "$($KeePassEntry.ParentGroup.GetFullPath('/',$false))/$($KeePassEntry.Strings.ReadSafe('Title'))"
+        $EntryDisplayName = "$($KeePassEntry.ParentGroup.GetFullPath('/', $true))/$($KeePassEntry.Strings.ReadSafe('Title'))"
         
         if ( $Force -or $PSCmdlet.ShouldProcess($($EntryDisplayName)))
         {
@@ -2902,7 +2895,7 @@ function Get-KPGroup
         {
             foreach($_keepassGroup in $KeePassGroups)
             {
-                if($_keepassGroup.GetFullPath("/", $false).Equals($FullPath))
+                if($_keepassGroup.GetFullPath('/', $true).ToLower().Equals($FullPath.ToLower()))
                 {
                     $_keepassGroup
                 }                   
@@ -2912,7 +2905,7 @@ function Get-KPGroup
         {
             foreach($_keepassGroup in $KeePassGroups)
             {
-                if($_keepassGroup.Name.Equals($GroupName))
+                if($_keepassGroup.Name.ToLower().Equals($GroupName.ToLower()))
                 {
                     $_keepassGroup
                 }
@@ -3170,11 +3163,11 @@ function Remove-KPGroup
 
         $RecycleBin = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'Recycle Bin'
         
-        if ( $Force -or $PSCmdlet.ShouldProcess($($KeePassGroup.GetFullPath('/',$false))))
+        if ( $Force -or $PSCmdlet.ShouldProcess($($KeePassGroup.GetFullPath('/', $true))))
         {
             if ( -not $Force -and (-not $RecycleBin -or $NoRecycle) )
             {
-                if ( -not $PSCmdlet.ShouldContinue("Recycle Bin Does Not Exist or the -NoRecycle Option Has been Specified.", "Do you want to continue to Permanently Delete this Group: ($($KeePassGroup.GetFullPath('/',$false)))?"))
+                if ( -not $PSCmdlet.ShouldContinue("Recycle Bin Does Not Exist or the -NoRecycle Option Has been Specified.", "Do you want to continue to Permanently Delete this Group: ($($KeePassGroup.GetFullPath('/', $true)))?"))
                 {
                     break
                 }
@@ -3203,12 +3196,12 @@ function Remove-KPGroup
         
         if(-not $IsRemoved)
         {
-            Write-Warning -Message "[PROCESS] Unknown Error has occured. Failed to Remove Group ($($KeePassGroup.GetFullPath('/',$false)))"
-            Throw "Failed to Remove Group $($KeePassGroup.GetFullPath('/',$false))"
+            Write-Warning -Message "[PROCESS] Unknown Error has occured. Failed to Remove Group ($($KeePassGroup.GetFullPath('/', $true)))"
+            Throw "Failed to Remove Group $($KeePassGroup.GetFullPath('/', $true))"
         }
         else
         {
-            Write-Verbose -Message "[PROCESS] Group ($($KeePassGroup.GetFullPath('/',$false))) has been Removed."
+            Write-Verbose -Message "[PROCESS] Group ($($KeePassGroup.GetFullPath('/', $true))) has been Removed."
             $KeePassConnection.Save($null)
         }
     }
@@ -3308,7 +3301,7 @@ function ConvertTo-KPPSObject
                 $KeePassPsObject | Add-Member -Name 'Touched' -MemberType NoteProperty -Value $_keepassItem.Touched
                 $KeePassPsObject | Add-Member -Name 'UsageCount' -MemberType NoteProperty -Value $_keepassItem.UsageCount
                 $KeePassPsObject | Add-Member -Name 'ParentGroup' -MemberType NoteProperty -Value $_keepassItem.ParentGroup.Name
-                $KeePassPsObject | Add-Member -Name 'FullPath' -MemberType NoteProperty -Value $_keepassItem.ParentGroup.GetFullPath("/", $false)
+                $KeePassPsObject | Add-Member -Name 'FullPath' -MemberType NoteProperty -Value $_keepassItem.ParentGroup.GetFullPath('/', $true)
                 $KeePassPsObject | Add-Member -Name 'Title' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe("Title")
                 $KeePassPsObject | Add-Member -Name 'UserName' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe("UserName")
                 $KeePassPsObject | Add-Member -Name 'Password' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe("Password")
@@ -3333,7 +3326,7 @@ function ConvertTo-KPPSObject
                 $KeePassPsObject | Add-Member -Name 'Touched' -MemberType NoteProperty -Value $_keepassItem.Touched
                 $KeePassPsObject | Add-Member -Name 'UsageCount' -MemberType NoteProperty -Value $_keepassItem.UsageCount
                 $KeePassPsObject | Add-Member -Name 'ParentGroup' -MemberType NoteProperty -Value $_keepassItem.ParentGroup.Name
-                $KeePassPsObject | Add-Member -Name 'FullPath' -MemberType NoteProperty -Value $_keepassItem.ParentGroup.GetFullPath("/", $false)
+                $KeePassPsObject | Add-Member -Name 'FullPath' -MemberType NoteProperty -Value $_keepassItem.ParentGroup.GetFullPath('/', $true)
                 $KeePassPsObject | Add-Member -Name 'Groups' -MemberType NoteProperty -Value $_keepassItem.Groups
                 $KeePassPsObject
             }
