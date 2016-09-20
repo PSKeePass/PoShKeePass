@@ -608,6 +608,8 @@ function Remove-KeePassEntry
     }
 }
 
+##DEV
+## Add support for PassThru option
 function New-KeePassGroup
 {
     <#
@@ -891,6 +893,8 @@ function Get-KeePassGroup
     }
 }
 
+##DEV
+## Add support for PassThru option
 function Update-KeePassGroup
 {
     <#
@@ -2596,6 +2600,8 @@ function Add-KPEntry
     }
 }
 
+##DEV
+## Add SupportsShouldProcess
 function Set-KPEntry
 {
     <#
@@ -2717,6 +2723,8 @@ function Set-KPEntry
     }
 }
 
+##DEV
+## Move ShouldProcess to process block.
 function Remove-KPEntry
 {
     <#
@@ -3054,6 +3062,8 @@ function Add-KPGroup
     }
 }
 
+##DEV
+## Add SupportsShouldProcess
 function Set-KPGroup
 {
     <#
@@ -3139,6 +3149,8 @@ function Set-KPGroup
     }
 }
 
+##DEV
+## Move ShouldProcess to process block.
 function Remove-KPGroup
 {
     <#
