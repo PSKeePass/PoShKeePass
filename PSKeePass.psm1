@@ -360,6 +360,8 @@ function Update-KeePassEntry
             Specify the URL of the new KeePass Database Entry.
         .PARAMETER PassThru
             Specify to return the modified object.
+        .PARAMETER Force
+            Specify to Update the specified entry without confirmation.
         .EXAMPLE
             PS> New-KeePassEntry -DatabaseProfileName TEST -KeePassEntryGroupPath 'General/TestAccounts' -Title 'Test Title' -UserName 'Domain\svcAccount' -KeePassPassword $(New-KeePassPassword -upper -lower -digits -length 20)
 
@@ -378,6 +380,7 @@ function Update-KeePassEntry
         .OUTPUTS
             $null
     #>
+    [CmdletBinding(SupportsShouldProcess=$true,ConfirmImpact='High')]
     param
     (
         [Parameter(Position=0,Mandatory=$true,ValueFromPipeline)]
@@ -409,7 +412,12 @@ function Update-KeePassEntry
         [string] $URL,
 
         [Parameter(Position=7,Mandatory=$false)]
-        [Switch] $PassThru
+        [Switch] $PassThru,
+
+        [Parameter(Position=8,Mandatory=$false)]
+        [Switch] $Force
+
+        ## Dynamic Param Position = 9
     )
     dynamicparam
     {
@@ -422,7 +430,7 @@ function Update-KeePassEntry
             ###ParameterSet Host
             $ParameterAttribute = New-Object -TypeName System.Management.Automation.ParameterAttribute
             $ParameterAttribute.Mandatory = $true
-            $ParameterAttribute.Position = 4
+            $ParameterAttribute.Position = 9
             # $ParameterAttribute.ValueFromPipelineByPropertyName = $true
             # $ParameterAttribute.ParameterSetName = 'Profile'
             $AttributeCollection.Add($ParameterAttribute)
@@ -492,8 +500,12 @@ function Update-KeePassEntry
     process
     {
         $KPEntry=Get-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassUuid $KeePassEntry.Uuid
-        $KeePassGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassEntryGroupPath
-        Set-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassEntry $KPEntry -Title $Title -UserName $UserName -KeePassPassword $KeePassPassword -Notes $Notes -URL $URL -KeePassGroup $KeePassGroup -PassThru:$PassThru
+
+        if($Force -or $PSCmdlet.ShouldProcess("Title: $($KPEntry.Strings.ReadSafe('Title')), `n`tUserName: $($KPEntry.Strings.ReadSafe('UserName')), `n`tGroupPath: $($KPEntry.ParentGroup.GetFullPath('/', $true))."))
+        {
+            $KeePassGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassEntryGroupPath
+            Set-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassEntry $KPEntry -Title $Title -UserName $UserName -KeePassPassword $KeePassPassword -Notes $Notes -URL $URL -KeePassGroup $KeePassGroup -PassThru:$PassThru -Confirm:$false -Force
+        }
     }
     end
     {
@@ -523,6 +535,7 @@ function Remove-KeePassEntry
 
             This example removed the specified kee pass entry.
     #>
+    [CmdletBinding(SupportsShouldProcess=$true,ConfirmImpact='High')]
     param
     (
         [Parameter(Position=0,Mandatory=$true,ValueFromPipeline)]
@@ -535,7 +548,7 @@ function Remove-KeePassEntry
     )
     dynamicparam
     {
-        ##Create and Define Validate Set Attribute
+        ## Create and Define Validate Set Attribute
         $DatabaseProfileList =  (Get-KeePassDatabaseConfiguration).Name
         if($DatabaseProfileList)
         {
@@ -612,7 +625,21 @@ function Remove-KeePassEntry
     process
     {
         $KPEntry=Get-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassUuid $KeePassEntry.Uuid
-        Remove-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassEntry $KPEntry -NoRecycle:$NoRecycle -Force:$Force
+        $EntryDisplayName = "$($KPEntry.ParentGroup.GetFullPath('/',$true))/$($KPEntry.Strings.ReadSafe('Title'))"
+        if($Force -or $PSCmdlet.ShouldProcess($EntryDisplayName))
+        {
+            if($NoRecycle)
+            {
+                if($Force -or $PSCmdlet.ShouldContinue("Recycle Bin Does Not Exist or the -NoRecycle Option Has been Specified.", "Do you want to continue to Permanently Delete this Entry: ($($EntryDisplayName))?"))
+                {
+                    Remove-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassEntry $KPEntry -NoRecycle -Confirm:$false -Force
+                }
+            }
+            else
+            {
+                Remove-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassEntry $KPEntry -Confirm:$false -Force
+            }
+        }
     }
     end
     {
@@ -929,6 +956,8 @@ function Update-KeePassGroup
             Specify the GroupName to change the specified group to.
         .PARAMETER PassThru
             Specify to return the updated keepass group object.
+        .PARAMETER Force
+            Specify to Update the specified group without confirmation.
         .EXAMPLE
             PS> Update-KeePassGroup -DatabaseProfileName TEST -KeePassGroup $KeePassGroupObject -KeePassParentGroupPath 'General/TestAccounts'
 
@@ -947,6 +976,7 @@ function Update-KeePassGroup
         .OUTPUTS
             $null
     #>
+    [CmdletBinding(SupportsShouldProcess=$true,ConfirmImpact='High')]
     param
     (
         [Parameter(Position=0,Mandatory=$true,ValueFromPipeline)]
@@ -962,7 +992,10 @@ function Update-KeePassGroup
         [string] $GroupName,
 
         [Parameter(Position=3,Mandatory=$false)]
-        [Switch] $PassThru
+        [Switch] $PassThru,
+
+        [Parameter(Position=4,Mandatory=$false)]
+        [Switch] $Force
     )
     dynamicparam
     {
@@ -1055,22 +1088,26 @@ function Update-KeePassGroup
         {
             $KeePassGroupFullPath = "$($KeePassGroup.FullPath)/$($KeePassGroup.Name)"
         }
-        $KeePassGroupObject = Get-KPGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroupFullPath | Where-Object { $_.CreationTime -eq $KeePassGroup.CreationTime}
+        ## Confirm 
+        if($Force -or $PSCmdlet.ShouldProcess($($KeePassGroupFullPath)))
+        {
+            $KeePassGroupObject = Get-KPGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroupFullPath | Where-Object { $_.CreationTime -eq $KeePassGroup.CreationTime}
         
-        if($KeePassGroupObject.Count -gt 1)
-        {
-            Write-Warning -Message "[PROCESS] Found more than one group with the same path, name and creation time. Stoping Update."
-            Write-Warning -Message "[PROCESS] Found: $($KeePassGroupObject.Count) number of matching groups."
-            Break
-        }
+            if($KeePassGroupObject.Count -gt 1)
+            {
+                Write-Warning -Message "[PROCESS] Found more than one group with the same path, name and creation time. Stoping Update."
+                Write-Warning -Message "[PROCESS] Found: $($KeePassGroupObject.Count) number of matching groups."
+                Break
+            }
 
-        if($KeePassParentGroup)
-        {
-            Set-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroupObject -KeePassParentGroup $KeePassParentGroup -GroupName $GroupName -PassThru:$PassThru
-        }
-        else
-        {
-            Set-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroupObject -GroupName $GroupName -PassThru:$PassThru
+            if($KeePassParentGroup)
+            {
+                Set-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroupObject -KeePassParentGroup $KeePassParentGroup -GroupName $GroupName -PassThru:$PassThru -Confirm:$false -Force
+            }
+            else
+            {
+                Set-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroupObject -GroupName $GroupName -PassThru:$PassThru -Confirm:$false -Force
+            }
         }
     }
     end
@@ -1099,8 +1136,9 @@ function Remove-KeePassGroup
         .EXAMPLE
             PS> Remove-KeePassGroup -KeePassGroup $KeePassGroupObject
 
-            This example removed the specified kee pass Group.
+            This example removed the specified keepass Group.
     #>
+    [CmdletBinding(SupportsShouldProcess=$true,ConfirmImpact='High')]
     param
     (
         [Parameter(Position=0,Mandatory=$true,ValueFromPipeline)]
@@ -1113,7 +1151,7 @@ function Remove-KeePassGroup
     )
     dynamicparam
     {
-        ##Create and Define Validate Set Attribute
+        ## Create and Define Validate Set Attribute
         $DatabaseProfileList =  (Get-KeePassDatabaseConfiguration).Name
         if($DatabaseProfileList)
         {
@@ -1206,8 +1244,23 @@ function Remove-KeePassGroup
             Break
         }
 
-        $KPGroup=Get-KpGroup -KeePassConnection $KeePassConnectionObject 
-        Remove-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroupObject -NoRecycle:$NoRecycle -Force:$Force
+        ## Not sure why this is here...
+        # $KPGroup=Get-KpGroup -KeePassConnection $KeePassConnectionObject 
+
+        if($Force -or $PSCmdlet.ShouldProcess($KeePassGroupFullPath))
+        {
+            if(-not $NoRecycle)
+            {
+               Remove-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroupObject -Confirm:$false -Force
+            }
+            else
+            {
+                if($Force -or $PSCmdlet.ShouldContinue("Recycle Bin Does Not Exist or the -NoRecycle Option Has been Specified.", "Remove this Group permanetly: $($KeePassGroupFullPath)?"))
+                {
+                    Remove-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroupObject -NoRecycle:$NoRecycle -Confirm:$false -Force
+                }
+            }
+        }
     }
     end
     {
@@ -2631,8 +2684,6 @@ function Add-KPEntry
     }
 }
 
-##DEV
-## Add SupportsShouldProcess
 function Set-KPEntry
 {
     <#
@@ -2696,7 +2747,11 @@ function Set-KPEntry
         [KeePassLib.PwGroup] $KeePassGroup,
 
         [Parameter(Position=8,Mandatory=$false)]
-        [Switch] $PassThru
+        [Switch] $PassThru,
+
+        [Parameter(Position=9,Mandatory=$false)]
+        [Switch] $Force
+
     )
     begin
     {
@@ -2709,7 +2764,8 @@ function Set-KPEntry
     }
     process
     {
-        if($PSCmdlet.ShouldProcess("Title: $($KeePassEntry.Strings.ReadSafe('Title')). UserName: $($KeePassEntry.Strings.ReadSafe('UserName')). Group Path $($KeePassEntry.ParentGroup.GetFullPath('/', $true))"))
+        ## Confirm or Force
+        if($Force -or $PSCmdlet.ShouldProcess("Title: $($KeePassEntry.Strings.ReadSafe('Title')). `n`tUserName: $($KeePassEntry.Strings.ReadSafe('UserName')). `n`tGroup Path $($KeePassEntry.ParentGroup.GetFullPath('/', $true))"))
         {
             if($Title)
             {
@@ -2764,8 +2820,6 @@ function Set-KPEntry
     }
 }
 
-##DEV
-## Move ShouldProcess to process block.
 function Remove-KPEntry
 {
     <#
@@ -2843,47 +2897,46 @@ function Remove-KPEntry
 
         $RecycleBin = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath "$($KeePassConnection.RootGroup.Name)/Recycle Bin"
         $EntryDisplayName = "$($KeePassEntry.ParentGroup.GetFullPath('/', $true))/$($KeePassEntry.Strings.ReadSafe('Title'))"
-        
-        if ( $Force -or $PSCmdlet.ShouldProcess($($EntryDisplayName)))
-        {
-            if ( -not $Force -and (-not $RecycleBin -or $NoRecycle) )
-            {
-                if ( -not $PSCmdlet.ShouldContinue("Recycle Bin Does Not Exist or the -NoRecycle Option Has been Specified.", "Do you want to continue to Permanently Delete this Entry: ($($EntryDisplayName))?"))
-                {
-                    break
-                }
-            }
-        }
-        else
-        {
-            break
-        }
     }
     process
-    {        
-        if($RecycleBin -and -not $NoRecycle)
+    {
+        if($Force -or $PSCmdlet.ShouldProcess($($EntryDisplayName)))
         {
-            #Make Copy of the group to be recycled.
-            $DeletedKeePassEntry = $KeePassEntry.CloneDeep()
-            #Generate a new Uuid and update the copy fo the group
-            $DeletedKeePassEntry.Uuid = (New-Object KeePassLib.PwUuid($true))
-            #Add the copy to the recycle bin, with take ownership set to true
-            $RecycleBin.AddGroup($DeletedKeePassEntry, $true)
-            Write-Verbose -Message "[PROCESS] Group has been Recycled."    
-        }
-        
-        #Deletes the specified group
-        $IsRemoved = $KeePassEntry.ParentGroup.Entries.Remove($KeePassEntry)
-        
-        if(-not $IsRemoved)
-        {
-            Write-Warning -Message "[PROCESS] Unknown Error has occured. Failed to Remove Entry ($($EntryDisplayName))"
-            Throw "Failed to Remove Entry $($EntryDisplayName)"
-        }
-        else
-        {
-            Write-Verbose -Message "[PROCESS] Entry ($($EntryDisplayName)) has been Removed."
-            $KeePassConnection.Save($null)
+            if($RecycleBin -and -not $NoRecycle)
+            {
+                ## Make Copy of the group to be recycled.
+                $DeletedKeePassEntry = $KeePassEntry.CloneDeep()
+                ## Generate a new Uuid and update the copy fo the group
+                $DeletedKeePassEntry.Uuid = (New-Object KeePassLib.PwUuid($true))
+                ## Add the copy to the recycle bin, with take ownership set to true
+                $RecycleBin.AddEntry($DeletedKeePassEntry, $true)
+                ## Save for safety
+                $KeePassConnection.Save($null)
+                ## Delete Original Entry                
+                $KeePassEntry.ParentGroup.Entries.Remove($KeePassEntry) > $null
+                ## Save again
+                $KeePassConnection.Save($null)
+                Write-Verbose -Message "[PROCESS] Group has been Recycled." 
+            }
+            else
+            {
+                if($Force -or $PSCmdlet.ShouldContinue("Recycle Bin Does Not Exist or the -NoRecycle Option Has been Specified.", "Do you want to continue to Permanently Delete this Entry: ($($EntryDisplayName))?"))
+                {
+                    ## Deletes the specified group
+                    $IsRemoved = $KeePassEntry.ParentGroup.Entries.Remove($KeePassEntry)
+                    
+                    if(-not $IsRemoved)
+                    {
+                        Write-Warning -Message "[PROCESS] Unknown Error has occured. Failed to Remove Entry ($($EntryDisplayName))"
+                        Throw "Failed to Remove Entry $($EntryDisplayName)"
+                    }
+                    else
+                    {
+                        Write-Verbose -Message "[PROCESS] Entry ($($EntryDisplayName)) has been Removed."
+                        $KeePassConnection.Save($null)
+                    }
+                }
+            }
         }
     }
 }
@@ -3116,8 +3169,6 @@ function Add-KPGroup
     }
 }
 
-##DEV
-## Add SupportsShouldProcess
 function Set-KPGroup
 {
     <#
@@ -3142,7 +3193,7 @@ function Set-KPGroup
         .NOTES
             This Cmdlet Does AutoSave on exit.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess=$true,ConfirmImpact='High')]
     param
     (
         [Parameter(
@@ -3178,7 +3229,13 @@ function Set-KPGroup
             Position = 4,
             Mandatory = $false
         )]
-        [Switch] $PassThru
+        [Switch] $PassThru,
+
+        [Parameter(
+            Position = 5,
+            Mandatory = $false
+        )]
+        [Switch] $Force
     )
     begin
     {
@@ -3191,33 +3248,34 @@ function Set-KPGroup
     }
     process
     {
-        if($GroupName)
+        if($Force -or $PSCmdlet.ShouldProcess($($KeePassGroup.GetFullPath('/',$true))))
         {
-            $KeePassGroup.Name = $GroupName
-        }
-        if($KeePassParentGroup)
-        {
-            if($KeePassGroup.ParentGroup.Uuid.CompareTo($KeePassParentGroup.Uuid) -ne 0 )
+            if($GroupName)
             {
-                $UpdatedKeePassGroup = $KeePassGroup.CloneDeep()
-                $UpdatedKeePassGroup.Uuid = New-Object KeePassLib.PwUuid($true)
-                $KeePassParentGroup.AddGroup($UpdatedKeePassGroup, $true, $true)
-                $KeePassConnection.Save($null)
-                $KeePassGroup.ParentGroup.Groups.Remove($KeePassGroup) > $null
-                # $KeePassConnection.Save($null)
+                $KeePassGroup.Name = $GroupName
             }
-        }
-        $KeePassConnection.Save($null)
+            if($KeePassParentGroup)
+            {
+                if($KeePassGroup.ParentGroup.Uuid.CompareTo($KeePassParentGroup.Uuid) -ne 0 )
+                {
+                    $UpdatedKeePassGroup = $KeePassGroup.CloneDeep()
+                    $UpdatedKeePassGroup.Uuid = New-Object KeePassLib.PwUuid($true)
+                    $KeePassParentGroup.AddGroup($UpdatedKeePassGroup, $true, $true)
+                    $KeePassConnection.Save($null)
+                    $KeePassGroup.ParentGroup.Groups.Remove($KeePassGroup) > $null
+                    # $KeePassConnection.Save($null)
+                }
+            }
+            $KeePassConnection.Save($null)
 
-        if($PassThru)
-        {
-            $UpdatedKeePassGroup
+            if($PassThru)
+            {
+                $UpdatedKeePassGroup
+            }
         }
     }
 }
 
-##DEV
-## Move ShouldProcess to process block.
 function Remove-KPGroup
 {
     <#
@@ -3248,7 +3306,7 @@ function Remove-KPGroup
     #>
     [CmdletBinding(
         SupportsShouldProcess = $true,
-        ConfirmImpact = "High"
+        ConfirmImpact = 'High'
      )]
     param
     (
@@ -3275,9 +3333,9 @@ function Remove-KPGroup
             Position = 2
         )]
         [Switch] $NoRecycle,
-        
+
         [Parameter(
-            Mandatory = $false,
+            Mandatory =$false,
             Position = 3
         )]
         [Switch] $Force
@@ -3292,50 +3350,41 @@ function Remove-KPGroup
         }
 
         $RecycleBin = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath "$($KeePassConnection.RootGroup.Name)/Recycle Bin"
-        
-        if ( $Force -or $PSCmdlet.ShouldProcess($($KeePassGroup.GetFullPath('/', $true))))
-        {
-            if ( -not $Force -and (-not $RecycleBin -or $NoRecycle) )
-            {
-                if ( -not $PSCmdlet.ShouldContinue("Recycle Bin Does Not Exist or the -NoRecycle Option Has been Specified.", "Do you want to continue to Permanently Delete this Group: ($($KeePassGroup.GetFullPath('/', $true)))?"))
-                {
-                    break
-                }
-            }
-        }
-        else
-        {
-            break
-        }
     }
     process
     {
-        if($RecycleBin -and -not $NoRecycle)
+        if($Force -or $PSCmdlet.ShouldProcess($($KeePassGroup.GetFullPath('/', $true))))
         {
-            #Make Copy of the group to be recycled.
-            $DeletedKeePassGroup = $KeePassGroup.CloneDeep()
-            # #Generate a new Uuid and update the copy fo the group
-            $DeletedKeePassGroup.Uuid = (New-Object KeePassLib.PwUuid($true))
-            #Add the copy to the recycle bin, with take ownership set to true
-            $RecycleBin.AddGroup($DeletedKeePassGroup, $true, $true)
-            $KeePassConnection.Save($null)
-            $KeePassGroup.ParentGroup.Groups.Remove($KeePassGroup) > $null
-            $KeePassConnection.Save($null)
-            Write-Verbose -Message "[PROCESS] Group has been Recycled."    
-        }
-        else
-        {
-            #Deletes the specified group
-            $IsRemoved = $KeePassGroup.ParentGroup.Groups.Remove($KeePassGroup)
-            if(-not $IsRemoved)
+            if($RecycleBin -and -not $NoRecycle)
             {
-                Write-Warning -Message "[PROCESS] Unknown Error has occured. Failed to Remove Group ($($KeePassGroup.GetFullPath('/', $true)))"
-                Throw "Failed to Remove Group $($KeePassGroup.GetFullPath('/', $true))"
+                ## Make Copy of the group to be recycled.
+                $DeletedKeePassGroup = $KeePassGroup.CloneDeep()
+                ## Generate a new Uuid and update the copy fo the group
+                $DeletedKeePassGroup.Uuid = (New-Object KeePassLib.PwUuid($true))
+                ## Add the copy to the recycle bin, with take ownership set to true
+                $RecycleBin.AddGroup($DeletedKeePassGroup, $true, $true)
+                $KeePassConnection.Save($null)
+                $KeePassGroup.ParentGroup.Groups.Remove($KeePassGroup) > $null
+                $KeePassConnection.Save($null)
+                Write-Verbose -Message "[PROCESS] Group has been Recycled."    
             }
             else
             {
-                Write-Verbose -Message "[PROCESS] Group ($($KeePassGroup.GetFullPath('/', $true))) has been Removed."
-                $KeePassConnection.Save($null)
+                if($Force -or $PSCmdlet.ShouldContinue("Recycle Bin Does Not Exist or the -NoRecycle Option Has been Specified.", "Do you want to continue to Permanently Delete this Group: ($($KeePassGroup.GetFullPath('/', $true)))?"))
+                {
+                    ## Deletes the specified group
+                    $IsRemoved = $KeePassGroup.ParentGroup.Groups.Remove($KeePassGroup)
+                    if(-not $IsRemoved)
+                    {
+                        Write-Warning -Message "[PROCESS] Unknown Error has occured. Failed to Remove Group ($($KeePassGroup.GetFullPath('/', $true)))"
+                        Throw "Failed to Remove Group $($KeePassGroup.GetFullPath('/', $true))"
+                    }
+                    else
+                    {
+                        Write-Verbose -Message "[PROCESS] Group ($($KeePassGroup.GetFullPath('/', $true))) has been Removed."
+                        $KeePassConnection.Save($null)
+                    }
+                }
             }
         }
     }
