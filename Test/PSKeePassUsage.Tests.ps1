@@ -77,36 +77,71 @@ InModuleScope "PSKeePass" {
             }
         }
     }
-    <#
+    
     Describe "Get-KPConnection - UnitTest" -Tag UnitTest {
         
         Context "Example 1: Open with PSKeePass Credential Object - KeyFile" {
             
-            It "Example 1: Get KeePass Database Connection with KeyFile - Valid" {
-                $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.key"
+            It "Example 1.1: Get KeePass Database Connection with KeyFile - Valid" {
+                $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\AuthenticationDatabases\KeyFile.kdbx" -KeyFile "$PSScriptRoot\Includes\AuthenticationDatabases\KeyFile.key"
                 $KeePassConnection = Get-KPConnection -KeePassCredential $KeePassCredential
                 $KeePassConnection | Should BeOfType 'KeePassLib.PwDatabase'
                 $KeePassConnection.IsOpen | Should Be $true
+                $KeePassConnection.RootGroup.Name | Should Be 'KeyFile'
                 $KeePassConnection.Close() | Should Be $null
+                $KeePassConnection.IsOpen | Should Be $false
             }
-            
-            #Add Test for Password only
-            #Add Test for KeyFile and Password.
         }
+
+        Context "Example 2: Open with PSKeePass Credential Object - MasterKey" {
+            
+            It "Example 2.1: Get KeePass Database Connection with MasterKey - Valid" {
+                $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\AuthenticationDatabases\MasterKey.kdbx" -MasterKey $(ConvertTo-SecureString -String "ATestPassWord" -AsPlainText -Force)
+                $KeePassConnection = Get-KPConnection -KeePassCredential $KeePassCredential
+                $KeePassConnection | Should BeOfType 'KeePassLib.PwDatabase'
+                $KeePassConnection.IsOpen | Should Be $true
+                $KeePassConnection.RootGroup.Name | Should Be 'MasterKey'
+                $KeePassConnection.Close() | Should Be $null
+                $KeePassConnection.IsOpen | Should Be $false
+            }
+        }
+
+        Context "Example 3: Open with PSKeePass Credential Object - MasterKey and KeyFile" {
+            
+            It "Example 3.1: Get KeePass Database Connection with KeyAndMaster - Valid" {
+                $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\AuthenticationDatabases\KeyAndMaster.kdbx" -KeyFile "$PSScriptRoot\Includes\AuthenticationDatabases\KeyAndMaster.key" -MasterKey $(ConvertTo-SecureString -String "ATestPassWord" -AsPlainText -Force)
+                $KeePassConnection = Get-KPConnection -KeePassCredential $KeePassCredential
+                $KeePassConnection | Should BeOfType 'KeePassLib.PwDatabase'
+                $KeePassConnection.IsOpen | Should Be $true
+                $KeePassConnection.RootGroup.Name | Should Be 'KeyAndMaster'
+                $KeePassConnection.Close() | Should Be $null
+                $KeePassConnection.IsOpen | Should Be $false
+            }
+
+            It "Example 3.2: Get KeePass Database Connection with KeyAndMaster - Invalid Key File" {
+                $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\AuthenticationDatabases\KeyAndMaster.kdbx" -KeyFile "$PSScriptRoot\Includes\AuthenticationDatabases\KeyFile.key" -MasterKey $(ConvertTo-SecureString -String "ATestPassWord" -AsPlainText -Force)
+                { Get-KPConnection -KeePassCredential $KeePassCredential } | Should Throw
+            }
+        }
+
+        ## Holding off on Network Account Testing until I can script the creation of a database.
     }
-    
+
     Describe "Remove-KPConnection - UnitTest" -Tag UnitTest {
         
         Context "Example 1: Close an Open PSKeePass Database Connection" {
             
-            It "Example: Closes an KeePass Database Connection" {
-                $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.key"
+            It "Example 1.1: Closes a KeePass Database Connection" {
+                $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\AuthenticationDatabases\KeyFile.kdbx" -KeyFile "$PSScriptRoot\Includes\AuthenticationDatabases\KeyFile.key"
                 $KeePassConnection = Get-KPConnection -KeePassCredential $KeePassCredential
+                $KeePassConnection.IsOpen | Should Be $true
                 Remove-KPConnection -KeePassConnection $KeePassConnection | Should Be $null
+                $KeePassConnection.IsOpen | Should Be $false
             }
         }
     }
     
+    <#
     Describe "Get-KPGroup - UnitTest" -Tag UnitTest {
         $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.key"
         $KeePassConnection = Get-KPConnection -KeePassCredential $KeePassCredential
