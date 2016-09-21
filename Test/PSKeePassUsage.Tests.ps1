@@ -2,7 +2,7 @@ Get-Module PSKeePass | Remove-Module
 Import-Module "$PSScriptRoot\..\PSKeePass.psm1" -ErrorAction Stop
 
 InModuleScope "PSKeePass" {
-    
+
     Describe "Get-KPCredential - UnitTest" -Tag UnitTest {
         
         Context "Example 1: Mock with Key File and Master Key" {
@@ -77,7 +77,7 @@ InModuleScope "PSKeePass" {
             }
         }
     }
-    
+
     Describe "Get-KPConnection - UnitTest" -Tag UnitTest {
         
         Context "Example 1: Open with PSKeePass Credential Object - KeyFile" {
@@ -140,7 +140,30 @@ InModuleScope "PSKeePass" {
             }
         }
     }
-    
+
+    Describe "New-KPConfigurationFile - UnitTest" -Tag UnitTest {
+
+        Context "Example 1: Create a new KeePass Database Configuration XML File" {
+
+            It "Example 1.1: Creates a New Config File - Valid" {
+                if((Test-Path -Path "$($PSScriptRoot)\..\KeePassConfiguration.xml")){
+                    Remove-Item -Path "$($PSScriptRoot)\..\KeePassConfiguration.xml" -Force
+                }
+                New-KPConfigurationFile | Should Be $null
+                Test-Path -Path "$($PSScriptRoot)\..\KeePassConfiguration.xml"
+            }
+
+            It "Example 1.2: Creates a New Config File - Invalid" {
+                { New-KPConfigurationFile } | Should Throw "A KeePass Configuration File already exists."
+            }
+
+            It "Example 1.3: Creates a New Config File with OverWrite - Valid" {
+                New-KPConfigurationFile -Force | Should Be $null
+                Test-Path -Path "$($PSScriptRoot)\..\KeePassConfiguration.xml"
+            }
+        }
+    }
+
     <#
     Describe "Get-KPGroup - UnitTest" -Tag UnitTest {
         $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.key"
