@@ -3,6 +3,8 @@ Import-Module "$PSScriptRoot\..\PSKeePass.psm1" -ErrorAction Stop
 
 InModuleScope "PSKeePass" {
 
+    $WarningPreference = 'SilentlyContinue'
+
     Describe "Get-KPCredential - UnitTest" -Tag UnitTest {
         
         Context "Example 1: Mock with Key File and Master Key" {
@@ -160,6 +162,109 @@ InModuleScope "PSKeePass" {
             It "Example 1.3: Creates a New Config File with OverWrite - Valid" {
                 New-KPConfigurationFile -Force | Should Be $null
                 Test-Path -Path "$($PSScriptRoot)\..\KeePassConfiguration.xml"
+            }
+        }
+    }
+
+    Describe "New-KeePassDatabaseConfiguration - UnitTest" -Tag UnitTest {
+
+        Context "Example 1: Create a new KeePass Database Configuration Profile - KeyFile" {
+
+            New-KPConfigurationFile -Force
+
+            It "Example 1.1: Database Configuration Profile - KeyFile - Valid" {
+                New-KeePassDatabaseConfiguration -DatabaseProfileName 'KeyFileTest' -DatabasePath "$PSScriptRoot\Includes\AuthenticationDatabases\KeyFile.kdbx" -KeyPath "$PSScriptRoot\Includes\AuthenticationDatabases\KeyFile.key" | Should Be $null
+            }
+
+            It "Example 1.2: Database Configuration Profile - KeyFile - Invalid Exists" {
+                {New-KeePassDatabaseConfiguration -DatabaseProfileName 'KeyFileTest' -DatabasePath "$PSScriptRoot\Includes\AuthenticationDatabases\KeyFile.kdbx" -KeyPath "$PSScriptRoot\Includes\AuthenticationDatabases\KeyFile.key" } | Should Throw
+            }
+
+            It "Example 1.3: Database Configuration Profile - KeyFile - Valid with PassThru" {
+                $DatabaseConfiguration = New-KeePassDatabaseConfiguration -DatabaseProfileName 'KeyFileTestPassThru' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\KeyFile.kdbx" -KeyPath "$($PSScriptRoot)\Includes\AuthenticationDatabases\KeyFile.key" -PassThru
+
+                $DatabaseConfiguration.Name | Should Be 'KeyFileTestPassThru'
+                $DatabaseConfiguration.DatabasePath | Should Be "$($PSScriptRoot)\Includes\AuthenticationDatabases\KeyFile.kdbx"
+                $DatabaseConfiguration.KeyPath | Should Be "$($PSScriptRoot)\Includes\AuthenticationDatabases\KeyFile.key"
+                $DatabaseConfiguration.UseNetworkAccount | Should Be 'False'
+                $DatabaseConfiguration.UseMasterKey | Should Be 'False'
+                $DatabaseConfiguration.AuthenticationType | Should Be 'Key'
+            }
+        }
+
+        Context "Example 2: Create a new KeePass Database Configuration Profile - MasterKey" {
+
+            New-KPConfigurationFile -Force
+
+            It "Example 2.1: Database Configuration Profile - MasterKey - Valid" {
+                New-KeePassDatabaseConfiguration -DatabaseProfileName 'MasterKeyTest' -DatabasePath "$PSScriptRoot\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseMasterKey | Should Be $null
+            }
+
+            It "Example 2.2: Database Configuration Profile - MasterKey - Invalid Exists" {
+                {New-KeePassDatabaseConfiguration -DatabaseProfileName 'MasterKeyTest' -DatabasePath "$PSScriptRoot\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseMasterKey } | Should Throw
+            }
+
+            It "Example 2.3: Database Configuration Profile - MasterKey - Valid with PassThru" {
+                $DatabaseConfiguration = New-KeePassDatabaseConfiguration -DatabaseProfileName 'MasterKeyTestPassThru' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseMasterKey -PassThru
+
+                $DatabaseConfiguration.Name | Should Be 'MasterKeyTestPassThru'
+                $DatabaseConfiguration.DatabasePath | Should Be "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx"
+                $DatabaseConfiguration.KeyPath | Should Be ''
+                $DatabaseConfiguration.UseNetworkAccount | Should Be 'False'
+                $DatabaseConfiguration.UseMasterKey | Should Be 'True'
+                $DatabaseConfiguration.AuthenticationType | Should Be 'Master'
+            }
+        }
+
+        Context "Example 3: Create a new KeePass Database Configuration Profile - KeyFile And MasterKey" {
+
+            New-KPConfigurationFile -Force
+
+            It "Example 3.1: Database Configuration Profile - KeyFile And MasterKey - Valid" {
+                New-KeePassDatabaseConfiguration -DatabaseProfileName 'KeyFileAndMasterKeyTest' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\KeyAndMaster.kdbx" -KeyPath "$($PSScriptRoot)\Includes\AuthenticationDatabases\KeyAndMaster.key" -UseMasterKey | Should Be $null
+            }
+
+            It "Example 3.2: Database Configuration Profile - KeyFile And MasterKey - Invalid Exists" {
+                {New-KeePassDatabaseConfiguration -DatabaseProfileName 'KeyFileAndMasterKeyTest' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\KeyAndMaster.kdbx" -KeyPath "$($PSScriptRoot)\Includes\AuthenticationDatabases\KeyAndMaster.key" -UseMasterKey } | Should Throw
+            }
+
+            It "Example 3.3: Database Configuration Profile - KeyFile And MasterKey - Valid with PassThru" {
+                $DatabaseConfiguration = New-KeePassDatabaseConfiguration -DatabaseProfileName 'KeyFileAndMasterKeyTestPassThru' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\KeyAndMaster.kdbx" -KeyPath "$($PSScriptRoot)\Includes\AuthenticationDatabases\KeyAndMaster.key" -UseMasterKey -PassThru
+
+                $DatabaseConfiguration.Name | Should Be 'KeyFileAndMasterKeyTestPassThru'
+                $DatabaseConfiguration.DatabasePath | Should Be "$($PSScriptRoot)\Includes\AuthenticationDatabases\KeyAndMaster.kdbx"
+                $DatabaseConfiguration.KeyPath | Should Be "$($PSScriptRoot)\Includes\AuthenticationDatabases\KeyAndMaster.key"
+                $DatabaseConfiguration.UseNetworkAccount | Should Be 'False'
+                $DatabaseConfiguration.UseMasterKey | Should Be 'True'
+                $DatabaseConfiguration.AuthenticationType | Should Be 'KeyAndMaster'
+            }
+
+            It "Example 3.4: Database Configuration Profile - KeyFile And MasterKey with NetworkAccount - Invalid Authentication Combo" {
+                {New-KeePassDatabaseConfiguration -DatabaseProfileName 'KeyFileAndMasterKeyAndNetworkAuthenticationTest' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\KeyAndMaster.kdbx" -KeyPath "$($PSScriptRoot)\Includes\AuthenticationDatabases\KeyAndMaster.key" -UseMasterKey -UserNetworkAccount} | Should Throw
+            }
+        }
+
+        Context "Example 4: Create a new KeePass Database Configuration Profile - Network" {
+
+            New-KPConfigurationFile -Force
+
+            It "Example 4.1: Database Configuration Profile - Network - Valid" {
+                New-KeePassDatabaseConfiguration -DatabaseProfileName 'NetworkTest' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount | Should Be $null
+            }
+
+            It "Example 4.2: Database Configuration Profile - Network - Invalid Exists" {
+                {New-KeePassDatabaseConfiguration -DatabaseProfileName 'NetworkTest' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount } | Should Throw
+            }
+
+            It "Example 4.3: Database Configuration Profile - Network - Valid with PassThru" {
+                $DatabaseConfiguration = New-KeePassDatabaseConfiguration -DatabaseProfileName 'NetworkTestPassThru' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount -PassThru
+
+                $DatabaseConfiguration.Name | Should Be 'NetworkTestPassThru'
+                $DatabaseConfiguration.DatabasePath | Should Be "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx"
+                $DatabaseConfiguration.KeyPath | Should Be ''
+                $DatabaseConfiguration.UseNetworkAccount | Should Be 'True'
+                $DatabaseConfiguration.UseMasterKey | Should Be 'False'
+                $DatabaseConfiguration.AuthenticationType | Should Be 'Network'
             }
         }
     }
