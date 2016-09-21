@@ -1,6 +1,4 @@
-﻿##DEV
-## Add support for PassThru option
-function New-KeePassEntry
+﻿function New-KeePassEntry
 {
     <#
         .SYNOPSIS
@@ -27,6 +25,8 @@ function New-KeePassEntry
             Specify the Notes of the new KeePass Database Entry.
         .PARAMETER URL
             Specify the URL of the new KeePass Database Entry.
+        .PARAMETER PassThru
+            Specify to return the newly created keepass database entry.
         .EXAMPLE
             PS> New-KeePassEntry -DatabaseProfileName TEST -KeePassEntryGroupPath 'General/TestAccounts' -Title 'Test Title' -UserName 'Domain\svcAccount' -KeePassPassword $(New-KeePassPassword -upper -lower -digits -length 20)
 
@@ -69,7 +69,10 @@ function New-KeePassEntry
 
         [Parameter(Position=6,Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
-        [string] $URL
+        [string] $URL,
+
+        [Parameter(Position=7,Mandatory=$false)]
+        [Switch] $PassThru
     )
     dynamicparam
     {
@@ -156,10 +159,17 @@ function New-KeePassEntry
     }
     process
     {
-        ## Get the keepass group 
-        $KeePassGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassEntryGroupPath
-        ## Add the KeePass Entry
-        Add-KpEntry -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroup -Title $Title -UserName $UserName -KeePassPassword $KeePassPassword -Notes $Notes -URL $URL
+        try
+        {
+            ## Get the keepass group 
+            $KeePassGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassEntryGroupPath
+            ## Add the KeePass Entry
+            Add-KpEntry -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroup -Title $Title -UserName $UserName -KeePassPassword $KeePassPassword -Notes $Notes -URL $URL -PassThru:$PassThru
+        }
+        catch
+        {
+            Throw $_
+        }
     }
     end
     {
@@ -319,8 +329,6 @@ function Get-KeePassEntry
     }
 }
 
-##DEV
-## Add support for PassThru option
 function Update-KeePassEntry
 {
     <#
@@ -350,6 +358,8 @@ function Update-KeePassEntry
             Specify the Notes of the new KeePass Database Entry.
         .PARAMETER URL
             Specify the URL of the new KeePass Database Entry.
+        .PARAMETER PassThru
+            Specify to return the modified object.
         .EXAMPLE
             PS> New-KeePassEntry -DatabaseProfileName TEST -KeePassEntryGroupPath 'General/TestAccounts' -Title 'Test Title' -UserName 'Domain\svcAccount' -KeePassPassword $(New-KeePassPassword -upper -lower -digits -length 20)
 
@@ -396,7 +406,10 @@ function Update-KeePassEntry
 
         [Parameter(Position=6,Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
-        [string] $URL
+        [string] $URL,
+
+        [Parameter(Position=7,Mandatory=$false)]
+        [Switch] $PassThru
     )
     dynamicparam
     {
@@ -478,10 +491,9 @@ function Update-KeePassEntry
     }
     process
     {
-        
         $KPEntry=Get-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassUuid $KeePassEntry.Uuid
         $KeePassGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassEntryGroupPath
-        Set-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassEntry $KPEntry -Title $Title -UserName $UserName -KeePassPassword $KeePassPassword -Notes $Notes -URL $URL -KeePassGroup $KeePassGroup
+        Set-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassEntry $KPEntry -Title $Title -UserName $UserName -KeePassPassword $KeePassPassword -Notes $Notes -URL $URL -KeePassGroup $KeePassGroup -PassThru:$PassThru
     }
     end
     {
@@ -608,8 +620,6 @@ function Remove-KeePassEntry
     }
 }
 
-##DEV
-## Add support for PassThru option
 function New-KeePassGroup
 {
     <#
@@ -627,6 +637,8 @@ function New-KeePassGroup
                 *You can generated this file by running the New-KeePassDatabaseConfiguration function.
         .PARAMETER KeePassGroupName
             Specify the Name of the new KeePass Group.
+        .PARAMETER PassThru
+            Specify to return the new group object.
         .EXAMPLE
             PS> New-KeePassGroup -DatabaseProfileName TEST -KeePassParentGroupPath 'General/TestAccounts' -KeePassGroupName 'TestGroup'
 
@@ -644,7 +656,10 @@ function New-KeePassGroup
 
         [Parameter(Position = 1, Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [String] $KeePassGroupName
+        [String] $KeePassGroupName,
+
+        [Parameter(Position=2, Mandatory = $false)]
+        [Switch] $PassThru
     )
     dynamicparam
     {
@@ -734,7 +749,7 @@ function New-KeePassGroup
         ## Get the keepass group 
         $KeePassParentGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroupParentPath
         ## Add the KeePass Group
-        Add-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassParentGroup $KeePassParentGroup -GroupName $KeePassGroupName
+        Add-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassParentGroup $KeePassParentGroup -GroupName $KeePassGroupName -PassThru:$PassThru
     }
     end
     {
@@ -893,8 +908,6 @@ function Get-KeePassGroup
     }
 }
 
-##DEV
-## Add support for PassThru option
 function Update-KeePassGroup
 {
     <#
@@ -914,6 +927,8 @@ function Update-KeePassGroup
                 *You can generated this file by running the New-KeePassDatabaseConfiguration function.
         .PARAMETER GroupName
             Specify the GroupName to change the specified group to.
+        .PARAMETER PassThru
+            Specify to return the updated keepass group object.
         .EXAMPLE
             PS> Update-KeePassGroup -DatabaseProfileName TEST -KeePassGroup $KeePassGroupObject -KeePassParentGroupPath 'General/TestAccounts'
 
@@ -944,7 +959,10 @@ function Update-KeePassGroup
 
         [Parameter(Position=2,Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
-        [string] $GroupName
+        [string] $GroupName,
+
+        [Parameter(Position=3,Mandatory=$false)]
+        [Switch] $PassThru
     )
     dynamicparam
     {
@@ -1048,11 +1066,11 @@ function Update-KeePassGroup
 
         if($KeePassParentGroup)
         {
-            Set-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroupObject -KeePassParentGroup $KeePassParentGroup -GroupName $GroupName
+            Set-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroupObject -KeePassParentGroup $KeePassParentGroup -GroupName $GroupName -PassThru:$PassThru
         }
         else
         {
-            Set-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroupObject -GroupName $GroupName
+            Set-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroupObject -GroupName $GroupName -PassThru:$PassThru
         }
     }
     end
@@ -1509,8 +1527,6 @@ function New-KeePassPassword
     }
 }
 
-##DEV
-## Add support for PassThru option
 function New-KeePassDatabaseConfiguration
 {
     <#
@@ -1530,6 +1546,8 @@ function New-KeePassDatabaseConfiguration
             Specify this flag if the database uses NetworkAccount Authentication.
         .PARAMETER UseMasterKey
             Specify this flag if the database uses a Master Key Password for Authentication.
+        .PARAMETER PassThru
+            Specify to return the new database configuration profile object.
         .EXAMPLE
             PS> New-KeePassDatabaseConfiguration -DatabaseProfileName 'Personal' -DatabasePath 'c:\users\username\documents\personal.kdbx' -KeyPath 'c:\users\username\documents\personal.key' -UseNetworkAccount
             
@@ -1572,7 +1590,10 @@ function New-KeePassDatabaseConfiguration
 
         [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Master')]
         [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
-        [Switch] $UseMasterKey
+        [Switch] $UseMasterKey,
+
+        [Parameter(Mandatory=$false)]
+        [Switch] $PassThru
     )
     process
     {
@@ -1625,6 +1646,11 @@ function New-KeePassDatabaseConfiguration
                 $XML.SelectSingleNode('/Settings/DatabaseProfiles').AppendChild($DatabaseProfile) | Out-Null
                 
                 $XML.Save("$PSScriptRoot\KeePassConfiguration.xml")
+
+                if($PassThru)
+                {
+                    Get-KeePassDatabaseConfiguration -DatabaseProfileName $DatabaseProfileName
+                }
             }
             catch [Exception]
             {
@@ -2486,6 +2512,8 @@ function Add-KPEntry
             This is the Notes of the New KeePass Entry.
         .PARAMETER URL
             This is the URL of the New KeePass Entry.
+        .PARAMETER PassThru
+            Returns the New KeePass Entry after creation.
         .NOTES
             This Cmdlet will autosave on exit
     #>
@@ -2501,24 +2529,22 @@ function Add-KPEntry
         [KeePassLib.PwGroup] $KeePassGroup,
 
         [Parameter(Position=2,Mandatory=$false)]
-        # [ValidateNotNullOrEmpty()]
         [string] $Title,
 
         [Parameter(Position=3,Mandatory=$false)]
-        # [ValidateNotNullOrEmpty()]
         [string] $UserName,
 
         [Parameter(Position=4,Mandatory=$false)]
-        # [ValidateNotNullOrEmpty()]
         [securestring] $KeePassPassword,
 
         [Parameter(Position=5,Mandatory=$false)]
-        # [ValidateNotNullOrEmpty()]
         [string] $Notes,
 
         [Parameter(Position=6,Mandatory=$false)]
-        # [ValidateNotNullOrEmpty()]
-        [string] $URL
+        [string] $URL,
+
+        [Parameter(Position=7,Mandatory=$false)]
+        [Switch] $PassThru
     )
     begin
     {
@@ -2597,6 +2623,11 @@ function Add-KPEntry
 
         #save database
         $KeePassConnection.Save($null)
+
+        if($PassThru)
+        {
+            $KeePassEntry
+        }
     }
 }
 
@@ -2629,6 +2660,8 @@ function Set-KPEntry
             This is the Notes to update/set.
         .PARAMETER URL
             This is the URL to update/set.
+        .PARAMETER PassThru
+            Returns the updated KeePass Entry after updating.
         .NOTES
             This Cmdlet will autosave on exit
     #>
@@ -2660,7 +2693,10 @@ function Set-KPEntry
         
         [Parameter(Position=7,Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
-        [KeePassLib.PwGroup] $KeePassGroup
+        [KeePassLib.PwGroup] $KeePassGroup,
+
+        [Parameter(Position=8,Mandatory=$false)]
+        [Switch] $PassThru
     )
     begin
     {
@@ -2719,6 +2755,11 @@ function Set-KPEntry
                 $KeePassEntry.ParentGroup.Entries.Remove($KeePassEntry) > $null
             }
             $KeePassConnection.Save($null)
+
+            if($PassThru)
+            {
+                $NewKeePassEntry
+            }
         }
     }
 }
@@ -2995,6 +3036,8 @@ function Add-KPGroup
             Specify the name of the new group(s).
         .PARAMETER KeePassParentGroup
             Sepcify the KeePassParentGroup(s) for the new Group(s).
+        .PARAMETER PassThru
+            Specify to return the new keepass group object.
         .NOTES
             This Cmdlet Does AutoSave on exit.
     #>
@@ -3022,7 +3065,13 @@ function Add-KPGroup
             Mandatory
         )]
         [ValidateNotNullOrEmpty()]
-        [KeePassLib.PwGroup] $KeePassParentGroup
+        [KeePassLib.PwGroup] $KeePassParentGroup,
+
+        [Parameter(
+            Position = 3,
+            Mandatory = $false
+        )]
+        [Switch] $PassThru
     )
     begin
     {
@@ -3059,6 +3108,11 @@ function Add-KPGroup
         $KeePassGroup.Name = $GroupName
         $KeePassParentGroup.AddGroup($KeePassGroup, $true)
         $KeePassConnection.Save($null)
+
+        if($PassThru)
+        {
+            $KeePassGroup
+        }
     }
 }
 
@@ -3083,6 +3137,8 @@ function Set-KPGroup
             Specify the name of the new group(s).
         .PARAMETER KeePassParentGroup
             Sepcify the KeePassParentGroup(s) for the new Group(s).
+        .PARAMETER PassThru
+            Specify to return the updated group object.
         .NOTES
             This Cmdlet Does AutoSave on exit.
     #>
@@ -3106,17 +3162,23 @@ function Set-KPGroup
         [KeePassLib.PwGroup] $KeePassGroup,
 
         [Parameter(
-            Position = 1,
+            Position = 2,
             Mandatory = $false
         )]
         [string] $GroupName,
 
         [Parameter(
-            Position = 2,
+            Position = 3,
             Mandatory = $false
         )]
         [ValidateNotNullOrEmpty()]
-        [KeePassLib.PwGroup] $KeePassParentGroup
+        [KeePassLib.PwGroup] $KeePassParentGroup,
+
+        [Parameter(
+            Position = 4,
+            Mandatory = $false
+        )]
+        [Switch] $PassThru
     )
     begin
     {
@@ -3146,6 +3208,11 @@ function Set-KPGroup
             }
         }
         $KeePassConnection.Save($null)
+
+        if($PassThru)
+        {
+            $UpdatedKeePassGroup
+        }
     }
 }
 
