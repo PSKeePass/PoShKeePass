@@ -1920,6 +1920,7 @@ function New-KPConfigurationFile
         if ((Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml) -and -not $Force)
         {
             Write-Warning -Message "[PROCESS] A KeePass Configuration File already exists. Please rerun with -force to overwrite the existing configuration."
+            Throw "A KeePass Configuration File already exists."
         }
         else
         {
