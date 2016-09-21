@@ -1619,35 +1619,45 @@ function New-KeePassDatabaseConfiguration
     [CmdletBinding()]
     param
     (
-        [Parameter(
-            Position = 0,
-            Mandatory = $true
-        )]
+        [Parameter(Position = 0, Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [String] $DatabaseProfileName,
 
-        [Parameter(
-            Mandatory = $true,
-            Position = 0
-        )]
+        [Parameter(Position = 1, Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Key')]
+        [Parameter(Position = 1, Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Master')]
+        [Parameter(Position = 1, Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Network')]
+        [Parameter(Position = 1, Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript({Test-Path $_})]
         [String] $DatabasePath,
 
-        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Key')]
-        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
+        [Parameter(Position = 2, Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Key')]
+        [Parameter(Position = 2, Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript({Test-Path $_})]
         [String] $KeyPath,
 
-        [Parameter(Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Key')]
-        [Parameter(Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Master')]
-        [Parameter(Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Network')]
+        [Parameter(Position = 3, Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Key')]
+        [Parameter(Position = 3, Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Master')]
+        [Parameter(Position = 3, Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Network')]
         [Switch] $UseNetworkAccount,
 
-        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Master')]
-        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
+        [Parameter(Position = 4, Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Master')]
+        [Parameter(Position = 4, Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
         [Switch] $UseMasterKey,
 
-        [Parameter(Mandatory=$false)]
+        [Parameter(Position = 5, Mandatory=$false)]
         [Switch] $PassThru
     )
+    begin
+    {
+        if($PSCmdlet.ParameterSetName -eq 'Network' -and -not $UseNetworkAccount)
+        {
+            Write-Warning -Message "[BEGIN] Please Specify a valid Credential Combination."
+            Write-Warning -Message "[BEGIN] You can not have a only a database file with no authentication options."
+            Throw "Please Specify a valid Credential Combination."
+        }
+    }
     process
     {
         if (-not (Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml))
@@ -1663,6 +1673,7 @@ function New-KeePassDatabaseConfiguration
         if($CheckIfProfileExists)
         {
             Write-Warning -Message "[PROCESS] A KeePass Database Configuration Profile Already exists with the specified name: $DatabaseProfileName."
+            Throw "A KeePass Database Configuration Profile Already exists with the specified name: $DatabaseProfileName."
         }
         else
         {
@@ -2216,7 +2227,7 @@ function Get-KPCredential
         [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Key')]
         [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Master')]
         [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
-        [Parameter(Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Network')]
+        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Network')]
         [ValidateNotNullOrEmpty()]
         [ValidateScript({Test-Path $_})]
         [string] $DatabaseFile,
@@ -2237,6 +2248,15 @@ function Get-KPCredential
         [Parameter(Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Network')]
         [switch] $UseNetworkAccount
     )
+    begin
+    {
+        if($PSCmdlet.ParameterSetName -eq 'Network' -and -not $UseNetworkAccount)
+        {
+            Write-Warning -Message "[BEGIN] Please Specify a valid Credential Combination."
+            Write-Warning -Message "[BEGIN] You can not have a only a database file with no authentication options."
+            Throw "Please Specify a valid Credential Combination."
+        }
+    }
     process
     {
         try
