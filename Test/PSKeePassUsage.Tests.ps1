@@ -3,6 +3,8 @@ Import-Module "$PSScriptRoot\..\PSKeePass.psm1" -ErrorAction Stop
 
 InModuleScope "PSKeePass" {
 
+    Import-KPLibrary
+
     $WarningPreference = 'SilentlyContinue'
 
     Describe "Get-KPCredential - UnitTest" -Tag UnitTest {
@@ -466,7 +468,7 @@ InModuleScope "PSKeePass" {
         }
     }
 
-    Describe "Get-KeePassEntry - UnitTest" -Tag UnitTest {
+    Describe "New-KeePassEntry - UnitTest" -Tag UnitTest {
         
         Context "Example 1: Creates a New KeePass Entry." {
 
@@ -566,124 +568,190 @@ InModuleScope "PSKeePass" {
         New-KPConfigurationFile -Force
     }
 
-<#
-    Describe "Get-KPGroup - UnitTest" -Tag UnitTest {
-        $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.key"
-        $KeePassConnection = Get-KPConnection -KeePassCredential $KeePassCredential
+    Describe "Update-KeePassEntry - UnitTest" -Tag UnitTest {
         
-        Context "Test 1: Gets a KeePass Group - FullPath" {
-            
-            It "Test 1a: Gets a KeePass Group Named General - FullPath" {
-                $KeePassGroup = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'General'
-                $KeePassGroup | Should BeOfType 'KeePassLib.PwGroup'
-                $KeePassGroup.Name | Should Be 'General'
-                $KeePassGroup.Notes | Should Be ''
-                $KeePassGroup.ParentGroup.Name | Should be 'PSKeePassTestDatabase'
+        Context "Example 1: Updates a KeePass Entry." {
+
+            New-KPConfigurationFile -Force
+
+            It "Example 1.1: Creates a New KeePass Entry - Invalid - No Profile" {
+                { Update-KeePassEntry -KeePassEntry $( New-Object KeePassLib.PwEntry($true, $true))  -KeePassEntryGroupPath 'database' -Title 'test' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' }| Should Throw 'There are Currently No Database Configuration Profiles.'
             }
+
+            ## Create Profile
+            New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -KeyPath "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.key"
+
+            ## Reset Test DB
+            Remove-Item -Path "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -Force
+            Copy-Item -Path "$($PSScriptRoot)\Includes\Backup\PSKeePassTestDatabase.kdbx" -Destination "$($PSScriptRoot)\Includes\"
+
+            It "Example 1.2: Updates a KeePass Entry - Valid  - Properties" {
+                New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'test1' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' | Should Be $null
+                $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -AsPlainText -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Title -eq 'test1' } 
+                Update-KeePassEntry -KeePassEntry $KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -title 'UpdateTest1' -UserName 'UpdateTestUser' -Notes 'UpdateTestNotes' -URL 'http://UpdateURL.Test.com' -DatabaseProfileName 'SampleProfile' -Force | Should Be $null
+            }
+
+            It "Example 1.3: Updates a KeePass Entry - Valid  - Properties - Via Pipeline" {
+                New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'test2' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' | Should Be $null 
+                Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -AsPlainText -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Title -eq 'test2'} |
+                Update-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -title 'UpdateTest2' -UserName 'UpdateTestUser' -Notes 'UpdateTestNotes' -URL 'http://UpdateURL.Test.com' -DatabaseProfileName 'SampleProfile' -Force | Should Be $null
+            }
+
+            It "Example 1.4: Update a KeePass Entry - Valid - Properties - PassThru" {
+
+                New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'test3' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' | Should Be $null
+                $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -AsPlainText -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Title -eq 'test3' } 
+                $UpdatePassThruResult = Update-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -KeePassEntry $KeePassEntry -title 'UpdateTest3' -UserName 'UpdateTestUser' -Notes 'UpdateTestNotes' -URL 'http://UpdateURL.Test.com' -DatabaseProfileName 'SampleProfile' -PassThru -Force
+
+                $UpdatePassThruResult | Should BeOfType KeePassLib.PwEntry
+                $UpdatePassThruResult.Strings.ReadSafe('Title') | Should Be 'UpdateTest3'
+                $UpdatePassThruResult.Strings.ReadSafe('UserName') | Should Be 'UpdateTestUser'
+                $UpdatePassThruResult.Strings.ReadSafe('Notes') | Should Be 'UpdateTestNotes'
+                $UpdatePassThruResult.Strings.ReadSafe('URL') | Should Be 'http://UpdateURL.Test.com'
+            }
+
+            It "Example 1.5: Update a KeePass Entry - Valid - Group & Properties - PassThru" {
+
+                New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'test4' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' | Should Be $null
+                $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -AsPlainText -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Title -eq 'test4' } 
+                $UpdatePassThruResult = Update-KeePassEntry -KeePassEntry $KeePassEntry -title 'UpdateTest4' -UserName 'UpdateTestUser' -Notes 'UpdateTestNotes' -URL 'http://UpdateURL.Test.com' -KeePassEntryGroupPath 'PSKeePassTestDatabase/General' -DatabaseProfileName 'SampleProfile' -PassThru -Force
+
+                $UpdatePassThruResult | Should BeOfType KeePassLib.PwEntry
+                $UpdatePassThruResult.ParentGroup.Name | Should Be 'General'
+                $UpdatePassThruResult.Strings.ReadSafe('Title') | Should Be 'UpdateTest4'
+                $UpdatePassThruResult.Strings.ReadSafe('UserName') | Should Be 'UpdateTestUser'
+                $UpdatePassThruResult.Strings.ReadSafe('Notes') | Should Be 'UpdateTestNotes'
+                $UpdatePassThruResult.Strings.ReadSafe('URL') | Should Be 'http://UpdateURL.Test.com'
+            }
+
+            It "Example 1.6: Update a KeePass Entry - Invalid - Group & Properties - PassThru - BadPath" {
+
+                New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'test4' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' | Should Be $null
+                $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -AsPlainText -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Title -eq 'test4' } 
+                { Update-KeePassEntry -KeePassEntry $KeePassEntry -title 'UpdateTest4' -UserName 'UpdateTestUser' -Notes 'UpdateTestNotes' -URL 'http://UpdateURL.Test.com' -KeePassEntryGroupPath 'PSKeePassTestDatabase/BadPath' -DatabaseProfileName 'SampleProfile' -PassThru -Force } | Should Throw
+            }
+        }
+        New-KPConfigurationFile -Force
+    }
+
+    <#
+        Describe "Get-KPGroup - UnitTest" -Tag UnitTest {
+            $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.key"
+            $KeePassConnection = Get-KPConnection -KeePassCredential $KeePassCredential
             
-            It "Test 1b: Gets multiple KeePass Groups - FullPath - TestSameName" {
-                $KeePassGroup = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'General/TestSameName'
-                $KeePassGroup.Count | Should Be 2
-                $KeePassGroup | Should BeOfType 'KeePassLib.PwGroup'
-                foreach ($_keepassGroup in $KeePassGroup)
-                {
-                    $_keepassGroup.Name | Should be 'TestSameName'
-                    $_keepassGroup.ParentGroup.Name | Should Be 'General' 
-                    $_keepassGroup.GetFullPath("/",$false) | Should Be 'General/TestSameName'
+            Context "Test 1: Gets a KeePass Group - FullPath" {
+                
+                It "Test 1a: Gets a KeePass Group Named General - FullPath" {
+                    $KeePassGroup = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'General'
+                    $KeePassGroup | Should BeOfType 'KeePassLib.PwGroup'
+                    $KeePassGroup.Name | Should Be 'General'
+                    $KeePassGroup.Notes | Should Be ''
+                    $KeePassGroup.ParentGroup.Name | Should be 'PSKeePassTestDatabase'
+                }
+                
+                It "Test 1b: Gets multiple KeePass Groups - FullPath - TestSameName" {
+                    $KeePassGroup = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'General/TestSameName'
+                    $KeePassGroup.Count | Should Be 2
+                    $KeePassGroup | Should BeOfType 'KeePassLib.PwGroup'
+                    foreach ($_keepassGroup in $KeePassGroup)
+                    {
+                        $_keepassGroup.Name | Should be 'TestSameName'
+                        $_keepassGroup.ParentGroup.Name | Should Be 'General' 
+                        $_keepassGroup.GetFullPath("/",$false) | Should Be 'General/TestSameName'
+                    }
                 }
             }
-        }
-        
-        Context "Test 2: Gets a KeePass Group - GroupName" {
             
-            It "Test 2a: Gets a KeePass Group Named Windows - GroupName" {
-                $KeePassGroup = Get-KPGroup -KeePassConnection $KeePassConnection -GroupName 'Windows'
-                $KeePassGroup | Should BeOfType 'KeePassLib.PwGroup'
-                $KeePassGroup.Name | Should Be 'Windows'
-                $KeePassGroup.Notes | Should Be ''
-                $KeePassGroup.ParentGroup.Name | Should be 'PSKeePassTestDatabase'
-            }
-            
-            IT "Test 2b: Gets multiple KeePass Groups - GroupName - TestSameName" {
-                $KeePassGroup = Get-KPGroup -KeePassConnection $KeePassConnection -GroupName 'TestSameName'
-                $KeePassGroup.Count | Should Be 3
-                $KeePassGroup | Should BeOfType 'KeePassLib.PwGroup'
-                foreach ($_keepassGroup in $KeePassGroup)
-                {
-                    $_keepassGroup.Name | Should Be 'TestSameName'
+            Context "Test 2: Gets a KeePass Group - GroupName" {
+                
+                It "Test 2a: Gets a KeePass Group Named Windows - GroupName" {
+                    $KeePassGroup = Get-KPGroup -KeePassConnection $KeePassConnection -GroupName 'Windows'
+                    $KeePassGroup | Should BeOfType 'KeePassLib.PwGroup'
+                    $KeePassGroup.Name | Should Be 'Windows'
+                    $KeePassGroup.Notes | Should Be ''
+                    $KeePassGroup.ParentGroup.Name | Should be 'PSKeePassTestDatabase'
                 }
-                $KeePassGroup[0].ParentGroup.Name | Should be 'General'
-                $KeePassGroup[1].ParentGroup.Name | Should be 'General'
-                $KeePassGroup[2].ParentGroup.Name | Should be 'PSKeePassTestDatabase'
+                
+                IT "Test 2b: Gets multiple KeePass Groups - GroupName - TestSameName" {
+                    $KeePassGroup = Get-KPGroup -KeePassConnection $KeePassConnection -GroupName 'TestSameName'
+                    $KeePassGroup.Count | Should Be 3
+                    $KeePassGroup | Should BeOfType 'KeePassLib.PwGroup'
+                    foreach ($_keepassGroup in $KeePassGroup)
+                    {
+                        $_keepassGroup.Name | Should Be 'TestSameName'
+                    }
+                    $KeePassGroup[0].ParentGroup.Name | Should be 'General'
+                    $KeePassGroup[1].ParentGroup.Name | Should be 'General'
+                    $KeePassGroup[2].ParentGroup.Name | Should be 'PSKeePassTestDatabase'
+                }
             }
+            Remove-KPConnection -KeePassConnection $KeePassConnection
         }
-        Remove-KPConnection -KeePassConnection $KeePassConnection
-    }
-    
-    Describe "Add-KPGroup - UnitTest" -Tag UnitTest {
-        $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.key"
-        $KeePassConnection = Get-KPConnection -KeePassCredential $KeePassCredential
-        $KeePassGroup = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'General'
         
-        Context "Test 1: Add a KeePass Group" {
+        Describe "Add-KPGroup - UnitTest" -Tag UnitTest {
+            $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.key"
+            $KeePassConnection = Get-KPConnection -KeePassCredential $KeePassCredential
+            $KeePassGroup = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'General'
             
-            It "Test 1a: Add a KeePass Group" {
-                Add-KPGroup -KeePassConnection $KeePassConnection -GroupName 'TestNewGroup' -KeePassParentGroup $KeePassGroup | Should Be $null
-                $NewKeePassGroup = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'General/TestNewGroup'
-                $NewKeePassGroup.Count | Should Be 1
-                $NewKeePassGroup | Should BeOfType 'KeePassLib.PwGroup'
-                $NewKeePassGroup.Name | Should Be 'TestNewGroup'
-                $NewKeePassGroup.ParentGroup.Name | Should Be 'General'
-                $NewKeePassGroup.GetFullPath("/", $false) | Should Be 'General/TestNewGroup'
-                ##Clean up
-                $NewKeePassGroup.ParentGroup.Groups.Remove($NewKeePassGroup) | Out-Null
-                $KeePassConnection.Save($null)
+            Context "Test 1: Add a KeePass Group" {
+                
+                It "Test 1a: Add a KeePass Group" {
+                    Add-KPGroup -KeePassConnection $KeePassConnection -GroupName 'TestNewGroup' -KeePassParentGroup $KeePassGroup | Should Be $null
+                    $NewKeePassGroup = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'General/TestNewGroup'
+                    $NewKeePassGroup.Count | Should Be 1
+                    $NewKeePassGroup | Should BeOfType 'KeePassLib.PwGroup'
+                    $NewKeePassGroup.Name | Should Be 'TestNewGroup'
+                    $NewKeePassGroup.ParentGroup.Name | Should Be 'General'
+                    $NewKeePassGroup.GetFullPath("/", $false) | Should Be 'General/TestNewGroup'
+                    ##Clean up
+                    $NewKeePassGroup.ParentGroup.Groups.Remove($NewKeePassGroup) | Out-Null
+                    $KeePassConnection.Save($null)
+                }
+                
             }
-            
+            Remove-KPConnection -KeePassConnection $KeePassConnection
         }
-        Remove-KPConnection -KeePassConnection $KeePassConnection
-    }
-    
-    Describe "Remove-KPGroup - UnitTest" -Tag UnitTest {
-        $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.key"
-        $KeePassConnection = Get-KPConnection -KeePassCredential $KeePassCredential
         
-        Context "Test 1: Delete a KeePass Group" {
-            $KeePassGroup = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'General/TestDeleteGroup'
-            if(-not $KeePassGroup)
-            {
-                $KeePassParentGroup = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'General'
-                Add-KPGroup -KeePassConnection $KeePassConnection -GroupName 'TestDeleteGroup' -KeePassParentGroup $KeePassParentGroup
+        Describe "Remove-KPGroup - UnitTest" -Tag UnitTest {
+            $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.key"
+            $KeePassConnection = Get-KPConnection -KeePassCredential $KeePassCredential
+            
+            Context "Test 1: Delete a KeePass Group" {
                 $KeePassGroup = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'General/TestDeleteGroup'
+                if(-not $KeePassGroup)
+                {
+                    $KeePassParentGroup = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'General'
+                    Add-KPGroup -KeePassConnection $KeePassConnection -GroupName 'TestDeleteGroup' -KeePassParentGroup $KeePassParentGroup
+                    $KeePassGroup = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'General/TestDeleteGroup'
+                }
+                
+                It "Test 1a: Permenantly Deletes a KeePass Group" {
+                    Remove-KPGroup -KeePassConnection $KeePassConnection -KeePassGroup $KeePassGroup -Force -NoRecycle | Should Be $null
+                    Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'General/TestDeleteGroup' | Should Be $null
+                }
             }
             
-            It "Test 1a: Permenantly Deletes a KeePass Group" {
-                Remove-KPGroup -KeePassConnection $KeePassConnection -KeePassGroup $KeePassGroup -Force -NoRecycle | Should Be $null
-                Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'General/TestDeleteGroup' | Should Be $null
-            }
-        }
-        
-        Context "Test 2: Recycle a KeePass Group" {
-            $KeePassGroup = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'General/TestRecycleGroup'
-            if(-not $KeePassGroup)
-            {
-                $KeePassParentGroup = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'General'
-                Add-KPGroup -KeePassConnection $KeePassConnection -GroupName 'TestRecycleGroup' -KeePassParentGroup $KeePassParentGroup
+            Context "Test 2: Recycle a KeePass Group" {
                 $KeePassGroup = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'General/TestRecycleGroup'
+                if(-not $KeePassGroup)
+                {
+                    $KeePassParentGroup = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'General'
+                    Add-KPGroup -KeePassConnection $KeePassConnection -GroupName 'TestRecycleGroup' -KeePassParentGroup $KeePassParentGroup
+                    $KeePassGroup = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'General/TestRecycleGroup'
+                }
+                
+                It "Test 2a: Recycles a KeePass Group" {
+                    Remove-KPGroup -KeePassConnection $KeePassConnection -KeePassGroup $KeePassGroup -Force | Should Be $null
+                    $RecycledGroup = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'Recycle Bin/TestRecycleGroup'
+                    $RecycledGroup | Should BeOfType 'KeePassLib.PwGroup'
+                    $RecycledGroup.Name | Should Be 'TestRecycleGroup'
+                    ##Clean Up
+                    $RecycledGroup.ParentGroup.Groups.Remove($RecycledGroup) | Out-Null
+                    $KeePassConnection.Save($null)
+                }
             }
             
-            It "Test 2a: Recycles a KeePass Group" {
-                Remove-KPGroup -KeePassConnection $KeePassConnection -KeePassGroup $KeePassGroup -Force | Should Be $null
-                $RecycledGroup = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath 'Recycle Bin/TestRecycleGroup'
-                $RecycledGroup | Should BeOfType 'KeePassLib.PwGroup'
-                $RecycledGroup.Name | Should Be 'TestRecycleGroup'
-                ##Clean Up
-                $RecycledGroup.ParentGroup.Groups.Remove($RecycledGroup) | Out-Null
-                $KeePassConnection.Save($null)
-            }
+            Remove-KPConnection $KeePassConnection
         }
-        
-        Remove-KPConnection $KeePassConnection
-    }
     #>
 }
