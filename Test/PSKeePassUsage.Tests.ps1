@@ -269,7 +269,304 @@ InModuleScope "PSKeePass" {
         }
     }
 
-    <#
+    Describe "Get-KeePassDatabaseConfiguration - UnitTest" -Tag UnitTest {
+        New-KPConfigurationFile -Force
+
+        Context "Example 1: Get a KeePass Database Configuration Profile" {
+
+            It "Example 1.1: Get Database Configuration Profile - Valid - By Name" {
+                New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount | Should Be $null
+
+                $DatabaseConfiguration = Get-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile'
+
+                $DatabaseConfiguration.Name | Should Be 'SampleProfile'
+                $DatabaseConfiguration.DatabasePath | Should Be "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx"
+                $DatabaseConfiguration.KeyPath | Should Be ''
+                $DatabaseConfiguration.UseNetworkAccount | Should Be 'True'
+                $DatabaseConfiguration.UseMasterKey | Should Be 'False'
+                $DatabaseConfiguration.AuthenticationType | Should Be 'Network'
+            }
+
+            It "Example 1.2: Get Database Configuration Profile - Valid - All" {
+                $DatabaseConfiguration = Get-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile'
+
+                $DatabaseConfiguration.Name | Should Be 'SampleProfile'
+                $DatabaseConfiguration.DatabasePath | Should Be "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx"
+                $DatabaseConfiguration.KeyPath | Should Be ''
+                $DatabaseConfiguration.UseNetworkAccount | Should Be 'True'
+                $DatabaseConfiguration.UseMasterKey | Should Be 'False'
+                $DatabaseConfiguration.AuthenticationType | Should Be 'Network'
+            }
+        }
+
+        New-KPConfigurationFile -Force
+    }
+
+    Describe "Remove-KeePassDatabaseConfiguration - UnitTest" -Tag UnitTest {
+        New-KPConfigurationFile -Force
+
+        Context "Example 1: Remove a KeePass Database Configuration Profile" {
+
+            It "Example 1.1: Remove Database Configuration Profile - Valid - By Name" {
+                New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount | Should Be $null
+
+                # Get-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile'
+
+                Remove-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -confirm:$false | Should Be $null
+
+                Get-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' | Should Be $null
+            }
+
+            <#
+                ## On Hold until can figure out pipe line for this
+                # It "Example 1.2: Remove Database Configuration Profile - Valid - By Name - Via Pipeline" {
+                #     New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount | Should Be $null
+
+                #     Get-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' | Remove-KeePassDatabaseConfiguration -confirm:$false | Should Be $null 
+
+                #     Get-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' | Should Be $null
+                # }
+                
+                ## On Hold until can figure out pipe line for this
+                # It "Example 1.3: Remove Database Configuration Profile - Valid - Multiple - Via Pipeline" {
+                #     New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount | Should Be $null
+
+                #     New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile1' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount | Should Be $null
+
+                #     Get-KeePassDatabaseConfiguration | Remove-KeePassDatabaseConfiguration -confirm:$false | Should Be $null 
+
+                #     Get-KeePassDatabaseConfiguration | Should Be $null
+                # }
+            #>
+            It "Example 1.2: Remove Database Configuration Profile - Invalid - No Profiles Exist." {
+
+                {Remove-KeePassDatabaseConfiguration -confirm:$false } | Should Throw "There are Currently No Database Configuration Profiles."
+
+                Get-KeePassDatabaseConfiguration | Should Be $null
+            }
+        }
+
+        New-KPConfigurationFile -Force
+    }
+    
+    Describe "New-KeePassPassword - UnitTest" -Tag UnitTest {
+
+        Context "Example 1: Generate a new KeePass Password - Options" {
+
+            It "Example 1.1: New Password using all basic options - Valid" {
+                New-KeePassPassword -UpperCase -LowerCase -Digits -SpecialCharacters -Minus -UnderScore -Space -Brackets -Length 20 | Should BeOfType System.Security.SecureString 
+            }
+
+            It "Example 1.2: New Password using all basic options + ExcludeLookALike - Valid" {
+                New-KeePassPassword -UpperCase -LowerCase -Digits -SpecialCharacters -Minus -UnderScore -Space -Brackets -Length 20 -ExcludeLookALike | Should BeOfType System.Security.SecureString 
+            }
+
+            It "Example 1.3: New Password using all basic options + NoRepeatingCharacters - Valid" {
+                New-KeePassPassword -UpperCase -LowerCase -Digits -SpecialCharacters -Minus -UnderScore -Space -Brackets -Length 20 -NoRepeatingCharacters | Should BeOfType System.Security.SecureString 
+            }
+
+            It "Example 1.4: New Password using some basic options + NoRepeatingCharacters - Invalid" {
+                { New-KeePassPassword -UpperCase -LowerCase -Digits -SpecialCharacters -Length 85 -NoRepeatingCharacters } | Should Throw 'Unabled to generate a password with the specified options.'
+            }
+
+            It "Example 1.5: New Password using all basic options + ExcludedCharactes - Valid" {
+                $SecurePass = New-KeePassPassword -UpperCase -LowerCase -Digits -SpecialCharacters -Minus -UnderScore -Space -Brackets -Length 70 -ExcludeCharacters '1,],-a'
+
+                $SecurePass |  Should BeOfType System.Security.SecureString
+                [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecurePass)) | Should Not Match ([regex]::Escape("^.*[1\]-a].*$")) 
+            }
+        }
+
+        Context "Example 2: Generate a new KeePass Password - Options - SaveAs" {
+
+            New-KPConfigurationFile -Force
+
+            It "Example 2.1: New Password using all basic options - Valid" {
+                New-KeePassPassword -UpperCase -LowerCase -Digits -SpecialCharacters -Minus -UnderScore -Space -Brackets -Length 20 -SaveAs 'Basic20' | Should BeOfType System.Security.SecureString
+
+                $PassProfile = Get-KPPasswordProfile -PasswordProfileName 'Basic20'
+                $PassProfile.Name | Should Be 'Basic20'
+                $PassProfile.CharacterSet | Should Be 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!"#$%&''*+,./:;=?@\^`|~-_ []{}()<>'
+                $PassProfile.ExcludeLookAlike | Should Be 'False'
+                $PassProfile.NoRepeatingCharacters | Should Be 'False'
+                $PassProfile.ExcludeCharacters | Should Be ''
+                $PassProfile.Length | Should Be 20
+            }
+
+            It "Example 2.2: New Password using all basic options + ExcludeLookALike - Valid" {
+                New-KeePassPassword -UpperCase -LowerCase -Digits -SpecialCharacters -Minus -UnderScore -Space -Brackets -Length 20 -ExcludeLookALike -SaveAs 'BasicNoLookAlike20' | Should BeOfType System.Security.SecureString
+
+                $PassProfile = Get-KPPasswordProfile -PasswordProfileName 'BasicNoLookAlike20'
+                $PassProfile.Name | Should Be 'BasicNoLookAlike20'
+                $PassProfile.CharacterSet | Should Be 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!"#$%&''*+,./:;=?@\^`|~-_ []{}()<>'
+                $PassProfile.ExcludeLookAlike | Should Be 'True'
+                $PassProfile.NoRepeatingCharacters | Should Be 'False'
+                $PassProfile.ExcludeCharacters | Should Be ''
+                $PassProfile.Length | Should Be 20 
+            }
+
+            It "Example 2.3: New Password using all basic options + NoRepeatingCharacters - Valid" {
+                New-KeePassPassword -UpperCase -LowerCase -Digits -SpecialCharacters -Minus -UnderScore -Space -Brackets -Length 20 -NoRepeatingCharacters -SaveAs 'BasicNoRepeat20' | Should BeOfType System.Security.SecureString
+                
+                $PassProfile = Get-KPPasswordProfile -PasswordProfileName 'BasicNoRepeat20'
+                $PassProfile.Name | Should Be 'BasicNoRepeat20'
+                $PassProfile.CharacterSet | Should Be 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!"#$%&''*+,./:;=?@\^`|~-_ []{}()<>'
+                $PassProfile.ExcludeLookAlike | Should Be 'False'
+                $PassProfile.NoRepeatingCharacters | Should Be 'True'
+                $PassProfile.ExcludeCharacters | Should Be ''
+                $PassProfile.Length | Should Be 20 
+            }
+
+            It "Example 2.4: New Password using some basic options + NoRepeatingCharacters - Invalid" {
+                { New-KeePassPassword -UpperCase -LowerCase -Digits -SpecialCharacters -Length 85 -NoRepeatingCharacters -SaveAs 'BasicNoRepeatInvalid' } | Should Throw 'Unabled to generate a password with the specified options.'
+
+                Get-KPPasswordProfile -PasswordProfileName 'BasicNoRepeatInvalid' | Should Be $null
+            }
+
+            It "Example 2.5: New Password using all basic options + ExcludedCharactes - Valid" {
+                $SecurePass = New-KeePassPassword -UpperCase -LowerCase -Digits -SpecialCharacters -Minus -UnderScore -Space -Brackets -Length 70 -ExcludeCharacters '1,],-a' -SaveAs 'BasicExcudle1]-a'
+
+                $SecurePass |  Should BeOfType System.Security.SecureString
+                [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecurePass)) | Should Not Match ([regex]::Escape("^.*[1\]-a].*$"))
+
+                $PassProfile = Get-KPPasswordProfile -PasswordProfileName 'BasicExcudle1]-a'
+                $PassProfile.Name | Should Be 'BasicExcudle1]-a'
+                $PassProfile.CharacterSet | Should Be 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!"#$%&''*+,./:;=?@\^`|~-_ []{}()<>'
+                $PassProfile.ExcludeLookAlike | Should Be 'False'
+                $PassProfile.NoRepeatingCharacters | Should Be 'False'
+                $PassProfile.ExcludeCharacters | Should Be '1,],-a'
+                $PassProfile.Length | Should Be 70
+            }
+        }
+
+        Context "Example 3: Generate a new KeePass Password - Profile" {
+
+            It "Example 3.1: New Password using Profile Basic20 - Valid" {
+                New-KeePassPassword  -PasswordProfileName 'Basic20' | Should BeOfType System.Security.SecureString
+            }
+
+            It "Example 3.2: New Password using Profile BasicNoLookAlike20 - Valid" {
+                New-KeePassPassword -PasswordProfileName 'BasicNoLookAlike20' | Should BeOfType System.Security.SecureString
+            }
+
+            It "Example 3.3: New Password using Profile BasicNoRepeat20 - Valid" {
+                New-KeePassPassword -PasswordProfileName 'BasicNoRepeat20' | Should BeOfType System.Security.SecureString
+            }
+
+            It "Example 3.4: New Password using Profile BasicNoRepeatInvalid - Invalid - Does Not Exist" {
+                { New-KeePassPassword -PasswordProfileName 'BasicNoRepeatInvalid' } | Should Throw
+            }
+
+            It "Example 3.5: New Password using Profile BasicExcudle1]-a - Valid" {
+                $SecurePass = New-KeePassPassword -PasswordProfileName 'BasicExcudle1]-a'
+
+                $SecurePass |  Should BeOfType System.Security.SecureString
+                [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecurePass)) | Should Not Match ([regex]::Escape("^.*[1\]-a].*$"))
+            }
+        }
+    }
+
+    Describe "Get-KeePassEntry - UnitTest" -Tag UnitTest {
+        
+        Context "Example 1: Creates a New KeePass Entry." {
+
+            New-KPConfigurationFile -Force
+
+            It "Example 1.1: Creates a New KeePass Entry - Invalid - No Profile" {
+                # New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount | Should Be $null
+                { New-KeePassEntry -KeePassEntryGroupPath 'database' -Title 'test' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' }| Should Throw 'There are Currently No Database Configuration Profiles.'
+            }
+
+            ## Create Profile
+            New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -KeyPath "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.key"
+
+            ## Reset Test DB
+            Remove-Item -Path "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -Force
+            Copy-Item -Path "$($PSScriptRoot)\Includes\Backup\PSKeePassTestDatabase.kdbx" -Destination "$($PSScriptRoot)\Includes\"
+
+            It "Example 1.2: Creates a New KeePass Entry - Valid" {
+                New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'test' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' | Should Be $null
+            }
+
+            It "Example 1.3: Creates a New KeePass Entry - Valid - PassThru" {
+
+                $PassThruResult = New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'testPassThru' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' -PassThru
+
+                $PassThruResult | Should BeOfType KeePassLib.PwEntry
+                $PassThruResult.ParentGroup.Name | Should BeLike 'PSKeePassTestDatabase'
+                $PassThruResult.Strings.ReadSafe('Title') | Should Be 'testPassThru'
+                $PassThruResult.Strings.ReadSafe('UserName') | Should Be 'testuser'
+                $PassThruResult.Strings.ReadSafe('Notes') | Should Be 'testnotes' 
+                $PassThruResult.Strings.ReadSafe('URL') | Should be 'http://url.test.com'
+            }
+
+            It "Example 1.4: Creates a New KeePass Entry - Invalid - Group Path does not Exist" {
+                { New-KeePassEntry -KeePassEntryGroupPath 'BadPath' -Title 'test' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' } | Should Throw
+            }
+
+            It "Example 1.5: Creates a New KeePass Entry with manaully specified Password - Valid" {
+                New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'testPass' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -KeePassPassword $(ConvertTo-SecureString -String 'teststring' -AsPlainText -Force) -DatabaseProfileName 'SampleProfile' | Should Be $null
+            }
+
+            It "Example 1.6: Creates a New KeePass Entry with a generated Password - Valid" {
+                $GeneratedPassword = New-KeePassPassword -Upper -Lower -Digits -Length 50
+                
+                New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'testPass' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -KeePassPassword $GeneratedPassword -DatabaseProfileName 'SampleProfile' | Should Be $null
+            }
+        }
+
+        New-KPConfigurationFile -Force
+    }
+
+    Describe "Get-KeePassEntry - UnitTest" -Tag UnitTest {
+        
+        Context "Example 1: Gets KeePass Entries." {
+
+            New-KPConfigurationFile -Force
+
+            It "Example 1.1: Gets All KeePass Entries - Invalid - No Database Configuration Profiles." {
+
+                { Get-KeePassEntry -AsPlainText -KeePassEntryGroupPath 'PSKeePassTestDatabase/BadPath' } | Should Throw 'There are Currently No Database Configuration Profiles.'
+            }
+
+            ## Create Profile
+            New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -KeyPath "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.key"
+
+            ## Reset Test DB
+            Remove-Item -Path "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -Force
+            Copy-Item -Path "$($PSScriptRoot)\Includes\Backup\PSKeePassTestDatabase.kdbx" -Destination "$($PSScriptRoot)\Includes\"
+
+            It "Example 1.2 Gets All KeePass Entries - Valid" {
+                $ResultEntries = Get-KeePassEntry -DatabaseProfileName SampleProfile
+                $ResultEntries.Count | Should Be 2
+            }
+
+            It "Example 1.3 Gets All KeePass Entries - Valid As Plain Text" {
+                $ResultEntries = Get-KeePassEntry -DatabaseProfileName SampleProfile -AsPlainText
+                $ResultEntries.Count | Should Be 2
+                $ResultEntries[0].Title | Should Be 'Sample Entry'
+                $ResultEntries[1].Title | Should Be 'Sample Entry #2'
+            }
+
+            It "Example 1.4: Gets All KeePass Entries Of Specific Group - Valid" {
+
+                New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase/General' -Title 'SubGroupTest' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' | Should Be $null
+
+                $ResultEntries = Get-KeePassEntry -DatabaseProfileName SampleProfile -AsPlainText -KeePassEntryGroupPath 'PSKeePassTestDatabase/General'
+                $ResultEntries.Title | Should Be 'SubGroupTest'
+            }
+
+            It "Example 1.5: Gets All KeePass Entries Of Specific Group - Invalid - Bad Path" {
+
+                { Get-KeePassEntry -DatabaseProfileName SampleProfile -AsPlainText -KeePassEntryGroupPath 'PSKeePassTestDatabase/BadPath' } | Should Throw
+            }
+
+        }
+
+        New-KPConfigurationFile -Force
+    }
+
+<#
     Describe "Get-KPGroup - UnitTest" -Tag UnitTest {
         $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.key"
         $KeePassConnection = Get-KPConnection -KeePassCredential $KeePassCredential

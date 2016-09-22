@@ -116,7 +116,7 @@
         {
             Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles."
             Write-Warning -Message "[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function."
-            break
+            Throw 'There are Currently No Database Configuration Profiles.'
         }
 
         ## Get the database profile definition
@@ -163,6 +163,12 @@
         {
             ## Get the keepass group 
             $KeePassGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassEntryGroupPath
+
+            if(-not $KeePassGroup)
+            {
+                Write-Warning -Message "[PROCESS] The Specified KeePass Entry Group Path ($KeePassEntryGroupPath) does not exist."
+                Throw "The Specified KeePass Entry Group Path ($KeePassEntryGroupPath) does not exist."
+            }
             ## Add the KeePass Entry
             Add-KpEntry -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroup -Title $Title -UserName $UserName -KeePassPassword $KeePassPassword -Notes $Notes -URL $URL -PassThru:$PassThru
         }
@@ -257,7 +263,7 @@ function Get-KeePassEntry
         {
             Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles."
             Write-Warning -Message "[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function."
-            break
+            Throw 'There are Currently No Database Configuration Profiles.'
         }
 
         ## Get the database profile definition
@@ -304,6 +310,11 @@ function Get-KeePassEntry
         {   
             ## Get All entries in the specified group
             $KeePassGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassEntryGroupPath
+            if(-not $KeePassGroup)
+            {
+                Write-Warning -Message "[PROCESS] The Specified KeePass Entry Group Path ($KeePassEntryGroupPath) does not exist."
+                Throw "The Specified KeePass Entry Group Path ($KeePassEntryGroupPath) does not exist."
+            }
             $ResultEntries = Get-KpEntry -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroup
         }
         else
@@ -1519,12 +1530,6 @@ function New-KeePassPassword
                 $PassProfile.NoRepeatingCharacters = $NewProfileObject.NoRepeatingCharacters
                 $PassProfile.ExcludeCharacters = $NewProfileObject.ExcludeCharacters
                 $PassProfile.Length = $NewProfileObject.Length
-                
-                if($SaveAs)
-                {
-                    $NewProfileObject.ProfileName = $SaveAs
-                    New-KPPasswordProfile -KeePassPasswordObject $NewProfileObject
-                }
             }
         }
         elseif($PSCmdlet.ParameterSetName -eq 'Profile')
@@ -1556,9 +1561,18 @@ function New-KeePassPassword
                 {
                     Write-Warning -Message "[PROCESS] Checked for the invalid specification. `n`tSpecified Length: $($PassProfile.Length). `n`tCharacterSet Count: $($PassProfile.CharSet.Size). `n`tNo Repeating Characters is set to: $($PassProfile.NoRepeatingCharacters). `n`tExclude Character Count: $ExcludeCharacterCount."
                     Write-Warning -Message "[PROCESS] Specify More characters, shorten the length, remove the no repeating characters option, or removed excluded characters."
-                    break
                 }
             }
+
+            Throw 'Unabled to generate a password with the specified options.'
+        }
+        else
+        {
+            if($SaveAs)
+            {
+                $NewProfileObject.ProfileName = $SaveAs
+                New-KPPasswordProfile -KeePassPasswordObject $NewProfileObject
+            }    
         }
         try
         {
@@ -1813,7 +1827,8 @@ function Remove-KeePassDatabaseConfiguration
             $ParameterAttribute = New-Object -TypeName System.Management.Automation.ParameterAttribute
             $ParameterAttribute.Mandatory = $true
             $ParameterAttribute.Position = 0
-            $ParameterAttribute.ValueFromPipelineByPropertyName = $true
+            # $ParameterAttribute.ValueFromPipelineByPropertyName = $true
+            # $ParameterAttribute.ValueFromPipeline = $true
             # $ParameterAttribute.ParameterSetName = 'Profile'
             $AttributeCollection.Add($ParameterAttribute)
 
@@ -1840,7 +1855,7 @@ function Remove-KeePassDatabaseConfiguration
         else
         {
             Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles." 
-            break
+            Throw "There are Currently No Database Configuration Profiles."
         }
     }
     process
@@ -1848,6 +1863,7 @@ function Remove-KeePassDatabaseConfiguration
         if (-not (Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml))
         {
             Write-Verbose -Message "[PROCESS] A KeePass Configuration File does not exist."
+            Throw "A KeePass Configuration File does not exist."
         }
         else
         {
