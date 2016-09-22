@@ -715,4 +715,49 @@ InModuleScope "PSKeePass" {
         }
         New-KPConfigurationFile -Force
     }
+
+    Describe "Get-KeePassGroup - UnitTest" -Tag UnitTest {
+        
+        Context "Example 1: Gets KeePass Groups." {
+
+            New-KPConfigurationFile -Force
+
+            It "Example 1.1: Gets All KeePass Groups - Invalid - No Database Configuration Profiles." {
+
+                { Get-KeePassGroup -AsPlainText -KeePassGroupPath 'PSKeePassTestDatabase/BadPath' } | Should Throw 'There are Currently No Database Configuration Profiles.'
+            }
+
+            ## Create Profile
+            New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -KeyPath "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.key"
+
+            ## Reset Test DB
+            Remove-Item -Path "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -Force
+            Copy-Item -Path "$($PSScriptRoot)\Includes\Backup\PSKeePassTestDatabase.kdbx" -Destination "$($PSScriptRoot)\Includes\"
+
+            It "Example 1.2 Gets All KeePass Groups - Valid" {
+                $ResultGroups = Get-KeePassGroup -DatabaseProfileName SampleProfile
+                $ResultGroups.Count | Should Be 7
+            }
+
+            It "Example 1.3 Gets All KeePass Groups - Valid As Plain Text" {
+                $ResultGroups =  Get-KeePassGroup -DatabaseProfileName SampleProfile -AsPlainText
+                $ResultGroups.Count | Should Be 7
+            }
+
+            It "Example 1.4: Gets a KeePass Group - Valid" {
+
+                $ResultGroups = Get-KeePassGroup -DatabaseProfileName SampleProfile -AsPlainText -KeePassGroupPath 'PSKeePassTestDatabase/General'
+                $ResultGroups.Name | Should Be 'General'
+                $ResultGroups.ParentGroup | Should Be 'PSKeePassTestDatabase'
+            }
+
+            It "Example 1.5: Gets a KeePass Group - Invalid - Bad Path" {
+
+                { Get-KeePassEntry -DatabaseProfileName SampleProfile -AsPlainText -KeePassEntryGroupPath 'PSKeePassTestDatabase/BadPath' } | Should Throw
+            }
+
+        }
+
+        New-KPConfigurationFile -Force
+    }
 }
