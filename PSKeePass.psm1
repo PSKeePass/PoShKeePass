@@ -3668,3 +3668,33 @@ function Import-KPLibrary
 
 ## Source KpLib
 Import-KPLibrary
+
+Export-ModuleMember -Function New-KeePassEntry
+Export-ModuleMember -Function Get-KeePassEntry
+Export-ModuleMember -Function Update-KeePassEntry
+Export-ModuleMember -Function Remove-KeePassEntry
+Export-ModuleMember -Function New-KeePassGroup
+Export-ModuleMember -Function Get-KeePassGroup
+Export-ModuleMember -Function Update-KeePassGroup
+Export-ModuleMember -Function Remove-KeePassGroup
+Export-ModuleMember -Function New-KeePassPassword
+Export-ModuleMember -Function New-KeePassDatabaseConfiguration
+Export-ModuleMember -Function Get-KeePassDatabaseConfiguration
+# Export-ModuleMember -Function New-KPConfigurationFile
+# Export-ModuleMember -Function New-KPPasswordProfile
+# Export-ModuleMember -Function Get-KPPasswordProfile
+# Export-ModuleMember -Function Remove-KPPasswordProfile
+# Export-ModuleMember -Function Get-KPCredential
+# Export-ModuleMember -Function Get-KPConnection
+# Export-ModuleMember -Function Remove-KPConnection
+# Export-ModuleMember -Function Get-KPEntry
+# Export-ModuleMember -Function Add-KPEntry
+# Export-ModuleMember -Function Set-KPEntry
+# Export-ModuleMember -Function Remove-KPEntry
+# Export-ModuleMember -Function Get-KPGroup
+# Export-ModuleMember -Function Add-KPGroup
+# Export-ModuleMember -Function Set-KPGroup
+# Export-ModuleMember -Function Remove-KPGroup
+# Export-ModuleMember -Function ConvertFrom-KPProtectedString
+Export-ModuleMember -Function ConvertTo-KPPSObject
+# Export-ModuleMember -Function Import-KPLibrary
