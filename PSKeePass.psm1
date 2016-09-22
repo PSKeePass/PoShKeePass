@@ -116,7 +116,7 @@
         {
             Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles."
             Write-Warning -Message "[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function."
-            break
+            Throw 'There are Currently No Database Configuration Profiles.'
         }
 
         ## Get the database profile definition
@@ -163,6 +163,12 @@
         {
             ## Get the keepass group 
             $KeePassGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassEntryGroupPath
+
+            if(-not $KeePassGroup)
+            {
+                Write-Warning -Message "[PROCESS] The Specified KeePass Entry Group Path ($KeePassEntryGroupPath) does not exist."
+                Throw "The Specified KeePass Entry Group Path ($KeePassEntryGroupPath) does not exist."
+            }
             ## Add the KeePass Entry
             Add-KpEntry -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroup -Title $Title -UserName $UserName -KeePassPassword $KeePassPassword -Notes $Notes -URL $URL -PassThru:$PassThru
         }
