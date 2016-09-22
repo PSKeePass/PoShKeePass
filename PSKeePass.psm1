@@ -263,7 +263,7 @@ function Get-KeePassEntry
         {
             Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles."
             Write-Warning -Message "[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function."
-            break
+            Throw 'There are Currently No Database Configuration Profiles.'
         }
 
         ## Get the database profile definition
@@ -310,6 +310,11 @@ function Get-KeePassEntry
         {   
             ## Get All entries in the specified group
             $KeePassGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassEntryGroupPath
+            if(-not $KeePassGroup)
+            {
+                Write-Warning -Message "[PROCESS] The Specified KeePass Entry Group Path ($KeePassEntryGroupPath) does not exist."
+                Throw "The Specified KeePass Entry Group Path ($KeePassEntryGroupPath) does not exist."
+            }
             $ResultEntries = Get-KpEntry -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroup
         }
         else
