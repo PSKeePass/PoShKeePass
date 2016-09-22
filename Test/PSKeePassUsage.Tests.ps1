@@ -678,4 +678,41 @@ InModuleScope "PSKeePass" {
 
         New-KPConfigurationFile -Force
     }
+
+    Describe "New-KeePassGroup - UnitTest" -Tag UnitTest {
+        
+        Context "Example 1: Creates a New KeePass Group." {
+
+            New-KPConfigurationFile -Force
+
+            It "Example 1.1: Creates a New KeePass Group - Invalid - No Profile" {
+                { New-KeePassGroup -KeePassGroupParentPath 'database' -KeePassGroupName 'test' }| Should Throw 'There are Currently No Database Configuration Profiles.'
+            }
+
+            ## Create Profile
+            New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -KeyPath "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.key"
+
+            ## Reset Test DB
+            Remove-Item -Path "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -Force
+            Copy-Item -Path "$($PSScriptRoot)\Includes\Backup\PSKeePassTestDatabase.kdbx" -Destination "$($PSScriptRoot)\Includes\"
+
+            It "Example 1.2: Creates a New KeePass Group - Valid" {
+                New-KeePassGroup -KeePassGroupParentPath 'PSKeePassTestDatabase' -KeePassGroupName 'test1' -DatabaseProfileName 'SampleProfile' | Should Be $null
+            }
+
+            It "Example 1.3: Creates a New KeePass Group - Valid - PassThru" {
+
+                $PassThruResult = New-KeePassGroup -KeePassGroupParentPath 'PSKeePassTestDatabase' -KeePassGroupName 'test2PassThru' -DatabaseProfileName 'SampleProfile' -PassThru
+
+                $PassThruResult | Should BeOfType KeePassLib.PwGroup
+                $PassThruResult.ParentGroup.Name | Should Be 'PSKeePassTestDatabase'
+                $PassThruResult.Name | Should Be 'test2PassThru'
+            }
+
+            It "Example 1.4: Creates a New KeePass Entry - Invalid - Group Path does not Exist" {
+                { New-KeePassGroup -KeePassGroupParentPath 'BadPath' -KeePassGroupName 'test3' -DatabaseProfileName 'SampleProfile' } | Should Throw
+            }
+        }
+        New-KPConfigurationFile -Force
+    }
 }
