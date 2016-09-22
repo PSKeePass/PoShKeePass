@@ -1813,7 +1813,8 @@ function Remove-KeePassDatabaseConfiguration
             $ParameterAttribute = New-Object -TypeName System.Management.Automation.ParameterAttribute
             $ParameterAttribute.Mandatory = $true
             $ParameterAttribute.Position = 0
-            $ParameterAttribute.ValueFromPipelineByPropertyName = $true
+            # $ParameterAttribute.ValueFromPipelineByPropertyName = $true
+            # $ParameterAttribute.ValueFromPipeline = $true
             # $ParameterAttribute.ParameterSetName = 'Profile'
             $AttributeCollection.Add($ParameterAttribute)
 
@@ -1840,7 +1841,7 @@ function Remove-KeePassDatabaseConfiguration
         else
         {
             Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles." 
-            break
+            Throw "There are Currently No Database Configuration Profiles."
         }
     }
     process
@@ -1848,6 +1849,7 @@ function Remove-KeePassDatabaseConfiguration
         if (-not (Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml))
         {
             Write-Verbose -Message "[PROCESS] A KeePass Configuration File does not exist."
+            Throw "A KeePass Configuration File does not exist."
         }
         else
         {
