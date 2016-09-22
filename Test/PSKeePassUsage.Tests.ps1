@@ -466,26 +466,48 @@ InModuleScope "PSKeePass" {
         }
     }
 
-<#
     Describe "New-KeePassEntry - UnitTest" -Tag UnitTest {
-        New-KPConfigurationFile -Force
-
         Context "Example 1: Creates a New KeePass Entry." {
 
-            It "Example 1.1: Remove Database Configuration Profile - Valid - By Name" {
-                New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount | Should Be $null
+            New-KPConfigurationFile -Force
 
-                # Get-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile'
+            It "Example 1.1: Creates a New KeePass Entry - Invalid - No Profile" {
+                # New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount | Should Be $null
+                { New-KeePassEntry -KeePassEntryGroupPath 'database' -Title 'test' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' }| Should Throw 'There are Currently No Database Configuration Profiles.'
+            }
 
-                Remove-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -confirm:$false | Should Be $null
+            ## Create Profile
+            New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -KeyPath "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.key"
 
-                Get-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' | Should Be $null
+            ## Reset Test DB
+            Remove-Item -Path "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -Force
+            Copy-Item -Path "$($PSScriptRoot)\Includes\Backup\PSKeePassTestDatabase.kdbx" -Destination "$($PSScriptRoot)\Includes\"
+
+            It "Example 1.2: Creates a New KeePass Entry - Valid" {
+                New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'test' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' | Should Be $null
+            }
+
+            It "Example 1.3: Creates a New KeePass Entry - Valid - PassThru" {
+
+                $PassThruResult = New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'testPassThru' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' -PassThru
+
+                $PassThruResult | Should BeOfType KeePassLib.PwEntry
+                $PassThruResult.ParentGroup.Name | Should BeLike 'PSKeePassTestDatabase'
+                $PassThruResult.Strings.ReadSafe('Title') | Should Be 'testPassThru'
+                $PassThruResult.Strings.ReadSafe('UserName') | Should Be 'testuser'
+                $PassThruResult.Strings.ReadSafe('Notes') | Should Be 'testnotes' 
+                $PassThruResult.Strings.ReadSafe('URL') | Should be 'http://url.test.com'
+            }
+
+            It "Example 1.4: Creates a New KeePass Entry - Invalid - Group Path does not Exist" {
+                { New-KeePassEntry -KeePassEntryGroupPath 'BadPath' -Title 'test' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' } | Should Throw
             }
         }
 
         New-KPConfigurationFile -Force
     }
 
+<#
     Describe "Get-KPGroup - UnitTest" -Tag UnitTest {
         $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.key"
         $KeePassConnection = Get-KPConnection -KeePassCredential $KeePassCredential
