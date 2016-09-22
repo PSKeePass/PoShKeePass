@@ -394,7 +394,7 @@ function Update-KeePassEntry
     [CmdletBinding(SupportsShouldProcess=$true,ConfirmImpact='High')]
     param
     (
-        [Parameter(Position=0,Mandatory=$true,ValueFromPipeline)]
+        [Parameter(Position=0,Mandatory=$true,ValueFromPipeline=$true)]
         [ValidateNotNullOrEmpty()]
         [PSObject] $KeePassEntry,
 
@@ -470,7 +470,7 @@ function Update-KeePassEntry
         {
             Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles."
             Write-Warning -Message "[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function."
-            break
+            Throw 'There are Currently No Database Configuration Profiles.'
         }
 
         $DatabaseProfileObject = Get-KeePassDatabaseConfiguration -DatabaseProfileName $DatabaseProfileName
@@ -503,19 +503,27 @@ function Update-KeePassEntry
 
         $KeePassConnectionObject = Get-KPConnection -KeePassCredential $KeePassCredentialObject
 
-        
-
         if($MasterKeySecureString){Remove-Variable -Name MasterKeySecureString}
         if($KeePassCredentialObject){Remove-Variable -Name KeePassCredentialObject}
     }
     process
     {
         $KPEntry=Get-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassUuid $KeePassEntry.Uuid
+        if(-not $KPEntry)
+        {
+            Write-Warning -Message "[PROCESS] The Specified KeePass Entry does not exist or cannot be found."
+            Throw "he Specified KeePass Entry does not exist or cannot be found."
+        }
 
         if($Force -or $PSCmdlet.ShouldProcess("Title: $($KPEntry.Strings.ReadSafe('Title')), `n`tUserName: $($KPEntry.Strings.ReadSafe('UserName')), `n`tGroupPath: $($KPEntry.ParentGroup.GetFullPath('/', $true))."))
         {
             $KeePassGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassEntryGroupPath
-            Set-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassEntry $KPEntry -Title $Title -UserName $UserName -KeePassPassword $KeePassPassword -Notes $Notes -URL $URL -KeePassGroup $KeePassGroup -PassThru:$PassThru -Confirm:$false -Force
+            if(-not $KeePassGroup)
+            {
+                Write-Warning -Message "[PROCESS] The Specified KeePass Entry Group Path ($KeePassEntryGroupPath) does not exist."
+                Throw "The Specified KeePass Entry Group Path ($KeePassEntryGroupPath) does not exist."
+            }
+            Set-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassEntry $KPEntry -Title $Title -UserName $UserName -KeePassPassword $KeePassPassword -Notes $Notes -URL $URL -KeePassGroup $KeePassGroup -PassThru:$PassThru -Force
         }
     }
     end
@@ -2833,7 +2841,7 @@ function Set-KPEntry
                 $KeePassEntry.Strings.Set("URL", $SecureURL)
             }
             ## If you are moving the entry to another group then take these actions.
-            if($KeePassGroup -and $KeePassGroup.Uuid.CompareTo($KeePassEntry.ParentGroup.Uuid) -ne 0)
+            if($KeePassGroup)
             {
                 ## Make Full Copy of Entry
                 $NewKeePassEntry = $KeePassEntry.CloneDeep()
@@ -2846,12 +2854,13 @@ function Set-KPEntry
                 ## Delete previous entry 
                 ## Hide output
                 $KeePassEntry.ParentGroup.Entries.Remove($KeePassEntry) > $null
-            }
-            $KeePassConnection.Save($null)
 
-            if($PassThru)
-            {
-                $NewKeePassEntry
+                $KeePassConnection.Save($null)
+
+                if($PassThru)
+                {
+                    $NewKeePassEntry
+                }
             }
         }
     }
