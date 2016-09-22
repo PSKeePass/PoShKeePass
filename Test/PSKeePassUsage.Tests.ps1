@@ -502,6 +502,16 @@ InModuleScope "PSKeePass" {
             It "Example 1.4: Creates a New KeePass Entry - Invalid - Group Path does not Exist" {
                 { New-KeePassEntry -KeePassEntryGroupPath 'BadPath' -Title 'test' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' } | Should Throw
             }
+
+            It "Example 1.5: Creates a New KeePass Entry with manaully specified Password - Valid" {
+                New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'testPass' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -KeePassPassword $(ConvertTo-SecureString -String 'teststring' -AsPlainText -Force) -DatabaseProfileName 'SampleProfile' | Should Be $null
+            }
+
+            It "Example 1.6: Creates a New KeePass Entry with a generated Password - Valid" {
+                $GeneratedPassword = New-KeePassPassword -Upper -Lower -Digits -Length 50
+                
+                New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'testPass' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -KeePassPassword $GeneratedPassword -DatabaseProfileName 'SampleProfile' | Should Be $null
+            }
         }
 
         New-KPConfigurationFile -Force
