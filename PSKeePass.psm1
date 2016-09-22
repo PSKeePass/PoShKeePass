@@ -1066,7 +1066,7 @@ function Update-KeePassGroup
         {
             Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles."
             Write-Warning -Message "[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function."
-            break
+            Throw 'There are Currently No Database Configuration Profiles.'
         }
 
         $DatabaseProfileObject = Get-KeePassDatabaseConfiguration -DatabaseProfileName $DatabaseProfileName
@@ -1107,6 +1107,11 @@ function Update-KeePassGroup
         if($KeePassParentGroupPath)
         {
             $KeePassParentGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassParentGroupPath
+            if(-not $KeePassParentGroup)
+            {
+                Write-Warning -Message "[PROCESS] The Specified KeePass Entry Group Path ($KeePassGroupParentPath) does not exist."
+                Throw "The Specified KeePass Entry Group Path ($KeePassGroupParentPath) does not exist."
+            }
         }
         
         if($KeePassGroup.GetType().Name -eq 'PwGroup')
@@ -1126,7 +1131,7 @@ function Update-KeePassGroup
             {
                 Write-Warning -Message "[PROCESS] Found more than one group with the same path, name and creation time. Stoping Update."
                 Write-Warning -Message "[PROCESS] Found: $($KeePassGroupObject.Count) number of matching groups."
-                Break
+                Throw 'Found more than one group with the same path, name and creation time.'
             }
 
             if($KeePassParentGroup)
@@ -3332,14 +3337,15 @@ function Set-KPGroup
                     $KeePassParentGroup.AddGroup($UpdatedKeePassGroup, $true, $true)
                     $KeePassConnection.Save($null)
                     $KeePassGroup.ParentGroup.Groups.Remove($KeePassGroup) > $null
-                    # $KeePassConnection.Save($null)
+                    $KeePassConnection.Save($null)
+                    $KeePassGroup = $UpdatedKeePassGroup
                 }
             }
             $KeePassConnection.Save($null)
 
             if($PassThru)
             {
-                $UpdatedKeePassGroup
+                $KeePassGroup
             }
         }
     }
