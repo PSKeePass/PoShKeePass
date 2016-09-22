@@ -302,6 +302,54 @@ InModuleScope "PSKeePass" {
         New-KPConfigurationFile -Force
     }
 
+    Describe "Remove-KeePassDatabaseConfiguration - UnitTest" -Tag UnitTest {
+        New-KPConfigurationFile -Force
+
+        Context "Example 1: Remove a KeePass Database Configuration Profile" {
+
+            It "Example 1.1: Remove Database Configuration Profile - Valid - By Name" {
+                New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount | Should Be $null
+
+                # Get-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile'
+
+                Remove-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -confirm:$false | Should Be $null
+
+                Get-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' | Should Be $null
+            }
+
+            <#
+                ## On Hold until can figure out pipe line for this
+                # It "Example 1.2: Remove Database Configuration Profile - Valid - By Name - Via Pipeline" {
+                #     New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount | Should Be $null
+
+                #     Get-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' | Remove-KeePassDatabaseConfiguration -confirm:$false | Should Be $null 
+
+                #     Get-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' | Should Be $null
+                # }
+                
+                ## On Hold until can figure out pipe line for this
+                # It "Example 1.3: Remove Database Configuration Profile - Valid - Multiple - Via Pipeline" {
+                #     New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount | Should Be $null
+
+                #     New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile1' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount | Should Be $null
+
+                #     Get-KeePassDatabaseConfiguration | Remove-KeePassDatabaseConfiguration -confirm:$false | Should Be $null 
+
+                #     Get-KeePassDatabaseConfiguration | Should Be $null
+                # }
+            #>
+            It "Example 1.4: Remove Database Configuration Profile - Invalid - No Profiles Exist." {
+
+                {Remove-KeePassDatabaseConfiguration -confirm:$false } | Should Throw "There are Currently No Database Configuration Profiles."
+
+                Get-KeePassDatabaseConfiguration | Should Be $null
+            }
+        }
+
+        New-KPConfigurationFile -Force
+    }
+
+
     <#
     Describe "Get-KPGroup - UnitTest" -Tag UnitTest {
         $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.key"
