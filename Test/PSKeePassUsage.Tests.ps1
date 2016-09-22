@@ -760,4 +760,65 @@ InModuleScope "PSKeePass" {
 
         New-KPConfigurationFile -Force
     }
+
+    Describe "Update-KeePassGroup - UnitTest" -Tag UnitTest {
+        
+        Context "Example 1: Updates a KeePass Group." {
+
+            New-KPConfigurationFile -Force
+
+            It "Example 1.1: Updates a KeePass Group - Invalid - No Profile" {
+                { Update-KeePassGroup -KeePassGroup $( New-Object KeePassLib.PwGroup($true, $true)) -Force }| Should Throw 'There are Currently No Database Configuration Profiles.'
+            }
+
+            ## Create Profile
+            New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -KeyPath "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.key"
+
+            ## Reset Test DB
+            Remove-Item -Path "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -Force
+            Copy-Item -Path "$($PSScriptRoot)\Includes\Backup\PSKeePassTestDatabase.kdbx" -Destination "$($PSScriptRoot)\Includes\"
+
+            It "Example 1.2: Updates a KeePass Group - Valid  - Name" {
+                New-KeePassGroup -KeePassGroupParentPath 'PSKeePassTestDatabase' -KeePassGroupName 'test1' -DatabaseProfileName 'SampleProfile' | Should Be $null
+                $KeePassGroup = Get-KeePassGroup -DatabaseProfileName SampleProfile -AsPlainText -KeePassGroupPath 'PSKeePassTestDatabase/test1'
+                $KeePassGroup.Name | Should Be 'test1'
+                Update-KeePassGroup -KeePassGroup $KeePassGroup -GroupName 'Test1Update' -DatabaseProfileName 'SampleProfile' -Force | Should Be $null
+                $KeePassGroup = Get-KeePassGroup -DatabaseProfileName SampleProfile -AsPlainText -KeePassGroupPath 'PSKeePassTestDatabase/Test1Update'
+                $KeePassGroup.Name | Should Be 'Test1Update'
+            }
+
+            It "Example 1.3: Updates a KeePass Group - Valid  - Name" {
+                New-KeePassGroup -KeePassGroupParentPath 'PSKeePassTestDatabase' -KeePassGroupName 'test2' -DatabaseProfileName 'SampleProfile' | Should Be $null
+                Get-KeePassGroup -DatabaseProfileName SampleProfile -AsPlainText -KeePassGroupPath 'PSKeePassTestDatabase/test2' |
+                Update-KeePassGroup -GroupName 'Test2Update' -DatabaseProfileName 'SampleProfile' -Force | Should Be $null
+                $KeePassGroup = Get-KeePassGroup -DatabaseProfileName SampleProfile -AsPlainText -KeePassGroupPath 'PSKeePassTestDatabase/Test2Update'
+                $KeePassGroup.Name | Should Be 'Test2Update'
+            }
+
+            It "Example 1.4: Updates a KeePass Group - Valid  - Name" {
+                New-KeePassGroup -KeePassGroupParentPath 'PSKeePassTestDatabase' -KeePassGroupName 'test3' -DatabaseProfileName 'SampleProfile' | Should Be $null
+                $KeePassGroup = Get-KeePassGroup -DatabaseProfileName SampleProfile -AsPlainText -KeePassGroupPath 'PSKeePassTestDatabase/test3'
+                $KeePassGroup.Name | Should Be 'test3'
+                $KeePassGroup = Update-KeePassGroup -KeePassGroup $KeePassGroup -GroupName 'Test3Update' -DatabaseProfileName 'SampleProfile' -Force -PassThru
+                $KeePassGroup.Name | Should Be 'Test3Update'
+                $KeePassGroup.ParentGroup.Name | Should be 'PSKeePassTestDatabase'
+            }
+
+            It "Example 1.5: Updates a KeePass Group - Valid  - ParentGroup - Pipeline" {
+                New-KeePassGroup -KeePassGroupParentPath 'PSKeePassTestDatabase' -KeePassGroupName 'test4' -DatabaseProfileName 'SampleProfile' | Should Be $null
+                Get-KeePassGroup -DatabaseProfileName SampleProfile -AsPlainText -KeePassGroupPath 'PSKeePassTestDatabase/test4' |
+                Update-KeePassGroup -DatabaseProfileName 'SampleProfile' -KeePassParentGroupPath 'PSKeePassTestDatabase/General' -Force | Should Be $null
+                $KeePassGroup = Get-KeePassGroup -DatabaseProfileName SampleProfile -AsPlainText -KeePassGroupPath 'PSKeePassTestDatabase/General/test4'
+                $KeePassGroup.Name | Should Be 'test4'
+                $KeePassGroup.ParentGroup | Should be 'General'
+            }
+
+            It "Example 1.6: Updates a KeePass Group - Invalid  - ParentGroup - BadPath" {
+                New-KeePassGroup -KeePassGroupParentPath 'PSKeePassTestDatabase' -KeePassGroupName 'test5' -DatabaseProfileName 'SampleProfile' | Should Be $null
+                { Get-KeePassGroup -DatabaseProfileName SampleProfile -AsPlainText -KeePassGroupPath 'PSKeePassTestDatabase/test5' |
+                Update-KeePassGroup -DatabaseProfileName 'SampleProfile' -KeePassParentGroupPath 'PSKeePassTestDatabase/BadPath' -Force}| Should Throw
+            }
+        }
+        New-KPConfigurationFile -Force
+    }
 }
