@@ -466,7 +466,8 @@ InModuleScope "PSKeePass" {
         }
     }
 
-    Describe "New-KeePassEntry - UnitTest" -Tag UnitTest {
+    Describe "Get-KeePassEntry - UnitTest" -Tag UnitTest {
+        
         Context "Example 1: Creates a New KeePass Entry." {
 
             New-KPConfigurationFile -Force
@@ -512,6 +513,54 @@ InModuleScope "PSKeePass" {
                 
                 New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'testPass' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -KeePassPassword $GeneratedPassword -DatabaseProfileName 'SampleProfile' | Should Be $null
             }
+        }
+
+        New-KPConfigurationFile -Force
+    }
+
+    Describe "Get-KeePassEntry - UnitTest" -Tag UnitTest {
+        
+        Context "Example 1: Gets KeePass Entries." {
+
+            New-KPConfigurationFile -Force
+
+            It "Example 1.1: Gets All KeePass Entries - Invalid - No Database Configuration Profiles." {
+
+                { Get-KeePassEntry -AsPlainText -KeePassEntryGroupPath 'PSKeePassTestDatabase/BadPath' } | Should Throw 'There are Currently No Database Configuration Profiles.'
+            }
+
+            ## Create Profile
+            New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -KeyPath "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.key"
+
+            ## Reset Test DB
+            Remove-Item -Path "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -Force
+            Copy-Item -Path "$($PSScriptRoot)\Includes\Backup\PSKeePassTestDatabase.kdbx" -Destination "$($PSScriptRoot)\Includes\"
+
+            It "Example 1.2 Gets All KeePass Entries - Valid" {
+                $ResultEntries = Get-KeePassEntry -DatabaseProfileName SampleProfile
+                $ResultEntries.Count | Should Be 2
+            }
+
+            It "Example 1.3 Gets All KeePass Entries - Valid As Plain Text" {
+                $ResultEntries = Get-KeePassEntry -DatabaseProfileName SampleProfile -AsPlainText
+                $ResultEntries.Count | Should Be 2
+                $ResultEntries[0].Title | Should Be 'Sample Entry'
+                $ResultEntries[1].Title | Should Be 'Sample Entry #2'
+            }
+
+            It "Example 1.4: Gets All KeePass Entries Of Specific Group - Valid" {
+
+                New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase/General' -Title 'SubGroupTest' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' | Should Be $null
+
+                $ResultEntries = Get-KeePassEntry -DatabaseProfileName SampleProfile -AsPlainText -KeePassEntryGroupPath 'PSKeePassTestDatabase/General'
+                $ResultEntries.Title | Should Be 'SubGroupTest'
+            }
+
+            It "Example 1.5: Gets All KeePass Entries Of Specific Group - Invalid - Bad Path" {
+
+                { Get-KeePassEntry -DatabaseProfileName SampleProfile -AsPlainText -KeePassEntryGroupPath 'PSKeePassTestDatabase/BadPath' } | Should Throw
+            }
+
         }
 
         New-KPConfigurationFile -Force
