@@ -754,7 +754,7 @@ function New-KeePassGroup
         {
             Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles."
             Write-Warning -Message "[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function."
-            break
+            Throw 'There are Currently No Database Configuration Profiles.'
         }
 
         ## Get the database profile definition
@@ -799,6 +799,11 @@ function New-KeePassGroup
     {
         ## Get the keepass group 
         $KeePassParentGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroupParentPath
+        if(-not $KeePassParentGroup)
+        {
+            Write-Warning -Message "[PROCESS] The Specified KeePass Entry Group Path ($KeePassGroupParentPath) does not exist."
+            Throw "The Specified KeePass Entry Group Path ($KeePassGroupParentPath) does not exist."
+        }
         ## Add the KeePass Group
         Add-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassParentGroup $KeePassParentGroup -GroupName $KeePassGroupName -PassThru:$PassThru
     }
