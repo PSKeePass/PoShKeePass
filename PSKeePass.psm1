@@ -1175,7 +1175,7 @@ function Remove-KeePassGroup
     [CmdletBinding(SupportsShouldProcess=$true,ConfirmImpact='High')]
     param
     (
-        [Parameter(Position=0,Mandatory=$true,ValueFromPipeline)]
+        [Parameter(Position=0,Mandatory=$true,ValueFromPipeline=$true)]
         [ValidateNotNullOrEmpty()]
         [PSObject] $KeePassGroup,
         [Parameter(Position=1,Mandatory=$false)]
@@ -1223,7 +1223,7 @@ function Remove-KeePassGroup
         {
             Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles."
             Write-Warning -Message "[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function."
-            break
+            Throw 'There are Currently No Database Configuration Profiles.'
         }
 
         $DatabaseProfileObject = Get-KeePassDatabaseConfiguration -DatabaseProfileName $DatabaseProfileName
@@ -1271,15 +1271,18 @@ function Remove-KeePassGroup
         }
         $KeePassGroupObject = Get-KPGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroupFullPath | Where-Object { $_.CreationTime -eq $KeePassGroup.CreationTime}
         
+        if(-not $KeePassGroupObject)
+        {
+            Write-Warning -Message "[PROCESS] The Specified KeePass Group does not exist."
+            Throw "The Specified KeePass Group does not exist."
+        }
+
         if($KeePassGroupObject.Count -gt 1)
         {
             Write-Warning -Message "[PROCESS] Found more than one group with the same path, name and creation time. Stoping Removal."
             Write-Warning -Message "[PROCESS] Found: $($KeePassGroupObject.Count) number of matching groups."
-            Break
+            Throw "Found more than one group with the same path, name and creation time. Stoping Removal."
         }
-
-        ## Not sure why this is here...
-        # $KPGroup=Get-KpGroup -KeePassConnection $KeePassConnectionObject 
 
         if($Force -or $PSCmdlet.ShouldProcess($KeePassGroupFullPath))
         {
