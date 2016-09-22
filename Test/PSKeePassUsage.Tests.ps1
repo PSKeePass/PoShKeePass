@@ -269,6 +269,39 @@ InModuleScope "PSKeePass" {
         }
     }
 
+    Describe "Get-KeePassDatabaseConfiguration - UnitTest" -Tag UnitTest {
+        New-KPConfigurationFile -Force
+
+        Context "Example 1: Get a KeePass Database Configuration Profile" {
+
+            It "Example 1.1: Get Database Configuration Profile - Valid - By Name" {
+                New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount | Should Be $null
+
+                $DatabaseConfiguration = Get-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile'
+
+                $DatabaseConfiguration.Name | Should Be 'SampleProfile'
+                $DatabaseConfiguration.DatabasePath | Should Be "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx"
+                $DatabaseConfiguration.KeyPath | Should Be ''
+                $DatabaseConfiguration.UseNetworkAccount | Should Be 'True'
+                $DatabaseConfiguration.UseMasterKey | Should Be 'False'
+                $DatabaseConfiguration.AuthenticationType | Should Be 'Network'
+            }
+
+            It "Example 1.2: Get Database Configuration Profile - Valid - All" {
+                $DatabaseConfiguration = Get-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile'
+
+                $DatabaseConfiguration.Name | Should Be 'SampleProfile'
+                $DatabaseConfiguration.DatabasePath | Should Be "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx"
+                $DatabaseConfiguration.KeyPath | Should Be ''
+                $DatabaseConfiguration.UseNetworkAccount | Should Be 'True'
+                $DatabaseConfiguration.UseMasterKey | Should Be 'False'
+                $DatabaseConfiguration.AuthenticationType | Should Be 'Network'
+            }
+        }
+
+        New-KPConfigurationFile -Force
+    }
+
     <#
     Describe "Get-KPGroup - UnitTest" -Tag UnitTest {
         $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.key"
