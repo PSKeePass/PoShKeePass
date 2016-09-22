@@ -1519,12 +1519,6 @@ function New-KeePassPassword
                 $PassProfile.NoRepeatingCharacters = $NewProfileObject.NoRepeatingCharacters
                 $PassProfile.ExcludeCharacters = $NewProfileObject.ExcludeCharacters
                 $PassProfile.Length = $NewProfileObject.Length
-                
-                if($SaveAs)
-                {
-                    $NewProfileObject.ProfileName = $SaveAs
-                    New-KPPasswordProfile -KeePassPasswordObject $NewProfileObject
-                }
             }
         }
         elseif($PSCmdlet.ParameterSetName -eq 'Profile')
@@ -1556,9 +1550,18 @@ function New-KeePassPassword
                 {
                     Write-Warning -Message "[PROCESS] Checked for the invalid specification. `n`tSpecified Length: $($PassProfile.Length). `n`tCharacterSet Count: $($PassProfile.CharSet.Size). `n`tNo Repeating Characters is set to: $($PassProfile.NoRepeatingCharacters). `n`tExclude Character Count: $ExcludeCharacterCount."
                     Write-Warning -Message "[PROCESS] Specify More characters, shorten the length, remove the no repeating characters option, or removed excluded characters."
-                    break
                 }
             }
+
+            Throw 'Unabled to generate a password with the specified options.'
+        }
+        else
+        {
+            if($SaveAs)
+            {
+                $NewProfileObject.ProfileName = $SaveAs
+                New-KPPasswordProfile -KeePassPasswordObject $NewProfileObject
+            }    
         }
         try
         {
