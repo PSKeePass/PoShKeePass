@@ -605,7 +605,7 @@ function Remove-KeePassEntry
         {
             Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles."
             Write-Warning -Message "[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function."
-            break
+            Throw 'There are Currently No Database Configuration Profiles.'
         }
 
         $DatabaseProfileObject = Get-KeePassDatabaseConfiguration -DatabaseProfileName $DatabaseProfileName
@@ -644,6 +644,11 @@ function Remove-KeePassEntry
     process
     {
         $KPEntry=Get-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassUuid $KeePassEntry.Uuid
+        if(-not $KPEntry)
+        {
+            Write-Warning -Message "[PROCESS] The Specified KeePass Entry does not exist or cannot be found."
+            Throw "he Specified KeePass Entry does not exist or cannot be found."
+        }
         $EntryDisplayName = "$($KPEntry.ParentGroup.GetFullPath('/',$true))/$($KPEntry.Strings.ReadSafe('Title'))"
         if($Force -or $PSCmdlet.ShouldProcess($EntryDisplayName))
         {
@@ -2941,7 +2946,20 @@ function Remove-KPEntry
             break
         }
 
-        $RecycleBin = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath "$($KeePassConnection.RootGroup.Name)/Recycle Bin"
+        if($KeePassConnection.RecycleBinEnabled)
+        {
+            $RecycleBin = $KeePassConnection.RootGroup.FindGroup($KeePassConnection.RecycleBinUuid, $true)
+            if(-not $RecycleBin)
+            {
+                $RecycleBin = New-Object -TypeName KeePassLib.PwGroup($true,$true,'RecycleBin',43)
+                $RecycleBin.EnableAutoType = $false
+                $RecycleBin.EnableSearching = $false
+                $KeePassConnection.RootGroup.AddGroup($RecycleBin,$true)
+                $KeePassConnection.RecycleBinUuid = $RecycleBin.Uuid
+                $KeePassConnection.Save($null)
+                $RecycleBin = $KeePassConnection.RootGroup.FindGroup($KeePassConnection.RecycleBinUuid, $true)
+            }
+        }
         $EntryDisplayName = "$($KeePassEntry.ParentGroup.GetFullPath('/', $true))/$($KeePassEntry.Strings.ReadSafe('Title'))"
     }
     process
@@ -3395,7 +3413,20 @@ function Remove-KPGroup
             break
         }
 
-        $RecycleBin = Get-KPGroup -KeePassConnection $KeePassConnection -FullPath "$($KeePassConnection.RootGroup.Name)/Recycle Bin"
+        if($KeePassConnection.RecycleBinEnabled)
+        {
+            $RecycleBin = $KeePassConnection.RootGroup.FindGroup($KeePassConnection.RecycleBinUuid, $true)
+            if(-not $RecycleBin)
+            {
+                $RecycleBin = New-Object -TypeName KeePassLib.PwGroup($true,$true,'RecycleBin',43)
+                $RecycleBin.EnableAutoType = $false
+                $RecycleBin.EnableSearching = $false
+                $KeePassConnection.RootGroup.AddGroup($RecycleBin,$true)
+                $KeePassConnection.RecycleBinUuid = $RecycleBin.Uuid
+                $KeePassConnection.Save($null)
+                $RecycleBin = $KeePassConnection.RootGroup.FindGroup($KeePassConnection.RecycleBinUuid, $true)
+            }
+        }
     }
     process
     {
