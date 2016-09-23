@@ -876,4 +876,10 @@ InModuleScope "PSKeePass" {
 
         New-KPConfigurationFile -Force
     }
+
+    ## Reset Test DB
+    Remove-Item -Path "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -Force
+    Copy-Item -Path "$($PSScriptRoot)\Includes\Backup\PSKeePassTestDatabase.kdbx" -Destination "$($PSScriptRoot)\Includes\"
 }
+
+Invoke-Expression -Command "$($PSScriptRoot)\..\bin\AutoVersion.ps1" 
