@@ -1,5 +1,5 @@
 # PowerShell KeePass
-PSKeePass is a PowerShell module that combines the ease of the PowerShell cli and the flexibility of its scripting languange to provide a powerful and easy to use management and automating platform for KeePass databases.
+PSKeePass is a PowerShell module that combines the ease of the PowerShell cli and the extensibility of the KeePassLib API to provide  a powerful and easy to use management and automating platform for KeePass databases.
 
 ## Features
 1. Database Configuration Profiles - Supports mutliple databases and authentication options.
