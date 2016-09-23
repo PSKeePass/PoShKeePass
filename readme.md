@@ -19,7 +19,8 @@ Latest Changes will be listed here. Please review the [changelog document](https
 See the [Known-Issue](https://github.com/PSKeePass/PSKeePass/issues?q=is%3Aissue+is%3Aopen+label%3AKnown-Issue) tag to get a list of known issues and their status.
 
 ## Contributing
-If you re insterested in fixing issues and contributing directly to the code base, please see the documentation on [How to Contribute](https://github.com/PSKeePass/PSKeePass/blob/master/CONTRIBUTE.md).
+* If you are insterested in fixing issues and contributing directly to the code base, please see the documentation on [How to Contribute](https://github.com/PSKeePass/PSKeePass/blob/master/CONTRIBUTE.md).
+* If you come across a bug or have a feature request feel free to create an issue with the appropriate label.
 
 ## Shout-Outs
 PSKeePass would like to thank [Jason Fossen](https://github.com/JasonFossen) for his [initial work](https://cyber-defense.sans.org/blog/2015/08/13/powershell-for-keepass-sample-script) with KeePass in PowerShell.
