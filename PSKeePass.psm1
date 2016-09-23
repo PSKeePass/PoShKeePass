@@ -3722,6 +3722,7 @@ Export-ModuleMember -Function ConvertTo-KPPSObject
 
 if (-not(Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml))
 {
+    Write-Warning -Message "**IMPORTANT NOTE:** Please always keep an up-to-date backup of your keepass database files and key files if used."
     Write-Warning -Message "This message will not show again on next import."
     New-KPConfigurationFile
 }
