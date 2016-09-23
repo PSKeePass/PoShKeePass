@@ -7,6 +7,10 @@ Please check out our [Getting Started](https://github.com/PSKeePass/PSKeePass/wi
 ## Important Notes & Reminders
 1. Please always backup your KeePass database.
 
+## Changelog
+Latest Changes will be listed here. Please review the [changelog document](https://github.com/PSKeePass/PSKeePass/blob/master/CHANGELOG.md) for a full history.
+
+
 ## Contributing
 If you re insterested in fixing issues and contributing directly to the code base, please see the documentation on [How to Contribute](https://github.com/PSKeePass/PSKeePass/blob/master/CONTRIBUTE.md).
 
