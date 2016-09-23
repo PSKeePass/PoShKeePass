@@ -1,5 +1,5 @@
 # PowerShell KeePass
-PSKeePass is a PowerShell module that combines the ease of the PowerShell cli and the extensibility of the KeePassLib API to provide a powerful and easy to use management and automating platform for KeePass databases.
+PSKeePass is a PowerShell module that combines the ease of the PowerShell cli and the extensibility of the [KeePassLib API](http://keepass.info/help/v2/setup.html) to provide a powerful and easy to use management and automating platform for [KeePass](http://keepass.info/) databases.
 
 ## Features
 1. **Database Configuration Profiles** - Supports mutliple databases and authentication options.
@@ -11,6 +11,9 @@ Please check out our [Getting Started](https://github.com/PSKeePass/PSKeePass/wi
 
 ## Important Notes & Reminders
 1. Please always keep up to date **backups** of your KeePass database files .kdbx and .key files.
+2. The module uses the KeePassLib 2.3.x which is embedded in the module file.
+3. This module was built and tested in PowerShell 5 on Windows 10 but should work in PowerShell 4 and Windows 8.1 and Server 2012 R2 and up. It may work in some earlier version but is currently untested and not supported. If you come across issues create an issue and I will look into fixing it or created a pull request.
+4. There is an underlying framework that I wrote into the module to make all of the api calls that I will eventually expose for advanced scripting.
 
 ## Changelog
 Latest Changes will be listed here. Please review the [changelog document](https://github.com/PSKeePass/PSKeePass/blob/master/CHANGELOG.md) for a full history.
