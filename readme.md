@@ -16,13 +16,13 @@ Please check out our [Getting Started](https://github.com/PSKeePass/PSKeePass/wi
 4. There is an underlying framework that I wrote into the module to make all of the api calls that I will eventually expose for advanced scripting.
 
 ## Changelog
-Latest Changes will be listed here. Please review the [changelog document](https://github.com/PSKeePass/PSKeePass/blob/master/CHANGELOG.md) for a full history.
+Latest Changes will be listed here. Please review the [changelog document](https://github.com/PSKeePass/PSKeePass/blob/master/changelog.md) for a full history.
 
 ## Known Issues
 See the [Known-Issue](https://github.com/PSKeePass/PSKeePass/issues?q=is%3Aissue+is%3Aopen+label%3AKnown-Issue) tag to get a list of known issues and their status.
 
 ## Contributing
-* If you are insterested in fixing issues and contributing directly to the code base, please see the documentation on [How to Contribute](https://github.com/PSKeePass/PSKeePass/blob/master/CONTRIBUTE.md).
+* If you are insterested in fixing issues and contributing directly to the code base, please see the documentation on [How to Contribute](https://github.com/PSKeePass/PSKeePass/blob/master/contribute.md).
 * If you come across a bug or have a feature request feel free to create an issue with the appropriate label.
 
 ## Shout-Outs
@@ -31,4 +31,4 @@ PSKeePass would like to thank [Jason Fossen](https://github.com/JasonFossen) for
 ## License
 Copyright (c) [John Klann](https://github.com/jkdba), [Christian Lehrer](https://github.com/chritea). All rights reserved.
 
-Licensed under the [MIT](https://github.com/PSKeePass/PSKeePass/blob/master/LICENSE) License.
+Licensed under the [MIT](https://github.com/PSKeePass/PSKeePass/blob/master/license) License.
