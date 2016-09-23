@@ -10,6 +10,8 @@ Please check out our [Getting Started](https://github.com/PSKeePass/PSKeePass/wi
 ## Changelog
 Latest Changes will be listed here. Please review the [changelog document](https://github.com/PSKeePass/PSKeePass/blob/master/CHANGELOG.md) for a full history.
 
+## Known Issues
+See the [Known-Issue](https://github.com/PSKeePass/PSKeePass/issues?q=is%3Aissue+is%3Aopen+label%3AKnown-Issue) tag to get a list of known issues and there status.
 
 ## Contributing
 If you re insterested in fixing issues and contributing directly to the code base, please see the documentation on [How to Contribute](https://github.com/PSKeePass/PSKeePass/blob/master/CONTRIBUTE.md).
