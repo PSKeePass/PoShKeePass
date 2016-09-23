@@ -12,7 +12,7 @@ Please check out our [Getting Started](https://github.com/PSKeePass/PSKeePass/wi
 ## Important Notes & Reminders
 1. Please always keep up to date **backups** of your KeePass database files .kdbx and .key files.
 2. The module uses the KeePassLib 2.3.x which is embedded in the module file.
-3. This module was built and tested in PowerShell 5 on Windows 10 but should work in PowerShell 4 and Windows 8.1 and Server 2012 R2 and up. It may work in some earlier version but is currently untested and not supported. If you come across issues create an issue and I will look into fixing it or created a pull request.
+3. This module was built and tested in PowerShell 5 on Windows 10 but should work in PowerShell 4 and Windows 8.1 and Server 2012 R2 and up. It may work in some earlier versions but is currently untested and not supported. If you come across issues create an issue and I will look into fixing it or create a pull request.
 4. There is an underlying framework that I wrote into the module to make all of the api calls that I will eventually expose for advanced scripting.
 
 ## Changelog
