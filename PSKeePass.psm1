@@ -3563,6 +3563,7 @@ function ConvertTo-KPPSObject
         {
             foreach ($_keepassItem in $KeePassEntry)
             {
+                ## Build Object
                 $KeePassPsObject = New-Object -TypeName PSObject
                 $KeePassPsObject | Add-Member -Name 'Uuid' -MemberType NoteProperty -Value $_keepassItem.Uuid
                 $KeePassPsObject | Add-Member -Name 'CreationTime' -MemberType NoteProperty -Value $_keepassItem.CreationTime
@@ -3581,6 +3582,16 @@ function ConvertTo-KPPSObject
                 $KeePassPsObject | Add-Member -Name 'Password' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe("Password")
                 $KeePassPsObject | Add-Member -Name 'URL' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe("URL")
                 $KeePassPsObject | Add-Member -Name 'Notes' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe("Notes")
+
+                ## Custom Object Formatting and Type
+                $KeePassPsObject.PSObject.TypeNames.Insert(0,'PSKeePass.Entry')
+                $PSKeePassEntryDisplaySet = 'Title','UserName','Password','FullPath'
+                $PSKeePassEntryDefaultPropertySet = New-Object -TypeName System.Management.Automation.PSPropertySet('DefaultDisplayPropertySet',[String[]] $PSKeePassEntryDisplaySet)
+                $PSKeePassEntryStandardMembers = [System.Management.Automation.PSMemberInfo[]] @($PSKeePassEntryDefaultPropertySet)
+
+                $KeePassPsObject | Add-Member MemberSet PSStandardMembers $PSKeePassEntryStandardMembers
+
+                ## Return Object
                 $KeePassPsObject
             }
         }
@@ -3610,6 +3621,15 @@ function ConvertTo-KPPSObject
                 $KeePassPsObject | Add-Member -Name 'ParentGroup' -MemberType NoteProperty -Value $_keepassItem.ParentGroup.Name
                 $KeePassPsObject | Add-Member -Name 'FullPath' -MemberType NoteProperty -Value $FullPath
                 $KeePassPsObject | Add-Member -Name 'Groups' -MemberType NoteProperty -Value $_keepassItem.Groups
+                $KeePassPsObject | Add-Member -Name 'EntryCount' -MemberType NoteProperty -Value $_keepassItem.Enties.Count
+
+                $KeePassPsObject.PSObject.TypeNames.Insert(0,'PSKeePass.Group')
+                $PSKeePassGroupDisplaySet = 'Name','EntryCount','FullPath'
+                $PSKeePassGroupDefaultPropertySet = New-Object -TypeName System.Management.Automation.PSPropertySet('DefaultDisplayPropertySet',[String[]] $PSKeePassGroupDisplaySet)
+                $PSKeePassGroupStandardMembers = [System.Management.Automation.PSMemberInfo[]] @($PSKeePassGroupDefaultPropertySet)
+
+                $KeePassPsObject | Add-Member MemberSet PSStandardMembers $PSKeePassGroupStandardMembers
+
                 $KeePassPsObject
             }
         }
@@ -3680,6 +3700,7 @@ Export-ModuleMember -Function Remove-KeePassGroup
 Export-ModuleMember -Function New-KeePassPassword
 Export-ModuleMember -Function New-KeePassDatabaseConfiguration
 Export-ModuleMember -Function Get-KeePassDatabaseConfiguration
+Export-ModuleMember -Function Remove-KeePassDatabaseConfiguration
 # Export-ModuleMember -Function New-KPConfigurationFile
 # Export-ModuleMember -Function New-KPPasswordProfile
 # Export-ModuleMember -Function Get-KPPasswordProfile
@@ -3698,3 +3719,10 @@ Export-ModuleMember -Function Get-KeePassDatabaseConfiguration
 # Export-ModuleMember -Function ConvertFrom-KPProtectedString
 Export-ModuleMember -Function ConvertTo-KPPSObject
 # Export-ModuleMember -Function Import-KPLibrary
+
+if (-not(Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml))
+{
+    Write-Warning -Message "**IMPORTANT NOTE:** Please always keep an up-to-date backup of your keepass database files and key files if used."
+    Write-Warning -Message "This message will not show again on next import."
+    New-KPConfigurationFile
+}
