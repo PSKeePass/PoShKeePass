@@ -10,7 +10,7 @@ PSKeePass is a PowerShell module that combines the ease of the PowerShell cli an
 Please check out our [Getting Started](https://github.com/PSKeePass/PSKeePass/wiki/Getting-Started) documentation on our [wiki](https://github.com/PSKeePass/PSKeePass/wiki).
 
 ## Important Notes & Reminders
-1. Please always keep up to date **backups** your KeePass database files .kdbx and .key files.
+1. Please always keep up to date **backups** of your KeePass database files .kdbx and .key files.
 
 ## Changelog
 Latest Changes will be listed here. Please review the [changelog document](https://github.com/PSKeePass/PSKeePass/blob/master/CHANGELOG.md) for a full history.
