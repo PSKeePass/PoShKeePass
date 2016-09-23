@@ -2,9 +2,9 @@
 PSKeePass is a PowerShell module that combines the ease of the PowerShell cli and the extensibility of the KeePassLib API to provide a powerful and easy to use management and automating platform for KeePass databases.
 
 ## Features
-1. Database Configuration Profiles - Supports mutliple databases and authentication options.
-2. Getting, Creating, Updating, and Removing KeePass Entries and Groups. - All of these perform as much automatic database authentication as possible using the database configuration profile. For databases that use a masterkey (password) it will prompt for it.
-3. Generating KeePass Passwords - Supports most character sets and advanced keepass options. Also supports creating password profiles that can be specified to create a new password with the same rule set.
+1. **Database Configuration Profiles** - Supports mutliple databases and authentication options.
+2. **Getting, Creating, Updating, and Removing KeePass Entries and Groups** - All of these perform as much automatic database authentication as possible using the database configuration profile. For databases that use a masterkey (password) it will prompt for it.
+3. **Generating KeePass Passwords** - Supports most character sets and advanced keepass options. Also supports creating password profiles that can be specified to create a new password with the same rule set.
 
 ## Getting Started
 Please check out our [Getting Started](https://github.com/PSKeePass/PSKeePass/wiki/Getting-Started) documentation on our [wiki](https://github.com/PSKeePass/PSKeePass/wiki).
