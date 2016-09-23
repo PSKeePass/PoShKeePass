@@ -8,5 +8,5 @@ If you re insterested in fixing issues and contributing directly to the code bas
 PSKeePass would like to thank [Jason Fossen](https://github.com/JasonFossen) for his [initial work](https://cyber-defense.sans.org/blog/2015/08/13/powershell-for-keepass-sample-script) with KeePass in PowerShell.
 
 ## License
-Copyright (c) John Klann, Christian Leher. All rights reserved.
+Copyright (c) John Klann, Christian Lehrer. All rights reserved.
 Licensed under the MIT License.
