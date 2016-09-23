@@ -9,4 +9,5 @@ PSKeePass would like to thank [Jason Fossen](https://github.com/JasonFossen) for
 
 ## License
 Copyright (c) John Klann, Christian Lehrer. All rights reserved.
-Licensed under the MIT License.
+
+Licensed under the [MIT](https://github.com/PSKeePass/PSKeePass/blob/master/LICENSE) License.
