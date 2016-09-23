@@ -3719,3 +3719,9 @@ Export-ModuleMember -Function Remove-KeePassDatabaseConfiguration
 # Export-ModuleMember -Function ConvertFrom-KPProtectedString
 Export-ModuleMember -Function ConvertTo-KPPSObject
 # Export-ModuleMember -Function Import-KPLibrary
+
+if (-not(Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml))
+{
+    Write-Warning -Message "This message will not show again on next import."
+    New-KPConfigurationFile
+}
