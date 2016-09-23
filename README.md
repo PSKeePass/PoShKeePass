@@ -1,38 +1,12 @@
-﻿# PSKeePass
-PowerShell module for KeePass.
-
-This module was inspired by Jason Fossen at [Sans.org](https://cyber-defense.sans.org/blog/2015/08/13/powershell-for-keepass-sample-script)
-
-It´s intent is to make the usage of KeePass (www.keepass.info) as a credential database inside PowerShell scripts as easy
-as possible. Please be aware that you should use SecureStrngs, PSCredential objects and Event-Log encryption to keep you secrets save.
-More info at:
-- Protected Eventlog at https://blogs.msdn.microsoft.com/powershell/2015/06/09/powershell-the-blue-team/
-- https://blogs.msdn.microsoft.com/powershell/2013/12/16/powershell-security-best-practices/
-
-The module contains the following Cmdlets:
-
-1. Set-KeePassConfiguration
-2. Get-KeePassConfiguration
-3. Get-KeePassEntry
-4. Set-KeePassEntry
-5. New-KeePassEntry
-6. Get-KeePassLibrary
-7. Get-KeePassCredential
-8. Get-KeePassConnection
-9. Remove-KeePassConnection
-10. Get-KeePassEntryBase
-11. Add-KeePassEntry
-12. Get-KeePassGroup
-13. Add-KeePassGroup
-14. Get-KeePassPassword
-15. ConvertFrom-KeePassProtectedString
-16. ConvertTo-KeePassPSObject
-
-The module currently has no suffisticated error-handling!
-
-PSKeePass is tested and running with the followig KeePassLib versions:
-
-KeePass 2.3.x
+# PowerShell KeePass
+PSKeePass is a PowerShell module that combines the ease of the PowerShell cli and the flexibility of its scripting languange to provide a powerful and easy to use management and automating platform for KeePass databases.
 
 ## Contributing
-If you would like to contribute please review the CONTRIBUTE.md file.
+If you re insterested in fixing issues and contributing directly to the code base, please see the documentation on How to Contribute.
+
+## Shout Outs
+PSKeePass would like to thank [Jason Fossen](https://github.com/JasonFossen) for his [initial work](https://cyber-defense.sans.org/blog/2015/08/13/powershell-for-keepass-sample-script) with KeePass in PowerShell.
+
+## License
+Copyright (c) John Klann, Christian Leher. All rights reserved.
+Licensed under the MIT License.
