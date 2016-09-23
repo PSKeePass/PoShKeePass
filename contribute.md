@@ -8,7 +8,9 @@
 4. Keep comments up to date.
 5. Create issues for any code corrections or additions on the dev branch, fork then pull.
 6. Use Allman Style indentation or at least be consistent with your style.
-7. Ask questions via issues.
+7. Run Pester Tests to verify your changes.
+8. Create Pester Tests for new scenerios and functionality.
+9. Ask questions via issues.
 
 ## Needs Help
 
