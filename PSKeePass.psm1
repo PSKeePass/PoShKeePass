@@ -27,6 +27,10 @@
             Specify the URL of the new KeePass Database Entry.
         .PARAMETER PassThru
             Specify to return the newly created keepass database entry.
+        .PARAMETER MasterKey
+            Specify a SecureString MasterKey if necessary to authenticat a keepass databse.
+            If not provided and the database requires one you will be prompted for it. 
+            This parameter was created with scripting in mind.
         .EXAMPLE
             PS> New-KeePassEntry -DatabaseProfileName TEST -KeePassEntryGroupPath 'General/TestAccounts' -Title 'Test Title' -UserName 'Domain\svcAccount' -KeePassPassword $(New-KeePassPassword -upper -lower -digits -length 20)
 
@@ -131,6 +135,10 @@ function Get-KeePassEntry
             *This Parameter is required in order to access your KeePass database.
             *This is a Dynamic Parameter that is populated from the KeePassConfiguration.xml. 
                 *You can generated this file by running the New-KeePassDatabaseConfiguration function.
+        .PARAMETER MasterKey
+            Specify a SecureString MasterKey if necessary to authenticat a keepass databse.
+            If not provided and the database requires one you will be prompted for it. 
+            This parameter was created with scripting in mind.                
         .EXAMPLE
             PS> Get-KeePassEntry -DatabaseProfileName TEST -AsPlainText
 
@@ -234,18 +242,22 @@ function Update-KeePassEntry
             Specify to return the modified object.
         .PARAMETER Force
             Specify to Update the specified entry without confirmation.
+        .PARAMETER MasterKey
+            Specify a SecureString MasterKey if necessary to authenticat a keepass databse.
+            If not provided and the database requires one you will be prompted for it. 
+            This parameter was created with scripting in mind.
         .EXAMPLE
-            PS> New-KeePassEntry -DatabaseProfileName TEST -KeePassEntryGroupPath 'General/TestAccounts' -Title 'Test Title' -UserName 'Domain\svcAccount' -KeePassPassword $(New-KeePassPassword -upper -lower -digits -length 20)
+            PS> Update-KeePassEntry -KeePassEntry $KeePassEntryObject -DatabaseProfileName TEST -KeePassEntryGroupPath 'General/TestAccounts' -Title 'Test Title' -UserName 'Domain\svcAccount' -KeePassPassword $(New-KeePassPassword -upper -lower -digits -length 20)
 
-            This example creates a new keepass database entry in the General/TestAccounts database group, with the specified Title and UserName. Also the function New-KeePassPassword is used to generated a random password with the specified options.
+            This example updates a keepass database entry in the General/TestAccounts database group, with the specified Title and UserName. Also the function New-KeePassPassword is used to generated a random password with the specified options.
         .EXAMPLE
-            PS> New-KeePassEntry -DatabaseProfileName TEST -KeePassEntryGroupPath 'General/TestAccounts' -Title 'Test Title' -UserName 'Domain\svcAccount' -KeePassPassword $(New-KeePassPassword -PasswordProfileName 'Default' )
+            PS> Update-KeePassEntry -KeePassEntry $KeePassEntryObject -DatabaseProfileName TEST -KeePassEntryGroupPath 'General/TestAccounts' -Title 'Test Title' -UserName 'Domain\svcAccount' -KeePassPassword $(New-KeePassPassword -PasswordProfileName 'Default' )
 
-            This example creates a new keepass database entry in the General/TestAccounts database group, with the specified Title and UserName. Also the function New-KeePassPassword with a password profile specifed to create a new password genereated from options saved to a profile.
+            This example updates a keepass database entry in the General/TestAccounts database group, with the specified Title and UserName. Also the function New-KeePassPassword with a password profile specifed to create a new password genereated from options saved to a profile.
         .EXAMPLE
-            PS> New-KeePassEntry -DatabaseProfileName TEST -Title 'Test Title' -UserName 'Domain\svcAccount' -KeePassPassword $(ConvertTo-SecureString -String 'apassword' -AsPlainText -Force)
+            PS> Update-KeePassEntry -KeePassEntry $KeePassEntryObject -DatabaseProfileName TEST -Title 'Test Title' -UserName 'Domain\svcAccount' -KeePassPassword $(ConvertTo-SecureString -String 'apassword' -AsPlainText -Force)
 
-            This example creates a new keepass database entry with the specified Title, UserName and manually specified password converted to a securestring. 
+            This example updates a keepass database entry with the specified Title, UserName and manually specified password converted to a securestring. 
         .INPUTS
             String
             SecureString
@@ -347,6 +359,10 @@ function Remove-KeePassEntry
             Specify this option to Permanently delete the entry and not recycle it.
         .PARAMETER Force
             Specify this option to forcefully delete the entry. 
+        .PARAMETER MasterKey
+            Specify a SecureString MasterKey if necessary to authenticat a keepass databse.
+            If not provided and the database requires one you will be prompted for it. 
+            This parameter was created with scripting in mind.
         .EXAMPLE
             PS> Remove-KeePassEntry -KeePassEntry $KeePassEntryObject
 
@@ -425,6 +441,10 @@ function New-KeePassGroup
             Specify the Name of the new KeePass Group.
         .PARAMETER PassThru
             Specify to return the new group object.
+        .PARAMETER MasterKey
+            Specify a SecureString MasterKey if necessary to authenticat a keepass databse.
+            If not provided and the database requires one you will be prompted for it. 
+            This parameter was created with scripting in mind.
         .EXAMPLE
             PS> New-KeePassGroup -DatabaseProfileName TEST -KeePassParentGroupPath 'General/TestAccounts' -KeePassGroupName 'TestGroup'
 
@@ -496,14 +516,18 @@ function Get-KeePassGroup
             *This Parameter is required in order to access your KeePass database.
             *This is a Dynamic Parameter that is populated from the KeePassConfiguration.xml. 
                 *You can generated this file by running the New-KeePassDatabaseConfiguration function.
+        .PARAMETER MasterKey
+            Specify a SecureString MasterKey if necessary to authenticat a keepass databse.
+            If not provided and the database requires one you will be prompted for it. 
+            This parameter was created with scripting in mind.
         .EXAMPLE
-            PS> Get-KeePassEntry -DatabaseProfileName TEST -AsPlainText
+            PS> Get-KeePassGroup -DatabaseProfileName TEST -AsPlainText
 
-            This Example will return all enties in plain text format from that keepass database that was saved to the config with the name TEST.
+            This Example will return all groups in plain text format from that keepass database that was saved to the config with the name TEST.
         .EXAMPLE
-            PS> Get-KeePassEntry -DatabaseProfileName TEST -KeePassEntryGroupPath 'General' -AsPlainText
+            PS> Get-KeePassGroup -DatabaseProfileName TEST -KeePassGroupPath 'General' -AsPlainText
 
-            This Example will return all entries in plain text format from the General folder of the keepass database with the profile name TEST.
+            This Example will return all groups in plain text format from the General folder of the keepass database with the profile name TEST.
         .INPUTS
             String
         .OUTPUTS
@@ -583,6 +607,10 @@ function Update-KeePassGroup
             Specify to return the updated keepass group object.
         .PARAMETER Force
             Specify to Update the specified group without confirmation.
+        .PARAMETER MasterKey
+            Specify a SecureString MasterKey if necessary to authenticat a keepass databse.
+            If not provided and the database requires one you will be prompted for it. 
+            This parameter was created with scripting in mind.
         .EXAMPLE
             PS> Update-KeePassGroup -DatabaseProfileName TEST -KeePassGroup $KeePassGroupObject -KeePassParentGroupPath 'General/TestAccounts'
 
@@ -700,6 +728,10 @@ function Remove-KeePassGroup
             Specify this option to Permanently delete the Group and not recycle it.
         .PARAMETER Force
             Specify this option to forcefully delete the Group. 
+        .PARAMETER MasterKey
+            Specify a SecureString MasterKey if necessary to authenticat a keepass databse.
+            If not provided and the database requires one you will be prompted for it. 
+            This parameter was created with scripting in mind.
         .EXAMPLE
             PS> Remove-KeePassGroup -KeePassGroup $KeePassGroupObject
 
