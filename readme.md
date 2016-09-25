@@ -18,7 +18,7 @@ Please check out our [Getting Started](https://github.com/PSKeePass/PSKeePass/wi
 ## Changelog
 Please review the [changelog document](https://github.com/PSKeePass/PSKeePass/blob/master/changelog.md) for a full history.
 
-### Changelog PSKeePass v2.0.2.0
+### Changelog PSKeePass v2.0.2.1
 
 #### Added Dynamic Parameter MasterKey
 Added optional Parameter `-MasterKey` to core functions.
