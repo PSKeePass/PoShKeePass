@@ -188,10 +188,11 @@ InModuleScope "PSKeePass" {
                 $DatabaseConfiguration.Name | Should Be 'KeyFileTestPassThru'
                 $DatabaseConfiguration.DatabasePath | Should Be "$($PSScriptRoot)\Includes\AuthenticationDatabases\KeyFile.kdbx"
                 $DatabaseConfiguration.KeyPath | Should Be "$($PSScriptRoot)\Includes\AuthenticationDatabases\KeyFile.key"
-                $DatabaseConfiguration.UseNetworkAccount | Should Be 'False'
-                $DatabaseConfiguration.UseMasterKey | Should Be 'False'
+                $DatabaseConfiguration.UseNetworkAccount | Should Be $false
+                $DatabaseConfiguration.UseMasterKey | Should Be $false
                 $DatabaseConfiguration.AuthenticationType | Should Be 'Key'
             }
+            break
         }
 
         Context "Example 2: Create a new KeePass Database Configuration Profile - MasterKey" {
