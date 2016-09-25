@@ -4,3 +4,5 @@ Installers/KeePassLib_Encoded.txt
 Test/recycle.log
 KeePassConfiguration.xml
 Test/Includes/MasterKeyWindowsAuth.kdbx
+Test/Includes/NoRecycle.kdbx
+KeePassConfiguration.xml.old
