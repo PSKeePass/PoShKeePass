@@ -154,10 +154,10 @@ function Get-KeePassEntry
     #>
     param
     (
-        [Parameter(Position = 0 ,Mandatory = $false)]
+        [Parameter(Position = 0, Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [String] $KeePassEntryGroupPath,
-        [Parameter(Position = 1 ,Mandatory = $false)]
+        [Parameter(Position = 1, Mandatory = $false)]
         [Switch] $AsPlainText
     )
     dynamicparam
@@ -1294,10 +1294,7 @@ function Get-KeePassDatabaseConfiguration
     [CmdletBinding()]
     param
     (
-        [Parameter(
-            Position = 0,
-            Mandatory = $false
-        )]
+        [Parameter(Position = 0,Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [String] $DatabaseProfileName
     )
