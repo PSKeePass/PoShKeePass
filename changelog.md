@@ -8,6 +8,7 @@ This parameter was added to allow for easier scripting with databases that use a
 Previously if a masterkey password was used the updated functions would prompt the user of the masterkey after the funciton was called. This is still the behaviour if the masterkey is required but not specified.
 
 Functions Updated:
+
 1. `New-KeePassEntry`
 2. `New-KeePassGroup`
 3. `Get-KeePassEntry`
