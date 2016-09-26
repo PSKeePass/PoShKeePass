@@ -1,5 +1,5 @@
 Get-Module PoShKeePass | Remove-Module
-Import-Module "$PSScriptRoot\..\PoShKeePass.psm1" -ErrorAction Stop
+Import-Module "$PSScriptRoot\..\PoShKeePass.psm1" -force -ErrorAction Stop
 
 InModuleScope "PoShKeePass" {
 
