@@ -7,6 +7,13 @@ PoShKeePass is a PowerShell module that combines the ease of the PowerShell cli 
 3. **Generating KeePass Passwords** - Supports most character sets and advanced keepass options. Also supports creating password profiles that can be specified to create a new password with the same rule set.
 
 ## Getting Started
+
+### Install
+```powershell
+Install-Module -Name PoShKeePass
+```
+
+### Documentation
 Please check out our [Getting Started](https://github.com/PSKeePass/PoShKeePass/wiki/Getting-Started) documentation on our [wiki](https://github.com/PSKeePass/PoShKeePass/wiki).
 
 ## Important Notes & Reminders
