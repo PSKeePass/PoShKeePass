@@ -20,3 +20,7 @@ If you would like to contribute it would be great if you could focus on:
 2. Module Help and Documentation
 3. Pester Tests
 4. Any Features you wish to add.
+
+## Working with the KeePassLib
+
+Check out this auto generated doc at [fossies](http://fossies.org/dox/KeePass-2.34-Source/index.html).
