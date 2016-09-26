@@ -1,7 +1,7 @@
-Get-Module PSKeePass | Remove-Module
-Import-Module "$PSScriptRoot\..\PSKeePass.psm1" -ErrorAction Stop
+Get-Module PoShKeePass | Remove-Module
+Import-Module "$PSScriptRoot\..\PoShKeePass.psm1" -force -ErrorAction Stop
 
-InModuleScope "PSKeePass" {
+InModuleScope "PoShKeePass" {
 
     Import-KPLibrary
 

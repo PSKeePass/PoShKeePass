@@ -84,12 +84,24 @@
     }
     begin
     {
-        $DatabaseProfileName = $PSBoundParameters['DatabaseProfileName']
-        $MasterKey = $PSBoundParameters['MasterKey']
-        ## Open the database
-        $KeePassConnectionObject = Invoke-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
-        ## remove any sensitive data
-        if($MasterKey){Remove-Variable -Name KeePassCredentialObject}
+        ## Get a list of all database profiles saved to the config xml.
+        $DatabaseProfileList =  (Get-KeePassDatabaseConfiguration).Name
+        ## If no profiles exists do not return the parameter.
+        if($DatabaseProfileList)
+        {
+            $DatabaseProfileName = $PSBoundParameters['DatabaseProfileName']
+            $MasterKey = $PSBoundParameters['MasterKey']
+            ## Open the database
+            $KeePassConnectionObject = Invoke-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
+            ## remove any sensitive data
+            if($MasterKey){Remove-Variable -Name KeePassCredentialObject}
+        }
+        else 
+        {
+            Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles."
+            Write-Warning -Message "[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function."
+            Throw 'There are Currently No Database Configuration Profiles.'
+        }
     }
     process
     {
@@ -166,12 +178,24 @@ function Get-KeePassEntry
     }
     begin
     {
-        $DatabaseProfileName = $PSBoundParameters['DatabaseProfileName']
-        $MasterKey = $PSBoundParameters['MasterKey']
-        ## Open the database
-        $KeePassConnectionObject = Invoke-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
-        ## remove any sensitive data
-        if($MasterKey){Remove-Variable -Name KeePassCredentialObject}
+        ## Get a list of all database profiles saved to the config xml.
+        $DatabaseProfileList =  (Get-KeePassDatabaseConfiguration).Name
+        ## If no profiles exists do not return the parameter.
+        if($DatabaseProfileList)
+        {
+            $DatabaseProfileName = $PSBoundParameters['DatabaseProfileName']
+            $MasterKey = $PSBoundParameters['MasterKey']
+            ## Open the database
+            $KeePassConnectionObject = Invoke-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
+            ## remove any sensitive data
+            if($MasterKey){Remove-Variable -Name KeePassCredentialObject}
+        }
+        else 
+        {
+            Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles."
+            Write-Warning -Message "[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function."
+            Throw 'There are Currently No Database Configuration Profiles.'
+        }
     }
     process
     {
@@ -309,12 +333,24 @@ function Update-KeePassEntry
     }
     begin
     {
-        $DatabaseProfileName = $PSBoundParameters['DatabaseProfileName']
-        $MasterKey = $PSBoundParameters['MasterKey']
-        ## Open the database
-        $KeePassConnectionObject = Invoke-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
-        ## remove any sensitive data
-        if($MasterKey){Remove-Variable -Name KeePassCredentialObject}
+        ## Get a list of all database profiles saved to the config xml.
+        $DatabaseProfileList =  (Get-KeePassDatabaseConfiguration).Name
+        ## If no profiles exists do not return the parameter.
+        if($DatabaseProfileList)
+        {
+            $DatabaseProfileName = $PSBoundParameters['DatabaseProfileName']
+            $MasterKey = $PSBoundParameters['MasterKey']
+            ## Open the database
+            $KeePassConnectionObject = Invoke-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
+            ## remove any sensitive data
+            if($MasterKey){Remove-Variable -Name KeePassCredentialObject}
+        }
+        else 
+        {
+            Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles."
+            Write-Warning -Message "[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function."
+            Throw 'There are Currently No Database Configuration Profiles.'
+        }
     }
     process
     {
@@ -385,12 +421,24 @@ function Remove-KeePassEntry
     }
     begin
     {
-        $DatabaseProfileName = $PSBoundParameters['DatabaseProfileName']
-        $MasterKey = $PSBoundParameters['MasterKey']
-        ## Open the database
-        $KeePassConnectionObject = Invoke-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
-        ## remove any sensitive data
-        if($MasterKey){Remove-Variable -Name KeePassCredentialObject}
+        ## Get a list of all database profiles saved to the config xml.
+        $DatabaseProfileList =  (Get-KeePassDatabaseConfiguration).Name
+        ## If no profiles exists do not return the parameter.
+        if($DatabaseProfileList)
+        {
+            $DatabaseProfileName = $PSBoundParameters['DatabaseProfileName']
+            $MasterKey = $PSBoundParameters['MasterKey']
+            ## Open the database
+            $KeePassConnectionObject = Invoke-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
+            ## remove any sensitive data
+            if($MasterKey){Remove-Variable -Name KeePassCredentialObject}
+        }
+        else 
+        {
+            Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles."
+            Write-Warning -Message "[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function."
+            Throw 'There are Currently No Database Configuration Profiles.'
+        }
     }
     process
     {
@@ -473,12 +521,24 @@ function New-KeePassGroup
     }
     begin
     {
-        $DatabaseProfileName = $PSBoundParameters['DatabaseProfileName']
-        $MasterKey = $PSBoundParameters['MasterKey']
-        ## Open the database
-        $KeePassConnectionObject = Invoke-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
-        ## remove any sensitive data
-        if($MasterKey){Remove-Variable -Name KeePassCredentialObject}
+        ## Get a list of all database profiles saved to the config xml.
+        $DatabaseProfileList =  (Get-KeePassDatabaseConfiguration).Name
+        ## If no profiles exists do not return the parameter.
+        if($DatabaseProfileList)
+        {
+            $DatabaseProfileName = $PSBoundParameters['DatabaseProfileName']
+            $MasterKey = $PSBoundParameters['MasterKey']
+            ## Open the database
+            $KeePassConnectionObject = Invoke-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
+            ## remove any sensitive data
+            if($MasterKey){Remove-Variable -Name KeePassCredentialObject}
+        }
+        else 
+        {
+            Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles."
+            Write-Warning -Message "[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function."
+            Throw 'There are Currently No Database Configuration Profiles.'
+        }
     }
     process
     {
@@ -547,12 +607,24 @@ function Get-KeePassGroup
     }
     begin
     {
-        $DatabaseProfileName = $PSBoundParameters['DatabaseProfileName']
-        $MasterKey = $PSBoundParameters['MasterKey']
-        ## Open the database
-        $KeePassConnectionObject = Invoke-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
-        ## remove any sensitive data
-        if($MasterKey){Remove-Variable -Name KeePassCredentialObject}
+        ## Get a list of all database profiles saved to the config xml.
+        $DatabaseProfileList =  (Get-KeePassDatabaseConfiguration).Name
+        ## If no profiles exists do not return the parameter.
+        if($DatabaseProfileList)
+        {
+            $DatabaseProfileName = $PSBoundParameters['DatabaseProfileName']
+            $MasterKey = $PSBoundParameters['MasterKey']
+            ## Open the database
+            $KeePassConnectionObject = Invoke-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
+            ## remove any sensitive data
+            if($MasterKey){Remove-Variable -Name KeePassCredentialObject}
+        }
+        else 
+        {
+            Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles."
+            Write-Warning -Message "[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function."
+            Throw 'There are Currently No Database Configuration Profiles.'
+        }
     }
     process
     {
@@ -656,12 +728,24 @@ function Update-KeePassGroup
     }
     begin
     {
-        $DatabaseProfileName = $PSBoundParameters['DatabaseProfileName']
-        $MasterKey = $PSBoundParameters['MasterKey']
-        ## Open the database
-        $KeePassConnectionObject = Invoke-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
-        ## remove any sensitive data
-        if($MasterKey){Remove-Variable -Name KeePassCredentialObject}
+        ## Get a list of all database profiles saved to the config xml.
+        $DatabaseProfileList =  (Get-KeePassDatabaseConfiguration).Name
+        ## If no profiles exists do not return the parameter.
+        if($DatabaseProfileList)
+        {
+            $DatabaseProfileName = $PSBoundParameters['DatabaseProfileName']
+            $MasterKey = $PSBoundParameters['MasterKey']
+            ## Open the database
+            $KeePassConnectionObject = Invoke-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
+            ## remove any sensitive data
+            if($MasterKey){Remove-Variable -Name KeePassCredentialObject}
+        }
+        else 
+        {
+            Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles."
+            Write-Warning -Message "[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function."
+            Throw 'There are Currently No Database Configuration Profiles.'
+        }
     }
     process
     {
@@ -754,12 +838,24 @@ function Remove-KeePassGroup
     }
     begin
     {
-        $DatabaseProfileName = $PSBoundParameters['DatabaseProfileName']
-        $MasterKey = $PSBoundParameters['MasterKey']
-        ## Open the database
-        $KeePassConnectionObject = Invoke-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
-        ## remove any sensitive data
-        if($MasterKey){Remove-Variable -Name KeePassCredentialObject}
+        ## Get a list of all database profiles saved to the config xml.
+        $DatabaseProfileList =  (Get-KeePassDatabaseConfiguration).Name
+        ## If no profiles exists do not return the parameter.
+        if($DatabaseProfileList)
+        {
+            $DatabaseProfileName = $PSBoundParameters['DatabaseProfileName']
+            $MasterKey = $PSBoundParameters['MasterKey']
+            ## Open the database
+            $KeePassConnectionObject = Invoke-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
+            ## remove any sensitive data
+            if($MasterKey){Remove-Variable -Name KeePassCredentialObject}
+        }
+        else 
+        {
+            Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles."
+            Write-Warning -Message "[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function."
+            Throw 'There are Currently No Database Configuration Profiles.'
+        }
     }
     process
     {
@@ -2048,7 +2144,7 @@ function Invoke-KPConnection
     {
         ## remove any sensitive data
         if($KeePassCredentialObject){Remove-Variable -Name KeePassCredentialObject}
-        if($MasterKey){Remove-Variable -Name KeePassCredentialObject}
+        if($MasterKey){Remove-Variable -Name MasterKey}
     }
 }
 
@@ -2112,12 +2208,6 @@ function Get-KPDynamicParameters
             $RuntimeParameterDictionary.Add($MasterKeyParameterName,$MasterKeyRuntimeParameter)
 
             return $RuntimeParameterDictionary
-        }
-        else 
-        {
-            Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles."
-            Write-Warning -Message "[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function."
-            Throw 'There are Currently No Database Configuration Profiles.'
         }
     }
 }
