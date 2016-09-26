@@ -1,5 +1,5 @@
 ## Get psd1 file
-$RawPSD = Get-Content -Path "$($PSScriptRoot)\..\PSKeePass.psd1"
+$RawPSD = Get-Content -Path "$($PSScriptRoot)\..\PoShKeePass.psd1"
 $ModuleVersion=($RawPSD | ? { $_ -match "^ModuleVersion.*$" }) -replace "^.*=\s|'"
 
 [Int[]] $VerArr = $ModuleVersion -split '\.'
@@ -33,4 +33,4 @@ for($i=$EntryPoint; $i -ge 0; $i--){
 
 Write-Verbose -Message "New Version: $NewModuleVersion"
 
-$RawPSD | % { $_ -replace "(?<=^ModuleVersion = ')\d+\.\d\.\d\.\d(?=')",$NewModuleVersion } | Out-File -FilePath  "$($PSScriptRoot)\..\PSKeePass.psd1" -Force
+$RawPSD | % { $_ -replace "(?<=^ModuleVersion = ')\d+\.\d\.\d\.\d(?=')",$NewModuleVersion } | Out-File -FilePath  "$($PSScriptRoot)\..\PoShKeePass.psd1" -Force
