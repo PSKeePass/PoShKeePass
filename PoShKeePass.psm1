@@ -20,7 +20,7 @@
         .PARAMETER KeePassPassword
             *Specify the KeePassPassword of the new KeePass Database Entry.
             *Notes:
-                *This Must be of the type SecureString
+                *This Must be of the type SecureString or KeePassLib.Security.ProtectedString
         .PARAMETER Notes
             Specify the Notes of the new KeePass Database Entry.
         .PARAMETER URL
@@ -65,7 +65,8 @@
 
         [Parameter(Position = 3,Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
-        [SecureString] $KeePassPassword,
+        [ValidateScript({$_.GetType().Name -eq 'ProtectedString' -or $_.GetType().Name -eq 'SecureString'})]
+        [PSObject] $KeePassPassword,
 
         [Parameter(Position = 4,Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
@@ -115,6 +116,7 @@
                 Write-Warning -Message "[PROCESS] The Specified KeePass Entry Group Path ($KeePassEntryGroupPath) does not exist."
                 Throw "The Specified KeePass Entry Group Path ($KeePassEntryGroupPath) does not exist."
             }
+
             ## Add the KeePass Entry
             Add-KpEntry -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroup -Title $Title -UserName $UserName -KeePassPassword $KeePassPassword -Notes $Notes -URL $URL -PassThru:$PassThru
         }
@@ -257,7 +259,7 @@ function Update-KeePassEntry
         .PARAMETER KeePassPassword
             *Specify the KeePassPassword of the new KeePass Database Entry.
             *Notes:
-                *This Must be of the type SecureString
+                *This Must be of the type SecureString or KeePassLib.Security.ProtectedString
         .PARAMETER Notes
             Specify the Notes of the new KeePass Database Entry.
         .PARAMETER URL
@@ -309,7 +311,8 @@ function Update-KeePassEntry
 
         [Parameter(Position=4,Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
-        [KeePassLib.Security.ProtectedString] $KeePassPassword,
+        [ValidateScript({$_.GetType().Name -eq 'ProtectedString' -or $_.GetType().Name -eq 'SecureString'})]
+        [PSObject] $KeePassPassword,
 
         [Parameter(Position=5,Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
@@ -979,7 +982,7 @@ function New-KeePassPassword
             String
             Switch
         .OUTPUTS
-            SecureString
+            KeePassLib.Security.ProtectedString
     #>
     [CmdletBinding(DefaultParameterSetName='NoProfile')]
     [OutputType('SecureString')]
@@ -1200,8 +1203,7 @@ function New-KeePassPassword
         }
         try
         {
-            ## Return as SecureString
-            ConvertTo-SecureString -String $PSOut.ReadString() -AsPlainText -Force
+            $PSOut
         }
         catch
         {
@@ -2384,7 +2386,7 @@ function Add-KPEntry
         [string] $UserName,
 
         [Parameter(Position=4,Mandatory=$false)]
-        [securestring] $KeePassPassword,
+        [PSObject] $KeePassPassword,
 
         [Parameter(Position=5,Mandatory=$false)]
         [string] $Notes,
@@ -2428,6 +2430,13 @@ function Add-KPEntry
     }
     process
     {
+        if(-not (Test-KPPasswordValue $KeePassPassword))
+        {
+            Write-Warning -Message "[PROCESS] Please provide a KeePassPassword Of Type SecureString or KeePassLib.Security.ProtectedString."
+            Write-Warning -Message "[PROCESS] The Value supplied ($KeePassPassword) is of Type $($KeePassPassword.GetType().Name)."
+            Throw 'Please provide a KeePassPassword Of Type SecureString or KeePassLib.Security.ProtectedString.'
+        }
+
         if($Title)
         {
             $SecureTitle = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectTitle, $Title)
@@ -2442,16 +2451,21 @@ function Add-KPEntry
 
         if($KeePassPassword)
         {
-            $KeePassSecurePasswordString = New-Object KeePassLib.Security.ProtectedString
-            $KeePassSecurePasswordString = $KeePassSecurePasswordString.Insert(0,[Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($KeePassPassword))).WithProtection($true)
+            if($KeePassPassword.GetType().Name -eq 'SecureString')
+            {
+                $KeePassSecurePasswordString = New-Object KeePassLib.Security.ProtectedString
+                $KeePassSecurePasswordString = $KeePassSecurePasswordString.Insert(0,[Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($KeePassPassword))).WithProtection($true)
+            }
+            elseif($KeePassPassword.GetType().Name -eq 'ProtectedString')
+            {
+                $KeePassSecurePasswordString = $KeePassPassword
+            }
             $KeePassEntry.Strings.Set("Password", $KeePassSecurePasswordString)
         }
         else
         {
             ## get password based on default pattern
-            $KeePassPassword = New-KeePassPassword
-            $KeePassSecurePasswordString = New-Object KeePassLib.Security.ProtectedString
-            $KeePassSecurePasswordString = $KeePassSecurePasswordString.Insert(0,[Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($KeePassPassword))).WithProtection($true)
+            $KeePassSecurePasswordString = New-KeePassPassword
             $KeePassEntry.Strings.Set("Password", $KeePassSecurePasswordString)
         }
 
@@ -2530,7 +2544,7 @@ function Set-KPEntry
         [string] $UserName,
 
         [Parameter(Position=4,Mandatory=$false)]
-        [KeePassLib.Security.ProtectedString] $KeePassPassword,
+        [PSObject] $KeePassPassword,
 
         [Parameter(Position=5,Mandatory=$false)]
         [string] $Notes,
@@ -2560,6 +2574,13 @@ function Set-KPEntry
     }
     process
     {
+        if(-not (Test-KPPasswordValue $KeePassPassword))
+        {
+            Write-Warning -Message "[PROCESS] Please provide a KeePassPassword Of Type SecureString or KeePassLib.Security.ProtectedString."
+            Write-Warning -Message "[PROCESS] The Value supplied ($KeePassPassword) is of Type $($KeePassPassword.GetType().Name)."
+            Throw 'Please provide a KeePassPassword Of Type SecureString or KeePassLib.Security.ProtectedString.'
+        }
+
         ## Confirm or Force
         if($Force -or $PSCmdlet.ShouldProcess("Title: $($KeePassEntry.Strings.ReadSafe('Title')). `n`tUserName: $($KeePassEntry.Strings.ReadSafe('UserName')). `n`tGroup Path $($KeePassEntry.ParentGroup.GetFullPath('/', $true))"))
         {
@@ -2577,9 +2598,18 @@ function Set-KPEntry
 
             if($KeePassPassword)
             {
-                $KeePassEntry.Strings.Set("Password", $KeePassPassword)
+                if($KeePassPassword.GetType().Name -eq 'SecureString')
+                {
+                    $KeePassSecurePasswordString = New-Object KeePassLib.Security.ProtectedString
+                    $KeePassSecurePasswordString = $KeePassSecurePasswordString.Insert(0,[Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($KeePassPassword))).WithProtection($true)
+                }
+                elseif($KeePassPassword.GetType().Name -eq 'ProtectedString')
+                {
+                    $KeePassSecurePasswordString = $KeePassPassword
+                }
+                $KeePassEntry.Strings.Set("Password", $KeePassSecurePasswordString)
             }
-
+            
             if($Notes)
             {
                 $SecureNotes = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectNotes, $Notes)
@@ -3211,6 +3241,30 @@ function Remove-KPGroup
                 }
             }
         }
+    }
+}
+
+function Test-KPPasswordValue
+{
+    param
+    (
+        [PSObject]$PassValue
+    )
+    if(-not $PassValue)
+    {
+        $true
+    }
+    elseif($PassValue.GetType().Name -eq 'SecureString')
+    {
+        $true
+    }
+    elseif($PassValue.GetType().Name -eq 'ProtectedString')
+    {
+        $true
+    }
+    else
+    {
+        $false
     }
 }
 
