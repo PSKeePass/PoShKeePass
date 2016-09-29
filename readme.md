@@ -25,6 +25,12 @@ Please check out our [Getting Started](https://github.com/PSKeePass/PoShKeePass/
 ## Changelog
 Please review the [changelog document](https://github.com/PSKeePass/PoShKeePass/blob/master/changelog.md) for a full history.
 
+### ChangeLog PoShKeePass v2.0.2.6
+
+* Updated `New-KeePassPassword` to output as `KeePassLib.Security.ProtectedString` - _This removed the plain text
+conversion to secure string._
+* Updated All New/Update Entry Functions to support _SecureString_ or _ProtectedString_ for the KeePassPassword Parameter.
+
 ### Changelog PoShKeePass v2.0.2.1
 
 #### Added Dynamic Parameter MasterKey
