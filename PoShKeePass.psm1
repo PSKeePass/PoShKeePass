@@ -1327,7 +1327,8 @@ function New-KeePassDatabaseConfiguration
         {
             try
             {
-                [xml] $XML = Get-Content("$PSScriptRoot\KeePassConfiguration.xml")
+                [Xml] $XML = New-Object -TypeName System.Xml.XmlDocument
+                $XML.Load("$PSScriptRoot\KeePassConfiguration.xml")
                 ## Create New Profile Element with Name of the new profile
                 $DatabaseProfile = $XML.CreateElement('Profile')
                 $DatabaseProfileAtribute = $XML.CreateAttribute('Name')
@@ -1408,7 +1409,8 @@ function Get-KeePassDatabaseConfiguration
     {
         if (Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml)
         {
-            [xml]$XML = (Get-Content $PSScriptRoot\KeePassConfiguration.xml)
+            [Xml] $XML = New-Object -TypeName System.Xml.XmlDocument
+            $XML.Load("$PSScriptRoot\KeePassConfiguration.xml")
             if($DatabaseProfileName)
             {
                 $ProfileResults = $XML.Settings.DatabaseProfiles.Profile | Where-Object { $_.Name -ilike $DatabaseProfileName } 
@@ -1521,7 +1523,8 @@ function Remove-KeePassDatabaseConfiguration
                 {
                     try
                     {
-                        [xml]$XML = (Get-Content $PSScriptRoot\KeePassConfiguration.xml)
+                        [Xml] $XML = New-Object -TypeName System.Xml.XmlDocument
+                        $XML.Load("$PSScriptRoot\KeePassConfiguration.xml")
                         $XML.Settings.DatabaseProfiles.Profile  | Where-Object { $_.Name -eq $DatabaseProfileName } | ForEach-Object { $xml.Settings.DatabaseProfiles.RemoveChild($_) } | Out-Null
                         $XML.Save("$PSScriptRoot\KeePassConfiguration.xml")
                     }
@@ -1654,7 +1657,8 @@ function New-KPPasswordProfile
                 Throw 'A Password Profile with the specified name ({0}) already exists.' -f $KeePassPasswordObject.ProfileName
             }
 
-            [xml] $XML = Get-Content("$PSScriptRoot\KeePassConfiguration.xml")
+            [Xml] $XML = New-Object -TypeName System.Xml.XmlDocument
+            $XML.Load("$PSScriptRoot\KeePassConfiguration.xml")
             ## Create New Profile Element with Name of the new profile
             $PasswordProfile = $XML.CreateElement('Profile')
             $PasswordProfileAtribute = $XML.CreateAttribute('Name')
@@ -1725,7 +1729,8 @@ function Get-KPPasswordProfile
     {
         if (Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml)
         {
-            [xml]$XML = (Get-Content $PSScriptRoot\KeePassConfiguration.xml)
+            [Xml] $XML = New-Object -TypeName System.Xml.XmlDocument
+            $XML.Load("$PSScriptRoot\KeePassConfiguration.xml")
             if($PasswordProfileName)
             {
                 $XML.Settings.PasswordProfiles.Profile | Where-Object { $_.Name -ilike $PasswordProfileName}
@@ -1817,7 +1822,8 @@ function Remove-KPPasswordProfile
             {
                 try
                 {
-                    [xml]$XML = (Get-Content $PSScriptRoot\KeePassConfiguration.xml)
+                    [Xml] $XML = New-Object -TypeName System.Xml.XmlDocument
+                    $XML.Load("$PSScriptRoot\KeePassConfiguration.xml")
                     $XML.Settings.PasswordProfiles.Profile  | Where-Object { $_.Name -eq $PasswordProfileName } | ForEach-Object { $xml.Settings.PasswordProfiles.RemoveChild($_) } | Out-Null
                     $XML.Save("$PSScriptRoot\KeePassConfiguration.xml")
                 }
