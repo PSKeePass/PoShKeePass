@@ -25,6 +25,13 @@ Please check out our [Getting Started](https://github.com/PSKeePass/PoShKeePass/
 ## Changelog
 Please review the [changelog document](https://github.com/PSKeePass/PoShKeePass/blob/master/changelog.md) for a full history.
 
+### Changelog PoShKeePass v2.0.2.9
+* Issue 66 - Updated `ReadString()` method calls to `ReadSafe()` method calls.
+* Issue 71 - Updated to Use Proper String Interpolation.
+* Issue 72 - Removed Commented out code.
+* Issue 73 - Converted to Single Quotes Where Possible.
+* Issue 74 - Formatted Code consistently.
+
 ### ChangeLog PoShKeePass v2.0.2.6
 
 * Updated `New-KeePassPassword` to output as `KeePassLib.Security.ProtectedString` - _This removed the plain text
