@@ -25,6 +25,10 @@ Please check out our [Getting Started](https://github.com/PSKeePass/PoShKeePass/
 ## Changelog
 Please review the [changelog document](https://github.com/PSKeePass/PoShKeePass/blob/master/changelog.md) for a full history.
 
+### Changelog PoShKeePass v2.0.3.0
+* Issue 68 - Update getting XML Configuration Document from `Get-Content` to creating a new `System.Xml.XmlDocument` object and using the `Load()` Method.
+
+
 ### Changelog PoShKeePass v2.0.2.9
 * Issue 66 - Updated `ReadString()` method calls to `ReadSafe()` method calls.
 * Issue 71 - Updated to Use Proper String Interpolation.
