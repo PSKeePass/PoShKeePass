@@ -1,3 +1,13 @@
+## Changelog PoShKeePass v2.0.3.1
+
+### Issue #79 - Added support Icon Management
+* Updated `New` and `Update` Entry and Group functions to support setting and
+updating Icon values.
+* Update `ConvertTo-KPPSObject` to output the IconId.
+* Added Pester Tests for adding and updating Icons.
+* Update `Get-KPDynamicParameters` to support creating the Icon dynamic
+param from the `KeePassLib.PwIcon` Enum.
+
 ## Changelog PoShKeePass v2.0.3.0
 * Issue 68 - Update getting XML Configuration Document from `Get-Content` to creating a new `System.Xml.XmlDocument` object and using the `Load()` Method.
 

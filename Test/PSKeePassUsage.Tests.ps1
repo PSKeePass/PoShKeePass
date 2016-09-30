@@ -517,6 +517,19 @@ InModuleScope "PoShKeePass" {
                 
                 New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'testPass' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -KeePassPassword $GeneratedPassword -DatabaseProfileName 'SampleProfile' | Should Be $null
             }
+
+            It "Example 1.7: Creates a New KeePass Entry - Valid - PassThru - Icon" {
+
+                $PassThruResult = New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'testPassThruIcon' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' -IconName Apple -PassThru
+
+                $PassThruResult | Should BeOfType KeePassLib.PwEntry
+                $PassThruResult.ParentGroup.Name | Should BeLike 'PSKeePassTestDatabase'
+                $PassThruResult.Strings.ReadSafe('Title') | Should Be 'testPassThruIcon'
+                $PassThruResult.Strings.ReadSafe('UserName') | Should Be 'testuser'
+                $PassThruResult.Strings.ReadSafe('Notes') | Should Be 'testnotes' 
+                $PassThruResult.Strings.ReadSafe('URL') | Should Be 'http://url.test.com'
+                $PassThruResult.IconId | Should Be 'Apple'
+            }
         }
 
         New-KPConfigurationFile -Force
@@ -628,9 +641,23 @@ InModuleScope "PoShKeePass" {
 
             It "Example 1.6: Update a KeePass Entry - Invalid - Group & Properties - PassThru - BadPath" {
 
-                New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'test4' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' | Should Be $null
-                $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -AsPlainText -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Title -eq 'test4' } 
-                { Update-KeePassEntry -KeePassEntry $KeePassEntry -title 'UpdateTest4' -UserName 'UpdateTestUser' -Notes 'UpdateTestNotes' -URL 'http://UpdateURL.Test.com' -KeePassEntryGroupPath 'PSKeePassTestDatabase/BadPath' -DatabaseProfileName 'SampleProfile' -PassThru -Force } | Should Throw
+                New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'test5' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' | Should Be $null
+                $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -AsPlainText -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Title -eq 'test5' } 
+                { Update-KeePassEntry -KeePassEntry $KeePassEntry -title 'UpdateTest5' -UserName 'UpdateTestUser' -Notes 'UpdateTestNotes' -URL 'http://UpdateURL.Test.com' -KeePassEntryGroupPath 'PSKeePassTestDatabase/BadPath' -DatabaseProfileName 'SampleProfile' -PassThru -Force } | Should Throw
+            }
+
+            It "Example 1.7: Update a KeePass Entry - Valid - Properties - PassThru - Icon" {
+
+                New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'test6' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' | Should Be $null
+                $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -AsPlainText -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Title -eq 'test6' } 
+                $UpdatePassThruResult = Update-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -KeePassEntry $KeePassEntry -title 'UpdateTest6' -UserName 'UpdateTestUser' -Notes 'UpdateTestNotes' -URL 'http://UpdateURL.Test.com' -DatabaseProfileName 'SampleProfile' -IconName Apple -PassThru -Force
+
+                $UpdatePassThruResult | Should BeOfType KeePassLib.PwEntry
+                $UpdatePassThruResult.Strings.ReadSafe('Title') | Should Be 'UpdateTest6'
+                $UpdatePassThruResult.Strings.ReadSafe('UserName') | Should Be 'UpdateTestUser'
+                $UpdatePassThruResult.Strings.ReadSafe('Notes') | Should Be 'UpdateTestNotes'
+                $UpdatePassThruResult.Strings.ReadSafe('URL') | Should Be 'http://UpdateURL.Test.com'
+                $UpdatePassThruResult.IconId | Should Be 'Apple'
             }
         }
         New-KPConfigurationFile -Force
@@ -688,7 +715,7 @@ InModuleScope "PoShKeePass" {
             New-KPConfigurationFile -Force
 
             It "Example 1.1: Creates a New KeePass Group - Invalid - No Profile" {
-                { New-KeePassGroup -KeePassGroupParentPath 'database' -KeePassGroupName 'test' }| Should Throw 'There are Currently No Database Configuration Profiles.'
+                { New-KeePassGroup -KeePassGroupParentPath 'database' -KeePassGroupName 'test' } | Should Throw 'There are Currently No Database Configuration Profiles.'
             }
 
             ## Create Profile
@@ -713,6 +740,16 @@ InModuleScope "PoShKeePass" {
 
             It "Example 1.4: Creates a New KeePass Entry - Invalid - Group Path does not Exist" {
                 { New-KeePassGroup -KeePassGroupParentPath 'BadPath' -KeePassGroupName 'test3' -DatabaseProfileName 'SampleProfile' } | Should Throw
+            }
+
+            It "Example 1.5: Creates a New KeePass Group - Valid - PassThru - Icon" {
+
+                $PassThruResult = New-KeePassGroup -KeePassGroupParentPath 'PSKeePassTestDatabase' -KeePassGroupName 'test4PassThru' -DatabaseProfileName 'SampleProfile' -IconName 'Clock' -PassThru
+
+                $PassThruResult | Should BeOfType KeePassLib.PwGroup
+                $PassThruResult.ParentGroup.Name | Should Be 'PSKeePassTestDatabase'
+                $PassThruResult.Name | Should Be 'test4PassThru'
+                $PassThruResult.IconId | Should Be 'Clock'
             }
         }
         New-KPConfigurationFile -Force
@@ -819,6 +856,17 @@ InModuleScope "PoShKeePass" {
                 New-KeePassGroup -KeePassGroupParentPath 'PSKeePassTestDatabase' -KeePassGroupName 'test5' -DatabaseProfileName 'SampleProfile' | Should Be $null
                 { Get-KeePassGroup -DatabaseProfileName SampleProfile -AsPlainText -KeePassGroupPath 'PSKeePassTestDatabase/test5' |
                 Update-KeePassGroup -DatabaseProfileName 'SampleProfile' -KeePassParentGroupPath 'PSKeePassTestDatabase/BadPath' -Force}| Should Throw
+            }
+
+            It "Example 1.7: Updates a KeePass Group - Valid  - Name - PassThru - Icon" {
+                New-KeePassGroup -KeePassGroupParentPath 'PSKeePassTestDatabase' -KeePassGroupName 'test6' -DatabaseProfileName 'SampleProfile' | Should Be $null
+                $KeePassGroup = Get-KeePassGroup -DatabaseProfileName SampleProfile -AsPlainText -KeePassGroupPath 'PSKeePassTestDatabase/test6'
+                $KeePassGroup.Name | Should Be 'test6'
+                $KeePassGroup.IconId | Should Be 'Folder'
+                $KeePassGroup = Update-KeePassGroup -KeePassGroup $KeePassGroup -GroupName 'Test6Update' -DatabaseProfileName 'SampleProfile' -IconName 'Clock' -Force -PassThru
+                $KeePassGroup.Name | Should Be 'Test6Update'
+                $KeePassGroup.IconId | Should Be 'Clock'
+                $KeePassGroup.ParentGroup.Name | Should be 'PSKeePassTestDatabase'
             }
         }
         New-KPConfigurationFile -Force

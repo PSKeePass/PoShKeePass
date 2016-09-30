@@ -31,6 +31,8 @@
             Specify a SecureString MasterKey if necessary to authenticat a keepass databse.
             If not provided and the database requires one you will be prompted for it. 
             This parameter was created with scripting in mind.
+        .PARAMETER IconName
+            Specify the Name of the Icon for the Entry to display in the KeePass UI.
         .EXAMPLE
             PS> New-KeePassEntry -DatabaseProfileName TEST -KeePassEntryGroupPath 'General/TestAccounts' -Title 'Test Title' -UserName 'Domain\svcAccount' -KeePassPassword $(New-KeePassPassword -upper -lower -digits -length 20)
 
@@ -82,7 +84,7 @@
     )
     dynamicparam
     {
-        Get-KPDynamicParameters -DBProfilePosition 7 -MasterKeyPosition 8
+        Get-KPDynamicParameters -DBProfilePosition 7 -MasterKeyPosition 8 -PwIconPosition 9
     }
     begin
     {
@@ -93,6 +95,7 @@
         {
             $DatabaseProfileName = $PSBoundParameters['DatabaseProfileName']
             $MasterKey = $PSBoundParameters['MasterKey']
+            $IconName = $PSBoundParameters['IconName']
             ## Open the database
             $KeePassConnectionObject = Invoke-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
             ## remove any sensitive data
@@ -118,8 +121,13 @@
                 Throw 'The Specified KeePass Entry Group Path ({0}) does not exist.' -$KeePassEntryGroupPath
             }
 
+            ## Set Default Icon if not specified.
+            if(-not $IconName)
+            {
+                $IconName = 'Key'
+            }
             ## Add the KeePass Entry
-            Add-KpEntry -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroup -Title $Title -UserName $UserName -KeePassPassword $KeePassPassword -Notes $Notes -URL $URL -PassThru:$PassThru
+            Add-KpEntry -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroup -Title $Title -UserName $UserName -KeePassPassword $KeePassPassword -Notes $Notes -URL $URL -IconName $IconName -PassThru:$PassThru
         }
         catch
         {
@@ -275,6 +283,8 @@ function Update-KeePassEntry
             Specify a SecureString MasterKey if necessary to authenticat a keepass databse.
             If not provided and the database requires one you will be prompted for it. 
             This parameter was created with scripting in mind.
+        .PARAMETER IconName
+            Specify the Name of the Icon for the Entry to display in the KeePass UI.
         .EXAMPLE
             PS> Update-KeePassEntry -KeePassEntry $KeePassEntryObject -DatabaseProfileName TEST -KeePassEntryGroupPath 'General/TestAccounts' -Title 'Test Title' -UserName 'Domain\svcAccount' -KeePassPassword $(New-KeePassPassword -upper -lower -digits -length 20)
 
@@ -335,7 +345,7 @@ function Update-KeePassEntry
     )
     dynamicparam
     {
-        Get-KPDynamicParameters -DBProfilePosition 9 -MasterKeyPosition 10
+        Get-KPDynamicParameters -DBProfilePosition 9 -MasterKeyPosition 10 -PwIconPosition 11
     }
     begin
     {
@@ -346,6 +356,7 @@ function Update-KeePassEntry
         {
             $DatabaseProfileName = $PSBoundParameters['DatabaseProfileName']
             $MasterKey = $PSBoundParameters['MasterKey']
+            $IconName = $PSBoundParameters['IconName']
             ## Open the database
             $KeePassConnectionObject = Invoke-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
             ## remove any sensitive data
@@ -367,6 +378,12 @@ function Update-KeePassEntry
             Throw 'The Specified KeePass Entry does not exist or cannot be found.'
         }
 
+        ## Set Default Icon if not specified.
+        if(-not $IconName)
+        {
+            $IconName = $KPEntry.IconId
+        }
+
         if($Force -or $PSCmdlet.ShouldProcess("Title: $($KPEntry.Strings.ReadSafe('Title')), `n`tUserName: $($KPEntry.Strings.ReadSafe('UserName')), `n`tGroupPath: $($KPEntry.ParentGroup.GetFullPath('/', $true))."))
         {
             $KeePassGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassEntryGroupPath
@@ -375,7 +392,7 @@ function Update-KeePassEntry
                 Write-Warning -Message ('[PROCESS] The Specified KeePass Entry Group Path ({0}) does not exist.' -f $KeePassEntryGroupPath)
                 Throw 'The Specified KeePass Entry Group Path ({0}) does not exist.' -f $KeePassEntryGroupPath
             }
-            Set-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassEntry $KPEntry -Title $Title -UserName $UserName -KeePassPassword $KeePassPassword -Notes $Notes -URL $URL -KeePassGroup $KeePassGroup -PassThru:$PassThru -Force
+            Set-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassEntry $KPEntry -Title $Title -UserName $UserName -KeePassPassword $KeePassPassword -Notes $Notes -URL $URL -KeePassGroup $KeePassGroup -IconName $IconName -PassThru:$PassThru -Force
         }
     }
     end
@@ -501,6 +518,8 @@ function New-KeePassGroup
             Specify a SecureString MasterKey if necessary to authenticat a keepass databse.
             If not provided and the database requires one you will be prompted for it. 
             This parameter was created with scripting in mind.
+        .PARAMETER IconName
+            Specify the Name of the Icon for the Group to display in the KeePass UI.
         .EXAMPLE
             PS> New-KeePassGroup -DatabaseProfileName TEST -KeePassParentGroupPath 'General/TestAccounts' -KeePassGroupName 'TestGroup'
 
@@ -526,7 +545,7 @@ function New-KeePassGroup
     )
     dynamicparam
     {
-        Get-KPDynamicParameters -DBProfilePosition 3 -MasterKeyPosition 4
+        Get-KPDynamicParameters -DBProfilePosition 3 -MasterKeyPosition 4 -PwIconPosition 5
     }
     begin
     {
@@ -537,6 +556,7 @@ function New-KeePassGroup
         {
             $DatabaseProfileName = $PSBoundParameters['DatabaseProfileName']
             $MasterKey = $PSBoundParameters['MasterKey']
+            $IconName = $PSBoundParameters['IconName']
             ## Open the database
             $KeePassConnectionObject = Invoke-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
             ## remove any sensitive data
@@ -558,8 +578,14 @@ function New-KeePassGroup
             Write-Warning -Message ('[PROCESS] The Specified KeePass Entry Group Path ({0}) does not exist.' -f $KeePassGroupParentPath)
             Throw 'The Specified KeePass Entry Group Path ({0}) does not exist.' -f $KeePassGroupParentPath
         }
+
+        ## Set Default Icon if not specified.
+        if(-not $IconName)
+        {
+            $IconName = 'Folder'
+        }
         ## Add the KeePass Group
-        Add-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassParentGroup $KeePassParentGroup -GroupName $KeePassGroupName -PassThru:$PassThru
+        Add-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassParentGroup $KeePassParentGroup -GroupName $KeePassGroupName -IconName $IconName -PassThru:$PassThru
     }
     end
     {
@@ -694,6 +720,8 @@ function Update-KeePassGroup
             Specify a SecureString MasterKey if necessary to authenticat a keepass databse.
             If not provided and the database requires one you will be prompted for it. 
             This parameter was created with scripting in mind.
+        .PARAMETER IconName
+            Specify the Name of the Icon for the Group to display in the KeePass UI.
         .EXAMPLE
             PS> Update-KeePassGroup -DatabaseProfileName TEST -KeePassGroup $KeePassGroupObject -KeePassParentGroupPath 'General/TestAccounts'
 
@@ -735,7 +763,7 @@ function Update-KeePassGroup
     )
     dynamicparam
     {
-        Get-KPDynamicParameters -DBProfilePosition 5 -MasterKeyPosition 6
+        Get-KPDynamicParameters -DBProfilePosition 5 -MasterKeyPosition 6 -PwIconPosition 7
     }
     begin
     {
@@ -746,6 +774,7 @@ function Update-KeePassGroup
         {
             $DatabaseProfileName = $PSBoundParameters['DatabaseProfileName']
             $MasterKey = $PSBoundParameters['MasterKey']
+            $IconName = $PSBoundParameters['IconName']
             ## Open the database
             $KeePassConnectionObject = Invoke-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
             ## remove any sensitive data
@@ -790,13 +819,20 @@ function Update-KeePassGroup
                 Throw 'Found more than one group with the same path, name and creation time.'
             }
 
+            ## Set Default Icon if not specified.
+            if(-not $IconName)
+            {
+                $IconName = $KeePassGroupObject.IconId
+            }
+
             if($KeePassParentGroup)
             {
-                Set-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroupObject -KeePassParentGroup $KeePassParentGroup -GroupName $GroupName -PassThru:$PassThru -Confirm:$false -Force
+                
+                Set-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroupObject -KeePassParentGroup $KeePassParentGroup -GroupName $GroupName -IconName $IconName -PassThru:$PassThru -Confirm:$false -Force
             }
             else
             {
-                Set-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroupObject -GroupName $GroupName -PassThru:$PassThru -Confirm:$false -Force
+                Set-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroupObject -GroupName $GroupName -IconName $IconName -PassThru:$PassThru -Confirm:$false -Force
             }
         }
     }
@@ -2046,8 +2082,8 @@ function Get-KPConnection
         }
         catch [Exception]
         {
-            Write-Warning $_.Exception.Message
-            Throw $_.Exception
+            Write-Warning -Message ('[PROCESS] {0}' -f $_.Exception.Message)
+            Throw $_
         }
         finally
         {
@@ -2150,7 +2186,11 @@ function Get-KPDynamicParameters
 
         [Parameter(Position=1, Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
-        [Int] $MasterKeyPosition
+        [Int] $MasterKeyPosition,
+
+        [Parameter(Position=2, Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [Int] $PwIconPosition
     )
     process
     {
@@ -2186,14 +2226,43 @@ function Get-KPDynamicParameters
             $MasterKeyValidateAttribute = New-Object -TypeName System.Management.Automation.ValidateNotNullOrEmptyAttribute
             $MasterKeyAttributeCollection.Add($MasterKeyValidateAttribute)
 
+            ### PwIcon Enum Param
+            if($PwIconPosition)
+            {
+                $PwIconEnum = [KeePassLib.PwIcon].GetEnumValues()
+                $IconEnumParameterName = 'IconName'
+
+                $IconEnumAttributeCollection = New-Object -TypeName System.Collections.ObjectModel.Collection[System.Attribute]
+                $IconEnumParameterAttribute = New-Object -TypeName System.Management.Automation.ParameterAttribute
+                $IconEnumParameterAttribute.Mandatory = $false
+                $IconEnumParameterAttribute.Position = $PwIconPosition
+                $IconEnumAttributeCollection.Add($IconEnumParameterAttribute)
+
+                $IconEnumValidateSetAttribute = New-Object -TypeName System.Management.Automation.ValidateSetAttribute($PwIconEnum)
+                $IconEnumAttributeCollection.Add($IconEnumValidateSetAttribute)
+
+                ## Create and Define Allias Attribute
+                $IconEnumAliasAttribute = New-Object -TypeName System.Management.Automation.AliasAttribute('Icon')
+                $IconEnumAttributeCollection.Add($IconEnumAliasAttribute)
+                $IconEnumRuntimeParameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter($IconEnumParameterName, [KeePassLib.PwIcon], $IconEnumAttributeCollection)
+            }
+
+
             ## Create,Define, and Return DynamicParam
             $MasterKeyRuntimeParameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter($MasterKeyParameterName, [SecureString], $MasterKeyAttributeCollection)
             $MasterKeyRuntimeParameter.Value = $null
             $DBProfileRuntimeParameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter($DBProfileParameterName, [String], $DBProfileAttributeCollection)
+
+            
             
             $RuntimeParameterDictionary = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameterDictionary
             $RuntimeParameterDictionary.Add($DBProfileParameterName,$DBProfileRuntimeParameter)
             $RuntimeParameterDictionary.Add($MasterKeyParameterName,$MasterKeyRuntimeParameter)
+
+            if($PwIconPosition)
+            {
+                $RuntimeParameterDictionary.Add($IconEnumParameterName,$IconEnumRuntimeParameter)
+            }
 
             return $RuntimeParameterDictionary
         }
@@ -2351,6 +2420,8 @@ function Add-KPEntry
             This is the URL of the New KeePass Entry.
         .PARAMETER PassThru
             Returns the New KeePass Entry after creation.
+        .PARAMETER IconName
+            Specify the Name of the Icon for the Entry to display in the KeePass UI.
         .NOTES
             This Cmdlet will autosave on exit
     #>
@@ -2381,6 +2452,9 @@ function Add-KPEntry
         [String] $URL,
 
         [Parameter(Position=7, Mandatory=$false)]
+        [KeePassLib.PwIcon] $IconName,
+
+        [Parameter(Position=8, Mandatory=$false)]
         [Switch] $PassThru
     )
     begin
@@ -2467,6 +2541,14 @@ function Add-KPEntry
             $KeePassEntry.Strings.Set('URL', $SecureURL)
         }
 
+        if($IconName)
+        {
+            if($IconName -ne $KeePassEntry.IconId)
+            {
+                $KeePassEntry.IconId = $IconName
+            }
+        }
+
         #Add to Group
         $KeePassGroup.AddEntry($KeePassEntry,$true)
 
@@ -2509,6 +2591,10 @@ function Set-KPEntry
             This is the URL to update/set.
         .PARAMETER PassThru
             Returns the updated KeePass Entry after updating.
+        .PARAMETER Force
+            Specify to force updating the KeePass Entry.
+        .PARAMETER IconName
+            Specify the Name of the Icon for the Entry to display in the KeePass UI.
         .NOTES
             This Cmdlet will autosave on exit
     #>
@@ -2543,11 +2629,13 @@ function Set-KPEntry
         [KeePassLib.PwGroup] $KeePassGroup,
 
         [Parameter(Position=8, Mandatory=$false)]
-        [Switch] $PassThru,
+        [KeePassLib.PwIcon] $IconName,
 
         [Parameter(Position=9, Mandatory=$false)]
-        [Switch] $Force
+        [Switch] $PassThru,
 
+        [Parameter(Position=10, Mandatory=$false)]
+        [Switch] $Force
     )
     begin
     {
@@ -2607,6 +2695,15 @@ function Set-KPEntry
                 $SecureURL = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectUrl, $URL)
                 $KeePassEntry.Strings.Set('URL', $SecureURL)
             }
+
+            if($IconName)
+            {
+                if($IconName -ne $KeePassEntry.IconId)
+                {
+                    $KeePassEntry.IconId = $IconName
+                }
+            }
+
             ## If you are moving the entry to another group then take these actions.
             if($KeePassGroup)
             {
@@ -2891,6 +2988,8 @@ function Add-KPGroup
             Specify the name of the new group(s).
         .PARAMETER KeePassParentGroup
             Sepcify the KeePassParentGroup(s) for the new Group(s).
+        .PARAMETER IconName
+            Specify the Name of the Icon for the Group to display in the KeePass UI.
         .PARAMETER PassThru
             Specify to return the new keepass group object.
         .NOTES
@@ -2912,6 +3011,9 @@ function Add-KPGroup
         [KeePassLib.PwGroup] $KeePassParentGroup,
 
         [Parameter(Position=3, Mandatory=$false)]
+        [KeePassLib.PwIcon] $IconName,
+
+        [Parameter(Position=4, Mandatory=$false)]
         [Switch] $PassThru
     )
     begin
@@ -2947,6 +3049,10 @@ function Add-KPGroup
     process
     {
         $KeePassGroup.Name = $GroupName
+        if($IconName -ne $KeePassGroup.IconId)
+        {
+            $KeePassGroup.IconId = $IconName
+        }
         $KeePassParentGroup.AddGroup($KeePassGroup, $true)
         $KeePassConnection.Save($null)
 
@@ -2976,8 +3082,12 @@ function Set-KPGroup
             Specify the name of the new group(s).
         .PARAMETER KeePassParentGroup
             Sepcify the KeePassParentGroup(s) for the new Group(s).
+        .PARAMETER IconName
+            Specify the Name of the Icon for the Entry to display in the KeePass UI.
         .PARAMETER PassThru
             Specify to return the updated group object.
+        .PARAMETER Force
+            Specify to force updating the group.
         .NOTES
             This Cmdlet Does AutoSave on exit.
     #>
@@ -3000,9 +3110,12 @@ function Set-KPGroup
         [KeePassLib.PwGroup] $KeePassParentGroup,
 
         [Parameter(Position=4, Mandatory=$false)]
-        [Switch] $PassThru,
+        [KeePassLib.PwIcon] $IconName,
 
         [Parameter(Position=5, Mandatory=$false)]
+        [Switch] $PassThru,
+
+        [Parameter(Position=6, Mandatory=$false)]
         [Switch] $Force
     )
     begin
@@ -3022,6 +3135,12 @@ function Set-KPGroup
             {
                 $KeePassGroup.Name = $GroupName
             }
+
+            if($IconName -ne $KeePassGroup.IconId)
+            {
+                $KeePassGroup.IconId = $IconName
+            }
+
             if($KeePassParentGroup)
             {
                 if($KeePassGroup.ParentGroup.Uuid.CompareTo($KeePassParentGroup.Uuid) -ne 0 )
@@ -3266,6 +3385,7 @@ function ConvertTo-KPPSObject
                 $KeePassPsObject | Add-Member -Name 'Password' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe('Password')
                 $KeePassPsObject | Add-Member -Name 'URL' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe('URL')
                 $KeePassPsObject | Add-Member -Name 'Notes' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe('Notes')
+                $KeePassPsObject | Add-Member -Name 'IconId' -MemberType NoteProperty -Value $_keepassItem.IconId
 
                 ## Custom Object Formatting and Type
                 $KeePassPsObject.PSObject.TypeNames.Insert(0,'PSKeePass.Entry')
@@ -3305,10 +3425,11 @@ function ConvertTo-KPPSObject
                 $KeePassPsObject | Add-Member -Name 'ParentGroup' -MemberType NoteProperty -Value $_keepassItem.ParentGroup.Name
                 $KeePassPsObject | Add-Member -Name 'FullPath' -MemberType NoteProperty -Value $FullPath
                 $KeePassPsObject | Add-Member -Name 'Groups' -MemberType NoteProperty -Value $_keepassItem.Groups
-                $KeePassPsObject | Add-Member -Name 'EntryCount' -MemberType NoteProperty -Value $_keepassItem.Enties.Count
+                $KeePassPsObject | Add-Member -Name 'EntryCount' -MemberType NoteProperty -Value $_keepassItem.Entries.Count
+                $KeePassPsObject | Add-Member -Name 'IconId' -MemberType NoteProperty -Value $_keepassItem.IconId
 
                 $KeePassPsObject.PSObject.TypeNames.Insert(0,'PSKeePass.Group')
-                $PSKeePassGroupDisplaySet = 'Name','EntryCount','FullPath'
+                $PSKeePassGroupDisplaySet = 'Name','EntryCount','FullPath','IconId'
                 $PSKeePassGroupDefaultPropertySet = New-Object -TypeName System.Management.Automation.PSPropertySet('DefaultDisplayPropertySet',[String[]] $PSKeePassGroupDisplaySet)
                 $PSKeePassGroupStandardMembers = [System.Management.Automation.PSMemberInfo[]] @($PSKeePassGroupDefaultPropertySet)
 
