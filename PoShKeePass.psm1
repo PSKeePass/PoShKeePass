@@ -49,34 +49,35 @@
         .OUTPUTS
             $null
     #>
+    [CmdletBinding()]
     param
     (
-        [Parameter(Position = 0 ,Mandatory = $true)]
+        [Parameter(Position=0, Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
         [String] $KeePassEntryGroupPath,
 
-        [Parameter(Position = 1, Mandatory = $false)]
+        [Parameter(Position=1, Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
-        [string] $Title,
+        [String] $Title,
 
-        [Parameter(Position = 2,Mandatory = $false)]
+        [Parameter(Position=2, Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
-        [string] $UserName,
+        [String] $UserName,
 
-        [Parameter(Position = 3,Mandatory = $false)]
+        [Parameter(Position=3, Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
         [ValidateScript({$_.GetType().Name -eq 'ProtectedString' -or $_.GetType().Name -eq 'SecureString'})]
         [PSObject] $KeePassPassword,
 
-        [Parameter(Position = 4,Mandatory = $false)]
+        [Parameter(Position=4, Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
-        [string] $Notes,
+        [String] $Notes,
 
-        [Parameter(Position = 5,Mandatory = $false)]
+        [Parameter(Position=5, Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
-        [string] $URL,
+        [String] $URL,
 
-        [Parameter(Position = 6,Mandatory = $false)]
+        [Parameter(Position=6, Mandatory=$false)]
         [Switch] $PassThru
     )
     dynamicparam
@@ -99,8 +100,8 @@
         }
         else 
         {
-            Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles."
-            Write-Warning -Message "[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function."
+            Write-Warning -Message '[BEGIN] There are Currently No Database Configuration Profiles.'
+            Write-Warning -Message '[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function.'
             Throw 'There are Currently No Database Configuration Profiles.'
         }
     }
@@ -113,8 +114,8 @@
 
             if(-not $KeePassGroup)
             {
-                Write-Warning -Message "[PROCESS] The Specified KeePass Entry Group Path ($KeePassEntryGroupPath) does not exist."
-                Throw "The Specified KeePass Entry Group Path ($KeePassEntryGroupPath) does not exist."
+                Write-Warning -Message ('[PROCESS] The Specified KeePass Entry Group Path ({0}) does not exist.' -f $KeePassEntryGroupPath)
+                Throw 'The Specified KeePass Entry Group Path ({0}) does not exist.' -$KeePassEntryGroupPath
             }
 
             ## Add the KeePass Entry
@@ -166,12 +167,14 @@ function Get-KeePassEntry
         .OUTPUTS
             PSObject
     #>
+    [CmdletBinding()]
     param
     (
-        [Parameter(Position = 0, Mandatory = $false)]
+        [Parameter(Position=0, Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
         [String] $KeePassEntryGroupPath,
-        [Parameter(Position = 1, Mandatory = $false)]
+
+        [Parameter(Position=1, Mandatory=$false)]
         [Switch] $AsPlainText
     )
     dynamicparam
@@ -194,8 +197,8 @@ function Get-KeePassEntry
         }
         else 
         {
-            Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles."
-            Write-Warning -Message "[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function."
+            Write-Warning -Message '[BEGIN] There are Currently No Database Configuration Profiles.'
+            Write-Warning -Message '[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function.'
             Throw 'There are Currently No Database Configuration Profiles.'
         }
     }
@@ -207,8 +210,8 @@ function Get-KeePassEntry
             $KeePassGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassEntryGroupPath
             if(-not $KeePassGroup)
             {
-                Write-Warning -Message "[PROCESS] The Specified KeePass Entry Group Path ($KeePassEntryGroupPath) does not exist."
-                Throw "The Specified KeePass Entry Group Path ($KeePassEntryGroupPath) does not exist."
+                Write-Warning -Message ('[PROCESS] The Specified KeePass Entry Group Path ({0}) does not exist.' -f $KeePassEntryGroupPath) 
+                Throw 'The Specified KeePass Entry Group Path ({0}) does not exist.' -f $KeePassEntryGroupPath
             }
             $ResultEntries = Get-KpEntry -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroup
         }
@@ -290,42 +293,42 @@ function Update-KeePassEntry
         .OUTPUTS
             $null
     #>
-    [CmdletBinding(SupportsShouldProcess=$true,ConfirmImpact='High')]
+    [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='High')]
     param
     (
-        [Parameter(Position=0,Mandatory=$true,ValueFromPipeline=$true)]
+        [Parameter(Position=0, Mandatory=$true, ValueFromPipeline=$true)]
         [ValidateNotNullOrEmpty()]
         [PSObject] $KeePassEntry,
 
-        [Parameter(Position=1,Mandatory=$true)]
+        [Parameter(Position=1, Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
         [String] $KeePassEntryGroupPath,
 
-        [Parameter(Position=2,Mandatory=$false)]
+        [Parameter(Position=2, Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
-        [string] $Title,
+        [String] $Title,
 
-        [Parameter(Position=3,Mandatory=$false)]
+        [Parameter(Position=3, Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
-        [string] $UserName,
+        [String] $UserName,
 
-        [Parameter(Position=4,Mandatory=$false)]
+        [Parameter(Position=4, Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
         [ValidateScript({$_.GetType().Name -eq 'ProtectedString' -or $_.GetType().Name -eq 'SecureString'})]
         [PSObject] $KeePassPassword,
 
-        [Parameter(Position=5,Mandatory=$false)]
+        [Parameter(Position=5, Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
-        [string] $Notes,
+        [String] $Notes,
 
-        [Parameter(Position=6,Mandatory=$false)]
+        [Parameter(Position=6, Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
-        [string] $URL,
+        [String] $URL,
 
-        [Parameter(Position=7,Mandatory=$false)]
+        [Parameter(Position=7, Mandatory=$false)]
         [Switch] $PassThru,
 
-        [Parameter(Position=8,Mandatory=$false)]
+        [Parameter(Position=8, Mandatory=$false)]
         [Switch] $Force
 
         ## Dynamic Param Position = 9
@@ -350,8 +353,8 @@ function Update-KeePassEntry
         }
         else 
         {
-            Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles."
-            Write-Warning -Message "[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function."
+            Write-Warning -Message '[BEGIN] There are Currently No Database Configuration Profiles.'
+            Write-Warning -Message '[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function.'
             Throw 'There are Currently No Database Configuration Profiles.'
         }
     }
@@ -360,8 +363,8 @@ function Update-KeePassEntry
         $KPEntry=Get-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassUuid $KeePassEntry.Uuid
         if(-not $KPEntry)
         {
-            Write-Warning -Message "[PROCESS] The Specified KeePass Entry does not exist or cannot be found."
-            Throw "he Specified KeePass Entry does not exist or cannot be found."
+            Write-Warning -Message '[PROCESS] The Specified KeePass Entry does not exist or cannot be found.'
+            Throw 'The Specified KeePass Entry does not exist or cannot be found.'
         }
 
         if($Force -or $PSCmdlet.ShouldProcess("Title: $($KPEntry.Strings.ReadSafe('Title')), `n`tUserName: $($KPEntry.Strings.ReadSafe('UserName')), `n`tGroupPath: $($KPEntry.ParentGroup.GetFullPath('/', $true))."))
@@ -369,8 +372,8 @@ function Update-KeePassEntry
             $KeePassGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassEntryGroupPath
             if(-not $KeePassGroup)
             {
-                Write-Warning -Message "[PROCESS] The Specified KeePass Entry Group Path ($KeePassEntryGroupPath) does not exist."
-                Throw "The Specified KeePass Entry Group Path ($KeePassEntryGroupPath) does not exist."
+                Write-Warning -Message ('[PROCESS] The Specified KeePass Entry Group Path ({0}) does not exist.' -f $KeePassEntryGroupPath)
+                Throw 'The Specified KeePass Entry Group Path ({0}) does not exist.' -f $KeePassEntryGroupPath
             }
             Set-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassEntry $KPEntry -Title $Title -UserName $UserName -KeePassPassword $KeePassPassword -Notes $Notes -URL $URL -KeePassGroup $KeePassGroup -PassThru:$PassThru -Force
         }
@@ -407,15 +410,17 @@ function Remove-KeePassEntry
 
             This example removed the specified kee pass entry.
     #>
-    [CmdletBinding(SupportsShouldProcess=$true,ConfirmImpact='High')]
+    [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='High')]
     param
     (
-        [Parameter(Position=0,Mandatory=$true,ValueFromPipeline)]
+        [Parameter(Position=0, Mandatory=$true, ValueFromPipeline=$true)]
         [ValidateNotNullOrEmpty()]
         [PSObject] $KeePassEntry,
-        [Parameter(Position=1,Mandatory=$false)]
+
+        [Parameter(Position=1, Mandatory=$false)]
         [Switch] $NoRecycle,
-        [Parameter(Position=2,Mandatory=$false)]
+
+        [Parameter(Position=2, Mandatory=$false)]
         [Switch] $Force
     )
     dynamicparam
@@ -438,8 +443,8 @@ function Remove-KeePassEntry
         }
         else 
         {
-            Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles."
-            Write-Warning -Message "[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function."
+            Write-Warning -Message '[BEGIN] There are Currently No Database Configuration Profiles.'
+            Write-Warning -Message '[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function.'
             Throw 'There are Currently No Database Configuration Profiles.'
         }
     }
@@ -448,15 +453,15 @@ function Remove-KeePassEntry
         $KPEntry=Get-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassUuid $KeePassEntry.Uuid
         if(-not $KPEntry)
         {
-            Write-Warning -Message "[PROCESS] The Specified KeePass Entry does not exist or cannot be found."
-            Throw "he Specified KeePass Entry does not exist or cannot be found."
+            Write-Warning -Message '[PROCESS] The Specified KeePass Entry does not exist or cannot be found.'
+            Throw 'The Specified KeePass Entry does not exist or cannot be found.'
         }
-        $EntryDisplayName = "$($KPEntry.ParentGroup.GetFullPath('/',$true))/$($KPEntry.Strings.ReadSafe('Title'))"
+        $EntryDisplayName = '{0}/{1}' -f $KPEntry.ParentGroup.GetFullPath('/',$true), $KPEntry.Strings.ReadSafe('Title') 
         if($Force -or $PSCmdlet.ShouldProcess($EntryDisplayName))
         {
             if($NoRecycle)
             {
-                if($Force -or $PSCmdlet.ShouldContinue("Recycle Bin Does Not Exist or the -NoRecycle Option Has been Specified.", "Do you want to continue to Permanently Delete this Entry: ($($EntryDisplayName))?"))
+                if($Force -or $PSCmdlet.ShouldContinue('Recycle Bin Does Not Exist or the -NoRecycle Option Has been Specified.', "Do you want to continue to Permanently Delete this Entry: $EntryDisplayName)?"))
                 {
                     Remove-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassEntry $KPEntry -NoRecycle -Confirm:$false -Force
                 }
@@ -505,17 +510,18 @@ function New-KeePassGroup
         .OUTPUTS
             $null
     #>
+    [CmdletBinding()]
     param
     (
-        [Parameter(Position = 0, Mandatory = $true)]
+        [Parameter(Position=0, Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
         [String] $KeePassGroupParentPath,
 
-        [Parameter(Position = 1, Mandatory = $true)]
+        [Parameter(Position=1, Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
         [String] $KeePassGroupName,
 
-        [Parameter(Position=2, Mandatory = $false)]
+        [Parameter(Position=2, Mandatory=$false)]
         [Switch] $PassThru
     )
     dynamicparam
@@ -538,8 +544,8 @@ function New-KeePassGroup
         }
         else 
         {
-            Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles."
-            Write-Warning -Message "[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function."
+            Write-Warning -Message '[BEGIN] There are Currently No Database Configuration Profiles.'
+            Write-Warning -Message '[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function.'
             Throw 'There are Currently No Database Configuration Profiles.'
         }
     }
@@ -549,8 +555,8 @@ function New-KeePassGroup
         $KeePassParentGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroupParentPath
         if(-not $KeePassParentGroup)
         {
-            Write-Warning -Message "[PROCESS] The Specified KeePass Entry Group Path ($KeePassGroupParentPath) does not exist."
-            Throw "The Specified KeePass Entry Group Path ($KeePassGroupParentPath) does not exist."
+            Write-Warning -Message ('[PROCESS] The Specified KeePass Entry Group Path ({0}) does not exist.' -f $KeePassGroupParentPath)
+            Throw 'The Specified KeePass Entry Group Path ({0}) does not exist.' -f $KeePassGroupParentPath
         }
         ## Add the KeePass Group
         Add-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassParentGroup $KeePassParentGroup -GroupName $KeePassGroupName -PassThru:$PassThru
@@ -596,12 +602,14 @@ function Get-KeePassGroup
         .OUTPUTS
             PSObject
     #>
+    [CmdletBinding()]
     param
     (
-        [Parameter(Position = 0 ,Mandatory = $false)]
+        [Parameter(Position=0, Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
         [String] $KeePassGroupPath,
-        [Parameter(Position = 1 ,Mandatory = $false)]
+
+        [Parameter(Position=1, Mandatory=$false)]
         [Switch] $AsPlainText
     )
     dynamicparam
@@ -624,8 +632,8 @@ function Get-KeePassGroup
         }
         else 
         {
-            Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles."
-            Write-Warning -Message "[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function."
+            Write-Warning -Message '[BEGIN] There are Currently No Database Configuration Profiles.'
+            Write-Warning -Message '[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function.'
             Throw 'There are Currently No Database Configuration Profiles.'
         }
     }
@@ -704,25 +712,25 @@ function Update-KeePassGroup
         .OUTPUTS
             $null
     #>
-    [CmdletBinding(SupportsShouldProcess=$true,ConfirmImpact='High')]
+    [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='High')]
     param
     (
-        [Parameter(Position=0,Mandatory=$true,ValueFromPipeline)]
+        [Parameter(Position=0, Mandatory=$true, ValueFromPipeline=$true)]
         [ValidateNotNullOrEmpty()]
         [PSObject] $KeePassGroup,
 
-        [Parameter(Position=1,Mandatory=$false)]
+        [Parameter(Position=1, Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
         [String] $KeePassParentGroupPath,
 
-        [Parameter(Position=2,Mandatory=$false)]
+        [Parameter(Position=2, Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
-        [string] $GroupName,
+        [String] $GroupName,
 
-        [Parameter(Position=3,Mandatory=$false)]
+        [Parameter(Position=3, Mandatory=$false)]
         [Switch] $PassThru,
 
-        [Parameter(Position=4,Mandatory=$false)]
+        [Parameter(Position=4, Mandatory=$false)]
         [Switch] $Force
     )
     dynamicparam
@@ -745,8 +753,8 @@ function Update-KeePassGroup
         }
         else 
         {
-            Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles."
-            Write-Warning -Message "[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function."
+            Write-Warning -Message '[BEGIN] There are Currently No Database Configuration Profiles.'
+            Write-Warning -Message '[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function.'
             Throw 'There are Currently No Database Configuration Profiles.'
         }
     }
@@ -757,28 +765,28 @@ function Update-KeePassGroup
             $KeePassParentGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassParentGroupPath
             if(-not $KeePassParentGroup)
             {
-                Write-Warning -Message "[PROCESS] The Specified KeePass Entry Group Path ($KeePassGroupParentPath) does not exist."
-                Throw "The Specified KeePass Entry Group Path ($KeePassGroupParentPath) does not exist."
+                Write-Warning -Message ('[PROCESS] The Specified KeePass Parent Group Path ({0}) does not exist.' -f $KeePassGroupParentPath)
+                Throw 'The Specified KeePass Parent Group Path ({0}) does not exist.' -f $KeePassGroupParentPath
             }
         }
         
         if($KeePassGroup.GetType().Name -eq 'PwGroup')
         {
-            $KeePassGroupFullPath = "$($KeePassGroup.GetFullPath('/',$true))"
+            $KeePassGroupFullPath = '{0}' -f $KeePassGroup.GetFullPath('/',$true)
         }
         else
         {
-            $KeePassGroupFullPath = "$($KeePassGroup.FullPath)/$($KeePassGroup.Name)"
+            $KeePassGroupFullPath = '{0}/{1}' -f $KeePassGroup.FullPath, $KeePassGroup.Name
         }
         ## Confirm 
-        if($Force -or $PSCmdlet.ShouldProcess($($KeePassGroupFullPath)))
+        if($Force -or $PSCmdlet.ShouldProcess($KeePassGroupFullPath))
         {
             $KeePassGroupObject = Get-KPGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroupFullPath | Where-Object { $_.CreationTime -eq $KeePassGroup.CreationTime}
         
             if($KeePassGroupObject.Count -gt 1)
             {
-                Write-Warning -Message "[PROCESS] Found more than one group with the same path, name and creation time. Stoping Update."
-                Write-Warning -Message "[PROCESS] Found: $($KeePassGroupObject.Count) number of matching groups."
+                Write-Warning -Message '[PROCESS] Found more than one group with the same path, name and creation time. Stoping Update.'
+                Write-Warning -Message ('[PROCESS] Found: ({0}) number of matching groups' -f $KeePassGroupObject.Count)
                 Throw 'Found more than one group with the same path, name and creation time.'
             }
 
@@ -824,15 +832,17 @@ function Remove-KeePassGroup
 
             This example removed the specified keepass Group.
     #>
-    [CmdletBinding(SupportsShouldProcess=$true,ConfirmImpact='High')]
+    [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='High')]
     param
     (
-        [Parameter(Position=0,Mandatory=$true,ValueFromPipeline=$true)]
+        [Parameter(Position=0, Mandatory=$true, ValueFromPipeline=$true)]
         [ValidateNotNullOrEmpty()]
         [PSObject] $KeePassGroup,
-        [Parameter(Position=1,Mandatory=$false)]
+
+        [Parameter(Position=1, Mandatory=$false)]
         [Switch] $NoRecycle,
-        [Parameter(Position=2,Mandatory=$false)]
+
+        [Parameter(Position=2, Mandatory=$false)]
         [Switch] $Force
     )
     dynamicparam
@@ -855,8 +865,8 @@ function Remove-KeePassGroup
         }
         else 
         {
-            Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles."
-            Write-Warning -Message "[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function."
+            Write-Warning -Message '[BEGIN] There are Currently No Database Configuration Profiles.'
+            Write-Warning -Message '[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function.'
             Throw 'There are Currently No Database Configuration Profiles.'
         }
     }
@@ -864,25 +874,25 @@ function Remove-KeePassGroup
     {
         if($KeePassGroup.GetType().Name -eq 'PwGroup')
         {
-            $KeePassGroupFullPath = "$($KeePassGroup.GetFullPath('/',$true))"
+            $KeePassGroupFullPath = '{0}' -f $KeePassGroup.GetFullPath('/',$true)
         }
         else
         {
-            $KeePassGroupFullPath = "$($KeePassGroup.FullPath)/$($KeePassGroup.Name)"
+            $KeePassGroupFullPath = '{0}/{1}' -f $KeePassGroup.FullPath, $KeePassGroup.Name
         }
         $KeePassGroupObject = Get-KPGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroupFullPath | Where-Object { $_.CreationTime -eq $KeePassGroup.CreationTime}
         
         if(-not $KeePassGroupObject)
         {
-            Write-Warning -Message "[PROCESS] The Specified KeePass Group does not exist."
-            Throw "The Specified KeePass Group does not exist."
+            Write-Warning -Message '[PROCESS] The Specified KeePass Group does not exist.'
+            Throw 'The Specified KeePass Group does not exist.'
         }
 
         if($KeePassGroupObject.Count -gt 1)
         {
-            Write-Warning -Message "[PROCESS] Found more than one group with the same path, name and creation time. Stoping Removal."
-            Write-Warning -Message "[PROCESS] Found: $($KeePassGroupObject.Count) number of matching groups."
-            Throw "Found more than one group with the same path, name and creation time. Stoping Removal."
+            Write-Warning -Message '[PROCESS] Found more than one group with the same path, name and creation time. Stoping Removal.'
+            Write-Warning -Message ('[PROCESS] Found: ({0}) number of matching groups.' -f $KeePassGroupObject.Count)
+            Throw 'Found more than one group with the same path, name and creation time. Stoping Removal.'
         }
 
         if($Force -or $PSCmdlet.ShouldProcess($KeePassGroupFullPath))
@@ -893,7 +903,7 @@ function Remove-KeePassGroup
             }
             else
             {
-                if($Force -or $PSCmdlet.ShouldContinue("Recycle Bin Does Not Exist or the -NoRecycle Option Has been Specified.", "Remove this Group permanetly: $($KeePassGroupFullPath)?"))
+                if($Force -or $PSCmdlet.ShouldContinue('Recycle Bin Does Not Exist or the -NoRecycle Option Has been Specified.', "Remove this Group permanetly: $KeePassGroupFullPath?"))
                 {
                     Remove-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroupObject -NoRecycle:$NoRecycle -Confirm:$false -Force
                 }
@@ -985,46 +995,45 @@ function New-KeePassPassword
             KeePassLib.Security.ProtectedString
     #>
     [CmdletBinding(DefaultParameterSetName='NoProfile')]
-    [OutputType('SecureString')]
     param
     (
-        [Parameter(Position=0, ParameterSetName='NoProfile')]
+        [Parameter(Position=0, Mandatory=$false, ParameterSetName='NoProfile')]
         [ValidateNotNull()]
         [Switch] $UpperCase,
-        [Parameter(Position=1, ParameterSetName='NoProfile')]
+        [Parameter(Position=1, Mandatory=$false, ParameterSetName='NoProfile')]
         [ValidateNotNull()]
         [Switch] $LowerCase,
-        [Parameter(Position=2, ParameterSetName='NoProfile')]
+        [Parameter(Position=2, Mandatory=$false, ParameterSetName='NoProfile')]
         [ValidateNotNull()]
         [Switch] $Digits,
-        [Parameter(Position=3, ParameterSetName='NoProfile')]
+        [Parameter(Position=3, Mandatory=$false, ParameterSetName='NoProfile')]
         [ValidateNotNull()]
         [Switch] $SpecialCharacters,
-        [Parameter(Position=4, ParameterSetName='NoProfile')]
+        [Parameter(Position=4, Mandatory=$false, ParameterSetName='NoProfile')]
         [ValidateNotNull()]
         [Switch] $Minus,
-        [Parameter(Position=5, ParameterSetName='NoProfile')]
+        [Parameter(Position=5, Mandatory=$false, ParameterSetName='NoProfile')]
         [ValidateNotNull()]
         [Switch] $UnderScore,
-        [Parameter(Position=6, ParameterSetName='NoProfile')]
+        [Parameter(Position=6, Mandatory=$false, ParameterSetName='NoProfile')]
         [ValidateNotNull()]
         [Switch] $Space,
-        [Parameter(Position=7, ParameterSetName='NoProfile')]
+        [Parameter(Position=7, Mandatory=$false, ParameterSetName='NoProfile')]
         [ValidateNotNull()]
         [Switch] $Brackets,
-        [Parameter(Position=8, ParameterSetName='NoProfile')]
+        [Parameter(Position=8, Mandatory=$false, ParameterSetName='NoProfile')]
         [ValidateNotNull()]
         [Switch] $ExcludeLookALike,
-        [Parameter(Position=9, ParameterSetName='NoProfile')]
+        [Parameter(Position=9, Mandatory=$false, ParameterSetName='NoProfile')]
         [ValidateNotNull()]
         [Switch] $NoRepeatingCharacters,
-        [Parameter(Position=10, ParameterSetName='NoProfile')]
+        [Parameter(Position=10, Mandatory=$false, ParameterSetName='NoProfile')]
         [ValidateNotNullOrEmpty()]
-        [string] $ExcludeCharacters,
-        [Parameter(Position=11, ParameterSetName='NoProfile')]
+        [String] $ExcludeCharacters,
+        [Parameter(Position=11, Mandatory=$false, ParameterSetName='NoProfile')]
         [ValidateNotNullOrEmpty()]
-        [int] $Length,
-        [Parameter(Position=12, ParameterSetName='NoProfile')]
+        [Int] $Length,
+        [Parameter(Position=12, Mandatory=$false, ParameterSetName='NoProfile')]
         [ValidateNotNullOrEmpty()]
         [String] $SaveAs
     )
@@ -1178,16 +1187,16 @@ function New-KeePassPassword
         ## Check if Password Generation was successful
         if($ResultMessage -ne 'Success')
         {
-            Write-Warning -Message "[PROCESS] Failure while attempting to generate a password with the specified settings or profile."
-            Write-Warning -Message "[PROCESS] Password Generation Failed with the Result Text: $ResultMessage."
+            Write-Warning -Message '[PROCESS] Failure while attempting to generate a password with the specified settings or profile.'
+            Write-Warning -Message ('[PROCESS] Password Generation Failed with the Result Text: {0}.' -f $ResultMessage)
             if($ResultMessage -eq 'TooFewCharacters')
             {
-                Write-Warning -Message "[PROCESS] Result Text $ResultMessage, typically means that you specified a length that is longer than the possible generated outcome."
+                Write-Warning -Message ('[PROCESS] Result Text {0}, typically means that you specified a length that is longer than the possible generated outcome.'-f $ResultMessage)
                 $ExcludeCharacterCount=if($PassProfile.ExcludeCharacters){($PassProfile.ExcludeCharacters -split ',').Count}else{0}
                 if($PassProfile.NoRepeatingCharacters -and $PassProfile.Length -gt ($PassProfile.CharSet.Size - $ExcludeCharacterCount)) 
                 {
                     Write-Warning -Message "[PROCESS] Checked for the invalid specification. `n`tSpecified Length: $($PassProfile.Length). `n`tCharacterSet Count: $($PassProfile.CharSet.Size). `n`tNo Repeating Characters is set to: $($PassProfile.NoRepeatingCharacters). `n`tExclude Character Count: $ExcludeCharacterCount."
-                    Write-Warning -Message "[PROCESS] Specify More characters, shorten the length, remove the no repeating characters option, or removed excluded characters."
+                    Write-Warning -Message '[PROCESS] Specify More characters, shorten the length, remove the no repeating characters option, or removed excluded characters.'
                 }
             }
 
@@ -1199,7 +1208,7 @@ function New-KeePassPassword
             {
                 $NewProfileObject.ProfileName = $SaveAs
                 New-KPPasswordProfile -KeePassPasswordObject $NewProfileObject
-            }    
+            }
         }
         try
         {
@@ -1207,9 +1216,8 @@ function New-KeePassPassword
         }
         catch
         {
-            
-            Write-Warning -Message "[PROCESS] An exception occured while trying to convert the KeePassLib.Securtiy.ProtectedString to a SecureString."
-            Write-Warning -Message "[PROCESS] Exception Message: $($_.Exception.Message)"
+            Write-Warning -Message '[PROCESS] An exception occured while trying to convert the KeePassLib.Securtiy.ProtectedString to a SecureString.'
+            Write-Warning -Message ('[PROCESS] Exception Message: {0}' -f $_.Exception.Message)
             Throw $_
         }
     }
@@ -1259,50 +1267,50 @@ function New-KeePassDatabaseConfiguration
     [CmdletBinding()]
     param
     (
-        [Parameter(Position = 0, Mandatory = $true)]
+        [Parameter(Position=0, Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
         [String] $DatabaseProfileName,
 
-        [Parameter(Position = 1, Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Key')]
-        [Parameter(Position = 1, Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Master')]
-        [Parameter(Position = 1, Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Network')]
-        [Parameter(Position = 1, Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
+        [Parameter(Position=1, Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Key')]
+        [Parameter(Position=1, Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Master')]
+        [Parameter(Position=1, Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Network')]
+        [Parameter(Position=1, Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
         [ValidateNotNullOrEmpty()]
         [ValidateScript({Test-Path $_})]
         [String] $DatabasePath,
 
-        [Parameter(Position = 2, Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Key')]
-        [Parameter(Position = 2, Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
+        [Parameter(Position=2, Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Key')]
+        [Parameter(Position=2, Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
         [ValidateNotNullOrEmpty()]
         [ValidateScript({Test-Path $_})]
         [String] $KeyPath,
 
-        [Parameter(Position = 3, Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Key')]
-        [Parameter(Position = 3, Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Master')]
-        [Parameter(Position = 3, Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Network')]
+        [Parameter(Position=3, Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Key')]
+        [Parameter(Position=3, Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Master')]
+        [Parameter(Position=3, Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Network')]
         [Switch] $UseNetworkAccount,
 
-        [Parameter(Position = 4, Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Master')]
-        [Parameter(Position = 4, Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
+        [Parameter(Position=4, Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Master')]
+        [Parameter(Position=4, Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
         [Switch] $UseMasterKey,
 
-        [Parameter(Position = 5, Mandatory=$false)]
+        [Parameter(Position=5, Mandatory=$false)]
         [Switch] $PassThru
     )
     begin
     {
         if($PSCmdlet.ParameterSetName -eq 'Network' -and -not $UseNetworkAccount)
         {
-            Write-Warning -Message "[BEGIN] Please Specify a valid Credential Combination."
-            Write-Warning -Message "[BEGIN] You can not have a only a database file with no authentication options."
-            Throw "Please Specify a valid Credential Combination."
+            Write-Warning -Message '[BEGIN] Please Specify a valid Credential Combination.'
+            Write-Warning -Message '[BEGIN] You can not have a only a database file with no authentication options.'
+            Throw 'Please Specify a valid Credential Combination.'
         }
     }
     process
     {
         if (-not (Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml))
         {
-            Write-Verbose -Message "[PROCESS] A KeePass Configuration File does not exist. One will be generated now."
+            Write-Verbose -Message '[PROCESS] A KeePass Configuration File does not exist. One will be generated now.'
             New-KPConfigurationFile
         }
         else
@@ -1312,8 +1320,8 @@ function New-KeePassDatabaseConfiguration
 
         if($CheckIfProfileExists)
         {
-            Write-Warning -Message "[PROCESS] A KeePass Database Configuration Profile Already exists with the specified name: $DatabaseProfileName."
-            Throw "A KeePass Database Configuration Profile Already exists with the specified name: $DatabaseProfileName."
+            Write-Warning -Message ('[PROCESS] A KeePass Database Configuration Profile Already exists with the specified name: {0}.' -f $DatabaseProfileName)
+            Throw '[PROCESS] A KeePass Database Configuration Profile Already exists with the specified name: {0}.' -f $DatabaseProfileName
         }
         else
         {
@@ -1358,8 +1366,8 @@ function New-KeePassDatabaseConfiguration
             }
             catch [Exception]
             {
-                Write-Warning -Message "[PROCESS] An Exception Occured while trying to add a new KeePass database configuration ($DatabaseProfileName) to the configuration file."
-                Write-Warning -Message "[PROCESS] $($_.Exception.Message)"
+                Write-Warning -Message ('[PROCESS] An Exception Occured while trying to add a new KeePass database configuration ({0}) to the configuration file.' -f $DatabaseProfileName)
+                Write-Warning -Message ('[PROCESS] {0}' -f $_.Exception.Message)
                 Throw $_ 
             }
         }
@@ -1392,7 +1400,7 @@ function Get-KeePassDatabaseConfiguration
     [CmdletBinding()]
     param
     (
-        [Parameter(Position = 0,Mandatory = $false)]
+        [Parameter(Position=0, Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
         [String] $DatabaseProfileName
     )
@@ -1424,8 +1432,6 @@ function Get-KeePassDatabaseConfiguration
                 $ProfileObject | Add-Member -MemberType NoteProperty -Name 'AuthenticationType' -Value $ProfileResult.AuthenticationType
                 $ProfileObject
             }
-            
-
         }
         else
         {
@@ -1453,7 +1459,7 @@ function Remove-KeePassDatabaseConfiguration
         .OUTPUTS
             $null
     #>
-    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact='High')]
+    [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='High')]
     param()
     dynamicparam
     {
@@ -1494,16 +1500,16 @@ function Remove-KeePassDatabaseConfiguration
         }
         else
         {
-            Write-Warning -Message "[BEGIN] There are Currently No Database Configuration Profiles." 
-            Throw "There are Currently No Database Configuration Profiles."
+            Write-Warning -Message '[BEGIN] There are Currently No Database Configuration Profiles.' 
+            Throw 'There are Currently No Database Configuration Profiles.'
         }
     }
     process
     {
         if (-not (Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml))
         {
-            Write-Verbose -Message "[PROCESS] A KeePass Configuration File does not exist."
-            Throw "A KeePass Configuration File does not exist."
+            Write-Verbose -Message '[PROCESS] A KeePass Configuration File does not exist.'
+            Throw 'A KeePass Configuration File does not exist.'
         }
         else
         {
@@ -1521,15 +1527,16 @@ function Remove-KeePassDatabaseConfiguration
                     }
                     catch [exception]
                     {
-                        Write-Warning -Message "[PROCESS] An exception occured while attempting to remove a KeePass Database Configuration Profile ($DatabaseProfileName)."
-                        Write-Warning -Message "[PROCESS] $($_.Exception.Message)"
+                        Write-Warning -Message ('[PROCESS] An exception occured while attempting to remove a KeePass Database Configuration Profile ({0}).' -f $DatabaseProfileName)
+                        Write-Warning -Message ('[PROCESS] {0}' -f $_.Exception.Message)
                         Throw $_
                     }
                 }
             }
             else
             {
-                Write-Warning -Message "[PROCESS] A KeePass Database Configuration Profile does not exists with the specified name: $DatabaseProfileName."
+                Write-Warning -Message ('[PROCESS] A KeePass Database Configuration Profile does not exists with the specified name: {0}.' -f $DatabaseProfileName)
+                Throw '[PROCESS] A KeePass Database Configuration Profile does not exists with the specified name: {0}.' -f $DatabaseProfileName
             }
         }
         
@@ -1565,24 +1572,21 @@ function New-KPConfigurationFile
     [CmdletBinding()]
     param
     (
-        [Parameter(
-            Position = 0,
-            Mandatory = $false
-        )]
+        [Parameter(Position=0, Mandatory=$false)]
         [Switch] $Force
     )
     process
     {
         if ((Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml) -and -not $Force)
         {
-            Write-Warning -Message "[PROCESS] A KeePass Configuration File already exists. Please rerun with -force to overwrite the existing configuration."
-            Throw "A KeePass Configuration File already exists."
+            Write-Warning -Message '[PROCESS] A KeePass Configuration File already exists. Please rerun with -force to overwrite the existing configuration.'
+            Throw 'A KeePass Configuration File already exists.'
         }
         else
         {
             try
             {
-                $Path = "$PSScriptRoot\KeePassConfiguration.xml"
+                $Path = '{0}\KeePassConfiguration.xml' -f $PSScriptRoot
 
                 $XML = New-Object System.Xml.XmlTextWriter($Path,$null)
                 $XML.Formatting = 'Indented'
@@ -1602,8 +1606,8 @@ function New-KPConfigurationFile
             }
             catch
             {
-                Write-Warning -Message "[PROCESS] An exception occured while trying to create a new keepass configuration file."
-                Write-Warning -Message "[PROCESS] $($_.Exception.Message)"
+                Write-Warning -Message '[PROCESS] An exception occured while trying to create a new keepass configuration file.'
+                Write-Warning -Message ('[PROCESS] {0}' -f $_.Exception.Message)
                 Throw $_
             }
             
@@ -1635,10 +1639,7 @@ function New-KPPasswordProfile
     [CmdletBinding()]
     param
     (
-        [Parameter(
-            Position = 0,
-            Mandatory = $true
-        )]
+        [Parameter(Position=0, Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
         [PSCustomObject] $KeePassPasswordObject
     )
@@ -1649,8 +1650,8 @@ function New-KPPasswordProfile
             $CheckIfExists = Get-KPPasswordProfile -PasswordProfileName $KeePassPasswordObject.ProfileName
             if($CheckIfExists)
             {
-                Write-Warning -Message "[PROCESS] A Password Profile with the specified name ($($KeePassPasswordObject.ProfileName)) already exists."
-                break
+                Write-Warning -Message ('[PROCESS] A Password Profile with the specified name ({0}) already exists.' -f $KeePassPasswordObject.ProfileName)
+                Throw 'A Password Profile with the specified name ({0}) already exists.' -f $KeePassPasswordObject.ProfileName
             }
 
             [xml] $XML = Get-Content("$PSScriptRoot\KeePassConfiguration.xml")
@@ -1716,10 +1717,7 @@ function Get-KPPasswordProfile
     [CmdletBinding()]
     param
     (
-        [Parameter(
-            Position = 0,
-            Mandatory = $false
-        )]
+        [Parameter(Position=0, Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
         [String] $PasswordProfileName
     )
@@ -1765,32 +1763,30 @@ function Remove-KPPasswordProfile
         .OUTPUTS
             $null
     #>
-    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact='High')]
+    [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='High')]
     param()
     dynamicparam
     {
-        ##Create and Define Validate Set Attribute
+        ## Create and Define Validate Set Attribute
         $PasswordProfileList = (Get-KPPasswordProfile).Name
         if($PasswordProfileList)
         {
             $ParameterName = 'PasswordProfileName'
             $AttributeCollection = New-Object -TypeName System.Collections.ObjectModel.Collection[System.Attribute]
-            ###ParameterSet Host
             $ParameterAttribute = New-Object -TypeName System.Management.Automation.ParameterAttribute
             $ParameterAttribute.Mandatory = $true
             $ParameterAttribute.Position = 0
             $ParameterAttribute.ValueFromPipelineByPropertyName = $true
-            # $ParameterAttribute.ParameterSetName = 'Profile'
             $AttributeCollection.Add($ParameterAttribute)
 
             $ValidateSetAttribute = New-Object -TypeName System.Management.Automation.ValidateSetAttribute($PasswordProfileList)
             $AttributeCollection.Add($ValidateSetAttribute)
 
-            ##Create and Define Allias Attribute
+            ## Create and Define Allias Attribute
             $AliasAttribute = New-Object -TypeName System.Management.Automation.AliasAttribute('Name')
             $AttributeCollection.Add($AliasAttribute)
 
-            ##Create,Define, and Return DynamicParam
+            ## Create,Define, and Return DynamicParam
             $RuntimeParameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter($ParameterName, [string], $AttributeCollection)
             $RuntimeParameterDictionary = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameterDictionary
             $RuntimeParameterDictionary.Add($ParameterName,$RuntimeParameter)
@@ -1805,44 +1801,34 @@ function Remove-KPPasswordProfile
         }
         else
         {
-            Write-Warning -Message "[BEGIN] There are Currently No Password Profiles." 
-            break
+            Write-Warning -Message '[BEGIN] There are Currently No Password Profiles.' 
+            Throw 'There are Currently No Password Profiles.'
         }
     }
     process
     {
         if (-not (Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml))
         {
-            Write-Verbose -Message "[PROCESS] A KeePass Configuration File does not exist."
+            Write-Verbose -Message '[PROCESS] A KeePass Configuration File does not exist.'
         }
         else
         {
-            # $CheckIfProfileExists = Get-KPPasswordProfile -PasswordProfileName $PasswordProfileName
-
-            # if($CheckIfProfileExists)
-            # {
-                if($PSCmdlet.ShouldProcess($PasswordProfileName))
+            if($PSCmdlet.ShouldProcess($PasswordProfileName))
+            {
+                try
                 {
-                    try
-                    {
-                        [xml]$XML = (Get-Content $PSScriptRoot\KeePassConfiguration.xml)
-                        $XML.Settings.PasswordProfiles.Profile  | Where-Object { $_.Name -eq $PasswordProfileName } | ForEach-Object { $xml.Settings.PasswordProfiles.RemoveChild($_) } | Out-Null
-                        $XML.Save("$PSScriptRoot\KeePassConfiguration.xml")
-                    }
-                    catch [exception]
-                    {
-                        Write-Warning -Message "[PROCESS] An exception occured while attempting to remove a KeePass Password Profile ($PasswordProfileName)."
-                        Write-Warning -Message "[PROCESS] $($_.Exception.Message)"
-                        Throw $_
-                    }
+                    [xml]$XML = (Get-Content $PSScriptRoot\KeePassConfiguration.xml)
+                    $XML.Settings.PasswordProfiles.Profile  | Where-Object { $_.Name -eq $PasswordProfileName } | ForEach-Object { $xml.Settings.PasswordProfiles.RemoveChild($_) } | Out-Null
+                    $XML.Save("$PSScriptRoot\KeePassConfiguration.xml")
                 }
-            # }
-            # else
-            # {
-            #     Write-Warning -Message "[PROCESS] A KeePass Password Profile does not exists with the specified name: $PasswordProfileName."
-            # }
+                catch [exception]
+                {
+                    Write-Warning -Message ('[PROCESS] An exception occured while attempting to remove a KeePass Password Profile ({0}).' -f $PasswordProfileName)
+                    Write-Warning -Message ('[PROCESS] {0}' -f $_.Exception.Message)
+                    Throw $_
+                }
+            }
         }
-        
     }
 }
 
@@ -1891,13 +1877,13 @@ function Get-KPCredential
         [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Network')]
         [ValidateNotNullOrEmpty()]
         [ValidateScript({Test-Path $_})]
-        [string] $DatabaseFile,
+        [String] $DatabaseFile,
 
         [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Key')]
         [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
         [ValidateNotNullOrEmpty()]
         [ValidateScript({Test-Path $_})]
-        [string] $KeyFile,
+        [String] $KeyFile,
 
         [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Master')]
         [Parameter(Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Profile')]
@@ -1908,15 +1894,15 @@ function Get-KPCredential
         [Parameter(Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Key')]
         [Parameter(Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Master')]
         [Parameter(Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Network')]
-        [switch] $UseNetworkAccount
+        [Switch] $UseNetworkAccount
     )
     begin
     {
         if($PSCmdlet.ParameterSetName -eq 'Network' -and -not $UseNetworkAccount)
         {
-            Write-Warning -Message "[BEGIN] Please Specify a valid Credential Combination."
-            Write-Warning -Message "[BEGIN] You can not have a only a database file with no authentication options."
-            Throw "Please Specify a valid Credential Combination."
+            Write-Warning -Message '[BEGIN] Please Specify a valid Credential Combination.'
+            Write-Warning -Message '[BEGIN] You can not have a only a database file with no authentication options.'
+            Throw 'Please Specify a valid Credential Combination.'
         }
     }
     process
@@ -1987,11 +1973,7 @@ function Get-KPConnection
     [OutputType('KeePassLib.PwDatabase')]
     param
     (
-        [Parameter(Position=0,
-            Mandatory,
-            ValueFromPipeline,
-            ValueFromPipelineByPropertyName
-        )]
+        [Parameter(Position=0, Mandatory=$true, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()]
         [PSCustomObject] $KeePassCredential
     )
@@ -2006,14 +1988,14 @@ function Get-KPConnection
         }
         catch [Exception]
         {
-            Write-Warning $_.Exception.Message
-            Throw $_.Exception
+            Write-Warning -Message ('[PROCESS] {0}' -f $_.Exception.Message)
+            Throw $_
         }
 
         ## Determine AuthenticationType and Create KPLib CompositeKey
         try
         {
-            if ($KeePassCredential.AuthenticationType -eq "Key")
+            if ($KeePassCredential.AuthenticationType -eq 'Key')
             {
                 $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpKeyFile($KeePassCredential.KeyFile)))
                 if($KeePassCredential.UseNetworkAccount)
@@ -2021,13 +2003,13 @@ function Get-KPConnection
                     $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpUserAccount))
                 }
             }
-            elseif ($KeePassCredential.AuthenticationType -eq "KeyAndMaster")
+            elseif ($KeePassCredential.AuthenticationType -eq 'KeyAndMaster')
             {
                 $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpPassword([Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($KeePassCredential.MasterKey)))))
                 # $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpUserAccount))
                 $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpKeyFile($KeePassCredential.KeyFile)))
             }
-            elseif ($KeePassCredential.AuthenticationType -eq "Master")
+            elseif ($KeePassCredential.AuthenticationType -eq 'Master')
             {
                 $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpPassword([Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($KeePassCredential.MasterKey)))))
                 if($KeePassCredential.UseNetworkAccount)
@@ -2035,15 +2017,15 @@ function Get-KPConnection
                     $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpUserAccount))
                 }
             }
-            elseif ($KeePassCredential.AuthenticationType -eq "Network")
+            elseif ($KeePassCredential.AuthenticationType -eq 'Network')
             {
                 $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpUserAccount))
             }
         }
         catch [Exception]
         {
-            Write-Warning $_.Exception.Message
-            Throw $_.Exception
+            Write-Warning -Message ('[PROCESS] {0}' -f $_.Exception.Message)
+            Throw $_
         }
         finally
         {
@@ -2088,7 +2070,7 @@ function Remove-KPConnection
     [CmdletBinding()]
     param
     (
-        [Parameter(Position=0, Mandatory)]
+        [Parameter(Position=0, Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwDatabase] $KeePassConnection
     )
@@ -2103,13 +2085,15 @@ function Remove-KPConnection
             }
             else
             {
-                Write-Warning -Message "[PROCESS] The KeePass Database Specified is already closed or does not exist."    
+                Write-Warning -Message '[PROCESS] The KeePass Database Specified is already closed or does not exist.'
+                Throw 'The KeePass Database Specified is already closed or does not exist.'
             }
             
         }
         catch [Exception]
         {
-            Write-Warning $_.Exception.Message
+            Write-Warning -Message ('[PROCESS] {0}' -f $_.Exception.Message)
+            Throw $_
         }
     }
 }
@@ -2123,7 +2107,7 @@ function Invoke-KPConnection
         [String] $DatabaseProfileName,
 
         [Parameter(Position=1, Mandatory=$false)]
-        [securestring] $MasterKey
+        [SecureString] $MasterKey
     )
     process
     {
@@ -2154,11 +2138,11 @@ function Get-KPDynamicParameters
 {
     param
     (
-        [Parameter(Position=0,Mandatory=$true)]
+        [Parameter(Position=0, Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
         [Int] $DBProfilePosition,
 
-        [Parameter(Position=1,Mandatory=$true)]
+        [Parameter(Position=1, Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
         [Int] $MasterKeyPosition
     )
@@ -2169,29 +2153,25 @@ function Get-KPDynamicParameters
         ## If no profiles exists do not return the parameter.
         if($DatabaseProfileList)
         {
-            #### DatabaseProfileName Param
+            ### DatabaseProfileName Param
             $DBProfileParameterName = 'DatabaseProfileName'
             $DBProfileAttributeCollection = New-Object -TypeName System.Collections.ObjectModel.Collection[System.Attribute]
-            ###ParameterSet Host
             $DBProfileParameterAttribute = New-Object -TypeName System.Management.Automation.ParameterAttribute
             $DBProfileParameterAttribute.Mandatory = $true
             $DBProfileParameterAttribute.Position = $DBProfilePosition
-            # $DBProfileParameterAttribute.ValueFromPipelineByPropertyName = $true
-            # $DBProfileParameterAttribute.ParameterSetName = 'Profile'
+
             $DBProfileAttributeCollection.Add($DBProfileParameterAttribute)
 
             $DBProfileValidateSetAttribute = New-Object -TypeName System.Management.Automation.ValidateSetAttribute($DatabaseProfileList)
             $DBProfileAttributeCollection.Add($DBProfileValidateSetAttribute)
 
-            ##Create and Define Allias Attribute
+            ## Create and Define Allias Attribute
             $DBProfileAliasAttribute = New-Object -TypeName System.Management.Automation.AliasAttribute('Name')
             $DBProfileAttributeCollection.Add($DBProfileAliasAttribute)
 
-            
-            #### MasterKey Param
+            ### MasterKey Param
             $MasterKeyParameterName = 'MasterKey'
             $MasterKeyAttributeCollection = New-Object -TypeName System.Collections.ObjectModel.Collection[System.Attribute]
-            ###ParameterSet Host
             $MasterKeyParameterAttribute = New-Object -TypeName System.Management.Automation.ParameterAttribute
             $MasterKeyParameterAttribute.Mandatory = $false
             $MasterKeyParameterAttribute.Position = $MasterKeyPosition
@@ -2200,10 +2180,10 @@ function Get-KPDynamicParameters
             $MasterKeyValidateAttribute = New-Object -TypeName System.Management.Automation.ValidateNotNullOrEmptyAttribute
             $MasterKeyAttributeCollection.Add($MasterKeyValidateAttribute)
 
-            ##Create,Define, and Return DynamicParam
+            ## Create,Define, and Return DynamicParam
             $MasterKeyRuntimeParameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter($MasterKeyParameterName, [SecureString], $MasterKeyAttributeCollection)
             $MasterKeyRuntimeParameter.Value = $null
-            $DBProfileRuntimeParameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter($DBProfileParameterName, [string], $DBProfileAttributeCollection)
+            $DBProfileRuntimeParameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter($DBProfileParameterName, [String], $DBProfileAttributeCollection)
             
             $RuntimeParameterDictionary = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameterDictionary
             $RuntimeParameterDictionary.Add($DBProfileParameterName,$DBProfileRuntimeParameter)
@@ -2246,38 +2226,38 @@ function Get-KPEntry
         .PARAMETER KeePassUuid
             Specify the KeePass Entry Uuid for reverse lookup.
     #>
-    [CmdletBinding(DefaultParameterSetName="None")]
+    [CmdletBinding(DefaultParameterSetName='None')]
     [OutputType('KeePassLib.PwEntry')]
     param
     (
-        [Parameter(Position=0,Mandatory,ParameterSetName="None")]
-        [Parameter(Position=0,Mandatory,ParameterSetName="UUID")]
-        [Parameter(Position=0,Mandatory,ParameterSetName="Group")]
-        [Parameter(Position=0,Mandatory,ParameterSetName="Title")]
-        [Parameter(Position=0,Mandatory,ParameterSetName="UserName")]
-        [Parameter(Position=0,Mandatory,ParameterSetName="Password")]
+        [Parameter(Position=0, Mandatory=$true, ParameterSetName='None')]
+        [Parameter(Position=0, Mandatory=$true, ParameterSetName='UUID')]
+        [Parameter(Position=0, Mandatory=$true, ParameterSetName='Group')]
+        [Parameter(Position=0, Mandatory=$true, ParameterSetName='Title')]
+        [Parameter(Position=0, Mandatory=$true, ParameterSetName='UserName')]
+        [Parameter(Position=0, Mandatory=$true, ParameterSetName='Password')]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwDatabase] $KeePassConnection,
 
-        [Parameter(Position=1,Mandatory,ParameterSetName="Group")]
+        [Parameter(Position=1, Mandatory=$true, ParameterSetName='Group')]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwGroup[]] $KeePassGroup,
 
-        [Parameter(Position=1,Mandatory,ParameterSetName="UUID",ValueFromPipelineByPropertyName=$true,ValueFromPipeline=$true)]
+        [Parameter(Position=1, Mandatory=$true, ParameterSetName='UUID', ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()]
         [Alias('Uuid')]
         [KeePassLib.PwUuid] $KeePassUuid,
 
-        [Parameter(Position=2,Mandatory=$false,ParameterSetName="Group")]
-        [Parameter(Position=1,Mandatory,ParameterSetName="Title")]
+        [Parameter(Position=2, Mandatory=$false, ParameterSetName='Group')]
+        [Parameter(Position=1, Mandatory=$true, ParameterSetName='Title')]
         [ValidateNotNullOrEmpty()]
-        [string] $Title,
+        [String] $Title,
 
-        [Parameter(Position=3,Mandatory=$false,ParameterSetName="Group")]
-        [Parameter(Position=2,Mandatory=$false,ParameterSetName="Title")]
-        [Parameter(Position=1,Mandatory,ParameterSetName="UserName")]
+        [Parameter(Position=3, Mandatory=$false, ParameterSetName='Group')]
+        [Parameter(Position=2, Mandatory=$false, ParameterSetName='Title')]
+        [Parameter(Position=1, Mandatory=$true, ParameterSetName='UserName')]
         [ValidateNotNullOrEmpty()]
-        [string] $UserName
+        [String] $UserName
     )
     begin
     {
@@ -2285,7 +2265,7 @@ function Get-KPEntry
         if(-not $KeePassConnection.IsOpen)
         {
             Write-Warning -Message '[BEGIN] The KeePass Connection Sepcified is not open or does not exist.'
-            break
+            Throw 'The KeePass Connection Sepcified is not open or does not exist.'
         }
     }
     process
@@ -2314,7 +2294,7 @@ function Get-KPEntry
             {
                 $KeePassItems = foreach($_keepassItem in $KeePassItems)
                 {
-                    if($_keepassItem.Strings.ReadSafe("Title").ToLower().Equals($Title.ToLower()))
+                    if($_keepassItem.Strings.ReadSafe('Title').ToLower().Equals($Title.ToLower()))
                     {
                         $_keepassItem
                     }
@@ -2324,7 +2304,7 @@ function Get-KPEntry
             {
                 $KeePassItems = foreach($_keepassItem in $KeePassItems)
                 {
-                    if($_keepassItem.Strings.ReadSafe("UserName").ToLower().Equals($UserName.ToLower()))
+                    if($_keepassItem.Strings.ReadSafe('UserName').ToLower().Equals($UserName.ToLower()))
                     {
                         $_keepassItem
                     }
@@ -2371,30 +2351,30 @@ function Add-KPEntry
     [CmdletBinding()]
     param
     (
-        [Parameter(Position=0,Mandatory)]
+        [Parameter(Position=0, Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwDatabase] $KeePassConnection,
 
-        [Parameter(Position=1,Mandatory)]
+        [Parameter(Position=1, Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwGroup] $KeePassGroup,
 
-        [Parameter(Position=2,Mandatory=$false)]
-        [string] $Title,
+        [Parameter(Position=2, Mandatory=$false)]
+        [String] $Title,
 
-        [Parameter(Position=3,Mandatory=$false)]
-        [string] $UserName,
+        [Parameter(Position=3, Mandatory=$false)]
+        [String] $UserName,
 
-        [Parameter(Position=4,Mandatory=$false)]
+        [Parameter(Position=4, Mandatory=$false)]
         [PSObject] $KeePassPassword,
 
-        [Parameter(Position=5,Mandatory=$false)]
-        [string] $Notes,
+        [Parameter(Position=5, Mandatory=$false)]
+        [String] $Notes,
 
-        [Parameter(Position=6,Mandatory=$false)]
-        [string] $URL,
+        [Parameter(Position=6, Mandatory=$false)]
+        [String] $URL,
 
-        [Parameter(Position=7,Mandatory=$false)]
+        [Parameter(Position=7, Mandatory=$false)]
         [Switch] $PassThru
     )
     begin
@@ -2417,7 +2397,7 @@ function Add-KPEntry
             if($ErrorNewPwGroupObject)
             {
                 Write-Warning -Message '[BEGIN] An error occured while creating a new KeePassLib.PwEntry Object.'
-                Write-Warning -Message "[BEGIN] $($ErrorNewPwEntryObject.ErrorRecord.Message)"
+                Write-Warning -Message ('[BEGIN] {0}' -f $ErrorNewPwEntryObject.ErrorRecord.Message)
                 Throw $_
             }
             else
@@ -2432,21 +2412,21 @@ function Add-KPEntry
     {
         if(-not (Test-KPPasswordValue $KeePassPassword))
         {
-            Write-Warning -Message "[PROCESS] Please provide a KeePassPassword Of Type SecureString or KeePassLib.Security.ProtectedString."
-            Write-Warning -Message "[PROCESS] The Value supplied ($KeePassPassword) is of Type $($KeePassPassword.GetType().Name)."
+            Write-Warning -Message '[PROCESS] Please provide a KeePassPassword Of Type SecureString or KeePassLib.Security.ProtectedString.'
+            Write-Warning -Message ('[PROCESS] The Value supplied ({0}) is of Type {1}.' -f $KeePassPassword, $KeePassPassword.GetType().Name)
             Throw 'Please provide a KeePassPassword Of Type SecureString or KeePassLib.Security.ProtectedString.'
         }
 
         if($Title)
         {
             $SecureTitle = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectTitle, $Title)
-            $KeePassEntry.Strings.Set("Title", $SecureTitle)
+            $KeePassEntry.Strings.Set('Title', $SecureTitle)
         }
 
         if($UserName)
         {
             $SecureUser = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectUserName, $UserName)
-            $KeePassEntry.Strings.Set("UserName", $SecureUser)
+            $KeePassEntry.Strings.Set('UserName', $SecureUser)
         }
 
         if($KeePassPassword)
@@ -2460,25 +2440,25 @@ function Add-KPEntry
             {
                 $KeePassSecurePasswordString = $KeePassPassword
             }
-            $KeePassEntry.Strings.Set("Password", $KeePassSecurePasswordString)
+            $KeePassEntry.Strings.Set('Password', $KeePassSecurePasswordString)
         }
         else
         {
             ## get password based on default pattern
             $KeePassSecurePasswordString = New-KeePassPassword
-            $KeePassEntry.Strings.Set("Password", $KeePassSecurePasswordString)
+            $KeePassEntry.Strings.Set('Password', $KeePassSecurePasswordString)
         }
 
         if($Notes)
         {
             $SecureNotes = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectNotes, $Notes)
-            $KeePassEntry.Strings.Set("Notes", $SecureNotes)
+            $KeePassEntry.Strings.Set('Notes', $SecureNotes)
         }
 
         if($URL)
         {
             $SecureURL = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectUrl, $URL)
-            $KeePassEntry.Strings.Set("URL", $SecureURL)
+            $KeePassEntry.Strings.Set('URL', $SecureURL)
         }
 
         #Add to Group
@@ -2529,37 +2509,37 @@ function Set-KPEntry
     [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='High')]
     param
     (
-        [Parameter(Position=0,Mandatory)]
+        [Parameter(Position=0, Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwDatabase] $KeePassConnection,
 
-        [Parameter(Position=1,Mandatory)]
+        [Parameter(Position=1, Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwEntry] $KeePassEntry,
 
-        [Parameter(Position=2,Mandatory=$false)]
-        [string] $Title,
+        [Parameter(Position=2, Mandatory=$false)]
+        [String] $Title,
 
-        [Parameter(Position=3,Mandatory=$false)]
-        [string] $UserName,
+        [Parameter(Position=3, Mandatory=$false)]
+        [String] $UserName,
 
-        [Parameter(Position=4,Mandatory=$false)]
+        [Parameter(Position=4, Mandatory=$false)]
         [PSObject] $KeePassPassword,
 
-        [Parameter(Position=5,Mandatory=$false)]
-        [string] $Notes,
+        [Parameter(Position=5, Mandatory=$false)]
+        [String] $Notes,
 
-        [Parameter(Position=6,Mandatory=$false)]
-        [string] $URL,
+        [Parameter(Position=6, Mandatory=$false)]
+        [String] $URL,
         
-        [Parameter(Position=7,Mandatory=$false)]
+        [Parameter(Position=7, Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwGroup] $KeePassGroup,
 
-        [Parameter(Position=8,Mandatory=$false)]
+        [Parameter(Position=8, Mandatory=$false)]
         [Switch] $PassThru,
 
-        [Parameter(Position=9,Mandatory=$false)]
+        [Parameter(Position=9, Mandatory=$false)]
         [Switch] $Force
 
     )
@@ -2569,15 +2549,15 @@ function Set-KPEntry
         if(-not $KeePassConnection.IsOpen)
         {
             Write-Warning -Message '[BEGIN] The KeePass Connection Sepcified is not open or does not exist.'
-            break
+            Throw 'The KeePass Connection Sepcified is not open or does not exist.'
         }
     }
     process
     {
         if(-not (Test-KPPasswordValue $KeePassPassword))
         {
-            Write-Warning -Message "[PROCESS] Please provide a KeePassPassword Of Type SecureString or KeePassLib.Security.ProtectedString."
-            Write-Warning -Message "[PROCESS] The Value supplied ($KeePassPassword) is of Type $($KeePassPassword.GetType().Name)."
+            Write-Warning -Message '[PROCESS] Please provide a KeePassPassword Of Type SecureString or KeePassLib.Security.ProtectedString.'
+            Write-Warning -Message ('[PROCESS] The Value supplied ({0}) is of Type {1}.' -f $KeePassPassword, $KeePassPassword.GetType().Name)
             Throw 'Please provide a KeePassPassword Of Type SecureString or KeePassLib.Security.ProtectedString.'
         }
 
@@ -2587,13 +2567,13 @@ function Set-KPEntry
             if($Title)
             {
                 $SecureTitle = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectTitle, $Title)
-                $KeePassEntry.Strings.Set("Title", $SecureTitle)
+                $KeePassEntry.Strings.Set('Title', $SecureTitle)
             }
 
             if($UserName)
             {
                 $SecureUser = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectUserName, $UserName)
-                $KeePassEntry.Strings.Set("UserName", $SecureUser)
+                $KeePassEntry.Strings.Set('UserName', $SecureUser)
             }
 
             if($KeePassPassword)
@@ -2607,19 +2587,19 @@ function Set-KPEntry
                 {
                     $KeePassSecurePasswordString = $KeePassPassword
                 }
-                $KeePassEntry.Strings.Set("Password", $KeePassSecurePasswordString)
+                $KeePassEntry.Strings.Set('Password', $KeePassSecurePasswordString)
             }
             
             if($Notes)
             {
                 $SecureNotes = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectNotes, $Notes)
-                $KeePassEntry.Strings.Set("Notes", $SecureNotes)
+                $KeePassEntry.Strings.Set('Notes', $SecureNotes)
             }
 
             if($URL)
             {
                 $SecureURL = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectUrl, $URL)
-                $KeePassEntry.Strings.Set("URL", $SecureURL)
+                $KeePassEntry.Strings.Set('URL', $SecureURL)
             }
             ## If you are moving the entry to another group then take these actions.
             if($KeePassGroup)
@@ -2807,45 +2787,23 @@ function Get-KPGroup
         .PARAMETER KeePassUuid
             Specify the Uuid of the Group.
     #>
-    [CmdletBinding(DefaultParameterSetName = 'None')]
+    [CmdletBinding(DefaultParameterSetName='None')]
     [OutputType('KeePassLib.PwGroup')]
     param
     (
-        [Parameter(
-            Position = 0,
-            Mandatory,
-            ParameterSetName = 'Full'
-        )]
-        [Parameter(
-            Position = 0,
-            Mandatory,
-            ParameterSetName = 'Partial'
-        )]
-        [Parameter(
-            Position = 0,
-            Mandatory,
-            ParameterSetName = 'None'
-        )]
+        [Parameter(Position=0, Mandatory=$true, ParameterSetName='Full')]
+        [Parameter(Position=0, Mandatory=$true, ParameterSetName='Partial')]
+        [Parameter(Position=0, Mandatory=$true, ParameterSetName='None')]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwDatabase] $KeePassConnection,
         
-        [Parameter(
-            Position = 1,
-            Mandatory,
-            ParameterSetName = 'Full',
-            ValueFromPipelineByPropertyName
-        )]
+        [Parameter(Position=1, Mandatory=$true, ValueFromPipelineByPropertyName=$true, ParameterSetName='Full')]
         [ValidateNotNullOrEmpty()]
-        [string] $FullPath,
+        [String] $FullPath,
         
-        [Parameter(
-            Position = 1,
-            Mandatory,
-            ParameterSetName = 'Partial',
-            ValueFromPipelineByPropertyName
-        )]
+        [Parameter(Position=1, Mandatory=$true, ValueFromPipelineByPropertyName=$true, ParameterSetName='Partial')]
         [ValidateNotNullOrEmpty()]
-        [string] $GroupName
+        [String] $GroupName
     )
     begin
     {
@@ -2853,14 +2811,12 @@ function Get-KPGroup
         if(-not $KeePassConnection.IsOpen)
         {
             Write-Warning -Message '[BEGIN] The KeePass Connection Sepcified is not open or does not exist.'
-            break
+            Throw 'The KeePass Connection Sepcified is not open or does not exist.'
         }
 
         try
         {
             [KeePassLib.PwGroup[]] $KeePassOutGroups = $null
-            #hmm not sure what this $KpGroup variable is for...
-            # [KeePassLib.PwGroup] $KpGroup = New-Object KeePassLib.PwGroup -ErrorAction Stop -ErrorVariable ErrorNewPwGroupObject
             [KeePassLib.PwGroup[]] $KeePassGroups = $KeePassConnection.RootGroup
             $KeePassGroups += $KeePassConnection.RootGroup.GetFlatGroupList()
         }
@@ -2870,7 +2826,7 @@ function Get-KPGroup
             if($ErrorNewPwGroupObject)
             {
                 Write-Warning -Message '[BEGIN] An error occured while creating a new KeePassLib.PwGroup Object.'
-                Write-Warning -Message "[BEGIN] $($ErrorNewPwGroupObject.ErrorRecord.Message)"
+                Write-Warning -Message ('[BEGIN] {0}' -f $ErrorNewPwGroupObject.ErrorRecord.Message)
                 Throw $_
             }
             else
@@ -2937,33 +2893,19 @@ function Add-KPGroup
     [CmdletBinding()]
     param
     (
-        [Parameter(
-            Position = 0,
-            Mandatory,
-            ValueFromPipeline,
-            ValueFromPipelineByPropertyName
-        )]
+        [Parameter(Position=0, Mandatory=$true, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNull()]
         [KeePassLib.PwDatabase] $KeePassConnection,
 
-        [Parameter(
-            Position = 1,
-            Mandatory
-        )]
+        [Parameter(Position=1, Mandatory=$true)]
         [ValidateNotNullorEmpty()]
-        [string] $GroupName,
+        [String] $GroupName,
 
-        [Parameter(
-            Position = 2,
-            Mandatory
-        )]
+        [Parameter(Position=2, Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwGroup] $KeePassParentGroup,
 
-        [Parameter(
-            Position = 3,
-            Mandatory = $false
-        )]
+        [Parameter(Position=3, Mandatory=$false)]
         [Switch] $PassThru
     )
     begin
@@ -2972,7 +2914,7 @@ function Add-KPGroup
         if(-not $KeePassConnection.IsOpen)
         {
             Write-Warning -Message '[BEGIN] The KeePass Connection Sepcified is not open or does not exist.'
-            break
+            Throw 'The KeePass Connection Sepcified is not open or does not exist.'
         }
 
         try
@@ -2985,7 +2927,7 @@ function Add-KPGroup
             if($ErrorNewPwGroupObject)
             {
                 Write-Warning -Message '[BEGIN] An error occured while creating a new KeePassLib.PwGroup Object.'
-                Write-Warning -Message "[BEGIN] $($ErrorNewPwGroupObject.ErrorRecord.Message)"
+                Write-Warning -Message ('[BEGIN] {0}' -f $ErrorNewPwGroupObject.ErrorRecord.Message)
                 Throw $_
             }
             else
@@ -3033,48 +2975,28 @@ function Set-KPGroup
         .NOTES
             This Cmdlet Does AutoSave on exit.
     #>
-    [CmdletBinding(SupportsShouldProcess=$true,ConfirmImpact='High')]
+    [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='High')]
     param
     (
-        [Parameter(
-            Position = 0,
-            Mandatory,
-            ValueFromPipeline,
-            ValueFromPipelineByPropertyName
-        )]
+        [Parameter(Position=0, Mandatory=$true, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNull()]
         [KeePassLib.PwDatabase] $KeePassConnection,
 
-        [Parameter(
-            Position = 1,
-            Mandatory = $true
-        )]
+        [Parameter(Position=1, Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwGroup] $KeePassGroup,
 
-        [Parameter(
-            Position = 2,
-            Mandatory = $false
-        )]
-        [string] $GroupName,
+        [Parameter(Position=2, Mandatory=$false)]
+        [String] $GroupName,
 
-        [Parameter(
-            Position = 3,
-            Mandatory = $false
-        )]
+        [Parameter(Position=3, Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwGroup] $KeePassParentGroup,
 
-        [Parameter(
-            Position = 4,
-            Mandatory = $false
-        )]
+        [Parameter(Position=4, Mandatory=$false)]
         [Switch] $PassThru,
 
-        [Parameter(
-            Position = 5,
-            Mandatory = $false
-        )]
+        [Parameter(Position=5, Mandatory=$false)]
         [Switch] $Force
     )
     begin
@@ -3083,7 +3005,7 @@ function Set-KPGroup
         if(-not $KeePassConnection.IsOpen)
         {
             Write-Warning -Message '[BEGIN] The KeePass Connection Sepcified is not open or does not exist.'
-            break
+            Throw 'The KeePass Connection Sepcified is not open or does not exist.'
         }
     }
     process
@@ -3145,40 +3067,21 @@ function Remove-KPGroup
         .OUTPUTS
             $null
     #>
-    [CmdletBinding(
-        SupportsShouldProcess = $true,
-        ConfirmImpact = 'High'
-     )]
+    [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='High')]
     param
     (
-        [Parameter(
-            Position = 0,
-            Mandatory,
-            ValueFromPipeline,
-            ValueFromPipelineByPropertyName
-        )]
+        [Parameter(Position=0, Mandatory=$true, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNull()]
         [KeePassLib.PwDatabase] $KeePassConnection,
         
-        [Parameter(
-            Mandatory = $true,
-            Position = 1,
-            ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true
-        )]
+        [Parameter(Position=1, Mandatory=$true, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwGroup] $KeePassGroup,
         
-        [Parameter(
-            Mandatory = $false,
-            Position = 2
-        )]
+        [Parameter(Position=2, Mandatory=$false)]
         [Switch] $NoRecycle,
 
-        [Parameter(
-            Mandatory =$false,
-            Position = 3
-        )]
+        [Parameter(Position=3, Mandatory=$false)]
         [Switch] $Force
     )
     begin
@@ -3187,7 +3090,7 @@ function Remove-KPGroup
         if(-not $KeePassConnection.IsOpen)
         {
             Write-Warning -Message '[BEGIN] The KeePass Connection Sepcified is not open or does not exist.'
-            break
+            Throw 'The KeePass Connection Sepcified is not open or does not exist.'
         }
 
         if($KeePassConnection.RecycleBinEnabled)
@@ -3220,22 +3123,22 @@ function Remove-KPGroup
                 $KeePassConnection.Save($null)
                 $KeePassGroup.ParentGroup.Groups.Remove($KeePassGroup) > $null
                 $KeePassConnection.Save($null)
-                Write-Verbose -Message "[PROCESS] Group has been Recycled."    
+                Write-Verbose -Message '[PROCESS] Group has been Recycled.'    
             }
             else
             {
-                if($Force -or $PSCmdlet.ShouldContinue("Recycle Bin Does Not Exist or the -NoRecycle Option Has been Specified.", "Do you want to continue to Permanently Delete this Group: ($($KeePassGroup.GetFullPath('/', $true)))?"))
+                if($Force -or $PSCmdlet.ShouldContinue('Recycle Bin Does Not Exist or the -NoRecycle Option Has been Specified.', "Do you want to continue to Permanently Delete this Group: ($($KeePassGroup.GetFullPath('/', $true)))?"))
                 {
                     ## Deletes the specified group
                     $IsRemoved = $KeePassGroup.ParentGroup.Groups.Remove($KeePassGroup)
                     if(-not $IsRemoved)
                     {
-                        Write-Warning -Message "[PROCESS] Unknown Error has occured. Failed to Remove Group ($($KeePassGroup.GetFullPath('/', $true)))"
-                        Throw "Failed to Remove Group $($KeePassGroup.GetFullPath('/', $true))"
+                        Write-Warning -Message ('[PROCESS] Unknown Error has occured. Failed to Remove Group ({0})' -f $KeePassGroup.GetFullPath('/', $true))
+                        Throw 'Failed to Remove Group ({0})' -f $KeePassGroup.GetFullPath('/', $true)
                     }
                     else
                     {
-                        Write-Verbose -Message "[PROCESS] Group ($($KeePassGroup.GetFullPath('/', $true))) has been Removed."
+                        Write-Verbose -Message ('[PROCESS] Group ({0}) has been Removed.' -f $KeePassGroup.GetFullPath('/', $true))
                         $KeePassConnection.Save($null)
                     }
                 }
@@ -3248,7 +3151,7 @@ function Test-KPPasswordValue
 {
     param
     (
-        [PSObject]$PassValue
+        [PSObject] $PassValue
     )
     if(-not $PassValue)
     {
@@ -3285,16 +3188,16 @@ function ConvertFrom-KPProtectedString
             This is the KeePassLib.Security.ProtectedString to be converted to plain text
     #>
     [CmdletBinding()]
-    [OutputType([string])]
+    [OutputType([String])]
     param
     (
-        [Parameter(Position=0,Mandatory,ValueFromPipeline,ValueFromPipelineByPropertyName)]
+        [Parameter(Position=0, Mandatory=$true, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNull()]
         [KeePassLib.Security.ProtectedString] $KeePassProtectedString
     )
     process
     {
-        $KeePassProtectedString.ReadString()
+        $KeePassProtectedString.ReadSafe()
     }
 }
 
@@ -3325,24 +3228,12 @@ function ConvertTo-KPPSObject
     [OutputType([PSCustomObject])]
     param
     (
-        [Parameter(Position=0,
-            Mandatory,
-            ValueFromPipeline,
-            ValueFromPipelineByPropertyName,
-            ParameterSetName='Entry'
-        )]
+        [Parameter(Position=0, Mandatory=$true, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true, ParameterSetName='Entry')]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwEntry[]] $KeePassEntry,
-        [Parameter(
-            Position=0,
-            Mandatory,
-            ValueFromPipeline,
-            ValueFromPipelineByPropertyName,
-            ParameterSetName='Group'
-        )]
+        [Parameter(Position=0, Mandatory=$true, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true, ParameterSetName='Group')]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwGroup[]] $KeePassGroup
-
     )
     process
     {
@@ -3364,11 +3255,11 @@ function ConvertTo-KPPSObject
                 $KeePassPsObject | Add-Member -Name 'UsageCount' -MemberType NoteProperty -Value $_keepassItem.UsageCount
                 $KeePassPsObject | Add-Member -Name 'ParentGroup' -MemberType NoteProperty -Value $_keepassItem.ParentGroup.Name
                 $KeePassPsObject | Add-Member -Name 'FullPath' -MemberType NoteProperty -Value $_keepassItem.ParentGroup.GetFullPath('/', $true)
-                $KeePassPsObject | Add-Member -Name 'Title' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe("Title")
-                $KeePassPsObject | Add-Member -Name 'UserName' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe("UserName")
-                $KeePassPsObject | Add-Member -Name 'Password' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe("Password")
-                $KeePassPsObject | Add-Member -Name 'URL' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe("URL")
-                $KeePassPsObject | Add-Member -Name 'Notes' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe("Notes")
+                $KeePassPsObject | Add-Member -Name 'Title' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe('Title')
+                $KeePassPsObject | Add-Member -Name 'UserName' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe('UserName')
+                $KeePassPsObject | Add-Member -Name 'Password' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe('Password')
+                $KeePassPsObject | Add-Member -Name 'URL' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe('URL')
+                $KeePassPsObject | Add-Member -Name 'Notes' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe('Notes')
 
                 ## Custom Object Formatting and Type
                 $KeePassPsObject.PSObject.TypeNames.Insert(0,'PSKeePass.Entry')
@@ -3429,7 +3320,7 @@ function Import-KPLibrary
     param()
     process
     {
-        Write-Debug -Message "Checking if KeePassLib is already loaded."
+        Write-Debug -Message '[PROCESS] Checking if KeePassLib is already loaded.'
         $LoadedAssemblies = [AppDomain]::CurrentDomain.GetAssemblies()
         $KeePassAssembly = $LoadedAssemblies | Where-Object { $_.FullName -match "KeePassLib"}
 
@@ -3445,20 +3336,20 @@ function Import-KPLibrary
             {
                 if($KeePassAssemblyInfo.Version -eq '2.30.0.15901')
                 {
-                    Write-Verbose -Message "KeePassLib has already been loaded, from: $($KeePassAssemblyInfo.Location)."
-                    Write-Debug -Message "KeePassLib Assembly Name: $($KeePassAssemblyInfo.Name), Version: $($KeePassAssemblyInfo.Version)"
+                    Write-Verbose -Message ('KeePassLib has already been loaded, from: {0}.' -f $KeePassAssemblyInfo.Location)
+                    Write-Debug -Message ('KeePassLib Assembly Name: {0}, Version: {1}' -f $KeePassAssemblyInfo.Name, $KeePassAssemblyInfo.Version)
                     $KeePassAssemblyIsLoaded = $true
                 }
                 else
                 {
-                    Write-Debug -Message "A KeePassLib Assembly is loaded but it does not match the required version: '2.30.0.15901'"
-                    Write-Debug -Message "Version Found: $($KeePassAssemblyInfo.Version)"
-                    Write-Debug -Message "Will continue to load the correct version."
+                    Write-Debug -Message '[PROCESS] A KeePassLib Assembly is loaded but it does not match the required version: ''2.30.0.15901'''
+                    Write-Debug -Message ('[PROCESS] Version Found: {0}' -f $KeePassAssemblyInfo.Version)
+                    Write-Debug -Message '[PROCESS] Will continue to load the correct version.'
                 }
             }
             else
             {
-                Write-Debug -Message "No Loaded Assembly found for KeePassLib. Will Continue to load the Assembly."
+                Write-Debug -Message '[PROCESS] No Loaded Assembly found for KeePassLib. Will Continue to load the Assembly.'
             }
         }
 
@@ -3509,7 +3400,7 @@ Export-ModuleMember -Function ConvertTo-KPPSObject
 
 if (-not(Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml))
 {
-    Write-Warning -Message "**IMPORTANT NOTE:** Please always keep an up-to-date backup of your keepass database files and key files if used."
-    Write-Warning -Message "This message will not show again on next import."
+    Write-Warning -Message '**IMPORTANT NOTE:** Please always keep an up-to-date backup of your keepass database files and key files if used.'
+    Write-Warning -Message 'This message will not show again on next import.'
     New-KPConfigurationFile
 }
