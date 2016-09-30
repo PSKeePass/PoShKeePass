@@ -1,10 +1,14 @@
 ## Changelog PoShKeePass v2.0.2.9
-
-#74 - Formatted Code consistently.
-#71 - Updated to Use Proper String Interpolation.
-#73 - Converted to Single Quotes Where Possible.
-#66 - Updated ReadString() method calls to ReadSafe() method calls.
-#72 - Removed Commented out code.
+### Issue 66
+Updated `ReadString()` method calls to `ReadSafe()` method calls.
+### Issue 71
+Updated to Use Proper String Interpolation.
+### Issue 72
+Removed Commented out code.
+### Issue 73
+Converted to Single Quotes Where Possible.
+### Issue 74
+Formatted Code consistently.
 
 ## ChangeLog PoShKeePass v2.0.2.6
 
