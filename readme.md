@@ -25,6 +25,20 @@ Please check out our [Getting Started](https://github.com/PSKeePass/PoShKeePass/
 ## Changelog
 Please review the [changelog document](https://github.com/PSKeePass/PoShKeePass/blob/master/changelog.md) for a full history.
 
+### Changelog PoShKeePass v2.0.3.1
+
+#### Issue #79 - Added support Icon Management
+* Updated `New` and `Update` Entry and Group functions to support setting and
+updating Icon values.
+* Update `ConvertTo-KPPSObject` to output the IconId.
+* Added Pester Tests for adding and updating Icons.
+* Update `Get-KPDynamicParameters` to support creating the Icon dynamic
+param from the `KeePassLib.PwIcon` Enum.
+
+### Changelog PoShKeePass v2.0.3.0
+* Issue 68 - Update getting XML Configuration Document from `Get-Content` to creating a new `System.Xml.XmlDocument` object and using the `Load()` Method.
+
+
 ### Changelog PoShKeePass v2.0.2.9
 * Issue 66 - Updated `ReadString()` method calls to `ReadSafe()` method calls.
 * Issue 71 - Updated to Use Proper String Interpolation.
