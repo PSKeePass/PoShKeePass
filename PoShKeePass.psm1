@@ -1986,6 +1986,99 @@ function Get-KPCredential
     }
 }
 
+Function New-KPConnection {
+    <#
+        .SYNOPSIS
+            Creates an open connection to a Keepass database
+        .Description
+            Creates an open connection to a Keepass database using all available authentication methods
+        .PARAMETER Database
+            Path to the Keepass database (.kdbx file)
+        .PARAMETER ProfileName
+            Name of the profile entry
+        .PARAMETER MasterKey
+            Path to the keyfile (.key file) used to open the database
+        .PARAMETER Keyfile
+            Path to the keyfile (.key file) used to open the database
+        .PARAMETER UseWindowsAccount
+            Use the current windows account as an authentication method
+    #>
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory=$true,ParameterSetName='CompositeKey')]
+        [String] $Database,
+        [Parameter(Mandatory=$true,ParameterSetName='Profile')]
+        [String] $DatabaseProfileName,
+        [Parameter(Mandatory=$false,ParameterSetName='CompositeKey')]
+        [Parameter(Mandatory=$false,ParameterSetName='Profile')]
+        [System.Security.SecureString] $MasterKey,
+        [Parameter(Mandatory=$false,ParameterSetName='CompositeKey')]
+        [Parameter(Mandatory=$false,ParameterSetName='Profile')]
+        [System.Management.Automation.PSCredential] $Credential,
+        [Parameter(Mandatory=$false,ParameterSetName='CompositeKey')]
+        [String] $KeyPath,
+        [Parameter(ParameterSetName='CompositeKey')]
+        [switch] $UseWindowsAccount
+    )
+
+    try {
+        $DatabaseObject = New-Object -TypeName KeepassLib.PWDatabase -ErrorAction Stop
+    } catch {
+        Import-KPLibrary
+        $DatabaseObject = New-Object -TypeName KeepassLib.PWDatabase -ErrorAction Stop
+    }
+
+    $CompositeKey = New-Object -TypeName KeepassLib.Keys.CompositeKey
+
+    if ($PSCmdlet.ParameterSetName -eq "Profile") {
+        $KeepassConfigurationObject = Get-KeePassDatabaseConfiguration -DatabaseProfileName $DatabaseProfileName
+        if (-not $KeepassConfigurationObject) {
+            throw "InvalidKeepassConfiguration : No Keepass Configuration has been created"
+        }
+        $Database = $KeepassConfigurationObject.DatabasePath
+        $KeyPath = $KeepassConfigurationObject.KeyPath
+        $UseWindowsAccount = $KeepassConfigurationObject.UseWindowsAccount
+        
+    }
+
+    $UseMasterKey = $KeepassConfigurationObject.UseMasterKey -or (($PSCmdlet.ParameterSetName -eq "CompositeKey") -and ($MasterKey -or $Credential.Password))
+
+    $DatabaseItem = Get-Item -Path $Database -ErrorAction Stop
+    if (($Credential.Password) -and $UseMasterKey) {
+        $CompositeKey.AddUserKey((New-Object KeepassLib.Keys.KcpPassword([System.Runtime.InteropServices.Marshal]::PtrToStringUni([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($Credential.Password)))))
+    }
+    if (($MasterKey) -and ($UseMasterKey)) {
+        $CompositeKey.AddUserKey((New-Object KeepassLib.Keys.KcpPassword([System.Runtime.InteropServices.Marshal]::PtrToStringUni([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($MasterKey)))))
+    }
+    if ($UseWindowsAccount) {
+        $CompositeKey.AddUserKey((New-Object KeepassLib.Keys.KcpUserAccount))
+    }
+    if ($KeyPath) {
+        try {
+            $KeyPathItem = Get-Item $KeyPath -ErrorAction Stop
+            $CompositeKey.AddUserKey((New-Object KeepassLib.Keys.KcpKeyfile($KeyPathItem.FullName)))
+        } catch {
+            Write-Warning ("could not read Key file [{0}]" -f $KeyPathItem.FullName)
+        }
+    }
+   
+    if ($CompositeKey.UserKeyCount -le 0) {
+        $Credential = $Host.ui.PromptForCredential("KeepassCredential", "Please enter your Keepass password.", "Keepass", "Keepass")
+        $CompositeKey.AddUserKey((New-Object KeepassLib.Keys.KcpPassword([System.Runtime.InteropServices.Marshal]::PtrToStringUni([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($Credential.Password)))))
+    }
+    
+    $IOInfo = New-Object KeepassLib.Serialization.IOConnectionInfo
+    $IOInfo.Path = $DatabaseItem.FullName
+    $IStatusLogger = New-Object KeePassLib.Interfaces.NullStatusLogger
+
+    $DatabaseObject.Open($IOInfo,$CompositeKey,$IStatusLogger) | Out-Null
+
+    $DatabaseObject
+    if (-not $DatabaseObject.IsOpen) {
+        Throw "InvalidDatabaseConnectionException : database is not opened"
+    }
+}
+
 function Get-KPConnection
 {
     <#
@@ -3494,36 +3587,37 @@ function Import-KPLibrary
 ## Source KpLib
 Import-KPLibrary
 
-Export-ModuleMember -Function New-KeePassEntry
-Export-ModuleMember -Function Get-KeePassEntry
-Export-ModuleMember -Function Update-KeePassEntry
-Export-ModuleMember -Function Remove-KeePassEntry
-Export-ModuleMember -Function New-KeePassGroup
-Export-ModuleMember -Function Get-KeePassGroup
-Export-ModuleMember -Function Update-KeePassGroup
-Export-ModuleMember -Function Remove-KeePassGroup
-Export-ModuleMember -Function New-KeePassPassword
-Export-ModuleMember -Function New-KeePassDatabaseConfiguration
-Export-ModuleMember -Function Get-KeePassDatabaseConfiguration
-Export-ModuleMember -Function Remove-KeePassDatabaseConfiguration
-# Export-ModuleMember -Function New-KPConfigurationFile
-# Export-ModuleMember -Function New-KPPasswordProfile
-# Export-ModuleMember -Function Get-KPPasswordProfile
-# Export-ModuleMember -Function Remove-KPPasswordProfile
-# Export-ModuleMember -Function Get-KPCredential
-# Export-ModuleMember -Function Get-KPConnection
-# Export-ModuleMember -Function Remove-KPConnection
-# Export-ModuleMember -Function Get-KPEntry
-# Export-ModuleMember -Function Add-KPEntry
-# Export-ModuleMember -Function Set-KPEntry
-# Export-ModuleMember -Function Remove-KPEntry
-# Export-ModuleMember -Function Get-KPGroup
-# Export-ModuleMember -Function Add-KPGroup
-# Export-ModuleMember -Function Set-KPGroup
-# Export-ModuleMember -Function Remove-KPGroup
-# Export-ModuleMember -Function ConvertFrom-KPProtectedString
-Export-ModuleMember -Function ConvertTo-KPPSObject
-# Export-ModuleMember -Function Import-KPLibrary
+Export-ModuleMember -Function 'New-KeePassEntry'
+Export-ModuleMember -Function 'Get-KeePassEntry'
+Export-ModuleMember -Function 'Update-KeePassEntry'
+Export-ModuleMember -Function 'Remove-KeePassEntry'
+Export-ModuleMember -Function 'New-KeePassGroup'
+Export-ModuleMember -Function 'Get-KeePassGroup'
+Export-ModuleMember -Function 'Update-KeePassGroup'
+Export-ModuleMember -Function 'Remove-KeePassGroup'
+Export-ModuleMember -Function 'New-KeePassPassword'
+Export-ModuleMember -Function 'New-KeePassDatabaseConfiguration'
+Export-ModuleMember -Function 'Get-KeePassDatabaseConfiguration'
+Export-ModuleMember -Function 'Remove-KeePassDatabaseConfiguration'
+# Export-ModuleMember -Function 'New-KPConfigurationFile'
+# Export-ModuleMember -Function 'New-KPPasswordProfile'
+# Export-ModuleMember -Function 'Get-KPPasswordProfile'
+# Export-ModuleMember -Function 'Remove-KPPasswordProfile'
+# Export-ModuleMember -Function 'Get-KPCredential'
+Export-ModuleMember -Function 'New-KPConnection'
+# Export-ModuleMember -Function 'Get-KPConnection'
+# Export-ModuleMember -Function 'Remove-KPConnection'
+# Export-ModuleMember -Function 'Get-KPEntry'
+# Export-ModuleMember -Function 'Add-KPEntry'
+# Export-ModuleMember -Function 'Set-KPEntry'
+# Export-ModuleMember -Function 'Remove-KPEntry'
+# Export-ModuleMember -Function 'Get-KPGroup'
+# Export-ModuleMember -Function 'Add-KPGroup'
+# Export-ModuleMember -Function 'Set-KPGroup'
+# Export-ModuleMember -Function 'Remove-KPGroup'
+# Export-ModuleMember -Function 'ConvertFrom-KPProtectedString'
+Export-ModuleMember -Function 'ConvertTo-KPPSObject'
+# Export-ModuleMember -Function 'Import-KPLibrary'
 
 if (-not(Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml))
 {
