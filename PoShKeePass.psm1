@@ -1986,11 +1986,11 @@ function Get-KPCredential
     }
 }
 
-Function New-KPConnection {
+function New-KPConnection {
     <#
         .SYNOPSIS
             Creates an open connection to a Keepass database
-        .Description
+        .DESCRIPTION
             Creates an open connection to a Keepass database using all available authentication methods
         .PARAMETER Database
             Path to the Keepass database (.kdbx file)
@@ -2005,78 +2005,79 @@ Function New-KPConnection {
     #>
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory=$true,ParameterSetName='CompositeKey')]
+        [Parameter(Mandatory=$true, ParameterSetName='CompositeKey')]
         [String] $Database,
-        [Parameter(Mandatory=$true,ParameterSetName='Profile')]
+        [Parameter(Mandatory=$true, ParameterSetName='Profile')]
         [String] $DatabaseProfileName,
-        [Parameter(Mandatory=$false,ParameterSetName='CompositeKey')]
-        [Parameter(Mandatory=$false,ParameterSetName='Profile')]
+        [Parameter(Mandatory=$false, ParameterSetName='CompositeKey')]
+        [Parameter(Mandatory=$false, ParameterSetName='Profile')]
         [System.Security.SecureString] $MasterKey,
-        [Parameter(Mandatory=$false,ParameterSetName='CompositeKey')]
-        [Parameter(Mandatory=$false,ParameterSetName='Profile')]
+        [Parameter(Mandatory=$false, ParameterSetName='CompositeKey')]
+        [Parameter(Mandatory=$false, ParameterSetName='Profile')]
         [System.Management.Automation.PSCredential] $Credential,
-        [Parameter(Mandatory=$false,ParameterSetName='CompositeKey')]
+        [Parameter(Mandatory=$false, ParameterSetName='CompositeKey')]
         [String] $KeyPath,
         [Parameter(ParameterSetName='CompositeKey')]
         [switch] $UseWindowsAccount
     )
-
-    try {
-        $DatabaseObject = New-Object -TypeName KeepassLib.PWDatabase -ErrorAction Stop
-    } catch {
-        Import-KPLibrary
-        $DatabaseObject = New-Object -TypeName KeepassLib.PWDatabase -ErrorAction Stop
-    }
-
-    $CompositeKey = New-Object -TypeName KeepassLib.Keys.CompositeKey
-
-    if ($PSCmdlet.ParameterSetName -eq "Profile") {
-        $KeepassConfigurationObject = Get-KeePassDatabaseConfiguration -DatabaseProfileName $DatabaseProfileName
-        if (-not $KeepassConfigurationObject) {
-            throw "InvalidKeepassConfiguration : No Keepass Configuration has been created"
-        }
-        $Database = $KeepassConfigurationObject.DatabasePath
-        $KeyPath = $KeepassConfigurationObject.KeyPath
-        $UseWindowsAccount = $KeepassConfigurationObject.UseWindowsAccount
-        
-    }
-
-    $UseMasterKey = $KeepassConfigurationObject.UseMasterKey -or (($PSCmdlet.ParameterSetName -eq "CompositeKey") -and ($MasterKey -or $Credential.Password))
-
-    $DatabaseItem = Get-Item -Path $Database -ErrorAction Stop
-    if (($Credential.Password) -and $UseMasterKey) {
-        $CompositeKey.AddUserKey((New-Object KeepassLib.Keys.KcpPassword([System.Runtime.InteropServices.Marshal]::PtrToStringUni([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($Credential.Password)))))
-    }
-    if (($MasterKey) -and ($UseMasterKey)) {
-        $CompositeKey.AddUserKey((New-Object KeepassLib.Keys.KcpPassword([System.Runtime.InteropServices.Marshal]::PtrToStringUni([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($MasterKey)))))
-    }
-    if ($UseWindowsAccount) {
-        $CompositeKey.AddUserKey((New-Object KeepassLib.Keys.KcpUserAccount))
-    }
-    if ($KeyPath) {
+    process
+    {
         try {
-            $KeyPathItem = Get-Item $KeyPath -ErrorAction Stop
-            $CompositeKey.AddUserKey((New-Object KeepassLib.Keys.KcpKeyfile($KeyPathItem.FullName)))
+            $DatabaseObject = New-Object -TypeName KeepassLib.PWDatabase -ErrorAction Stop
         } catch {
-            Write-Warning ("could not read Key file [{0}]" -f $KeyPathItem.FullName)
+            Import-KPLibrary
+            $DatabaseObject = New-Object -TypeName KeepassLib.PWDatabase -ErrorAction Stop
         }
-    }
-   
-    if ($CompositeKey.UserKeyCount -le 0) {
-        $Credential = $Host.ui.PromptForCredential("KeepassCredential", "Please enter your Keepass password.", "Keepass", "Keepass")
-        $CompositeKey.AddUserKey((New-Object KeepassLib.Keys.KcpPassword([System.Runtime.InteropServices.Marshal]::PtrToStringUni([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($Credential.Password)))))
-    }
-    
-    $IOInfo = New-Object KeepassLib.Serialization.IOConnectionInfo
-    $IOInfo.Path = $DatabaseItem.FullName
-    $IStatusLogger = New-Object KeePassLib.Interfaces.NullStatusLogger
 
-    $DatabaseObject.Open($IOInfo,$CompositeKey,$IStatusLogger) | Out-Null
+        $CompositeKey = New-Object -TypeName KeepassLib.Keys.CompositeKey
 
-    $DatabaseObject
-    if (-not $DatabaseObject.IsOpen) {
-        Throw "InvalidDatabaseConnectionException : database is not opened"
-    }
+       if ($PSCmdlet.ParameterSetName -eq 'Profile') {
+           $KeepassConfigurationObject = Get-KeePassDatabaseConfiguration -DatabaseProfileName $DatabaseProfileName
+           if (-not $KeepassConfigurationObject) {
+               throw 'InvalidKeepassConfiguration : No Keepass Configuration has been created.'
+           }
+           $Database = $KeepassConfigurationObject.DatabasePath
+           $KeyPath = $KeepassConfigurationObject.KeyPath
+           $UseWindowsAccount = $KeepassConfigurationObject.UseWindowsAccount
+       }
+
+        $UseMasterKey = $KeepassConfigurationObject.UseMasterKey -or (($PSCmdlet.ParameterSetName -eq "CompositeKey") -and ($MasterKey -or $Credential.Password))
+
+        $DatabaseItem = Get-Item -Path $Database -ErrorAction Stop
+        if (($Credential.Password) -and $UseMasterKey) {
+            $CompositeKey.AddUserKey((New-Object KeepassLib.Keys.KcpPassword([System.Runtime.InteropServices.Marshal]::PtrToStringUni([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($Credential.Password)))))
+        }
+        if (($MasterKey) -and ($UseMasterKey)) {
+            $CompositeKey.AddUserKey((New-Object KeepassLib.Keys.KcpPassword([System.Runtime.InteropServices.Marshal]::PtrToStringUni([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($MasterKey)))))
+        }
+        if ($UseWindowsAccount) {
+            $CompositeKey.AddUserKey((New-Object KeepassLib.Keys.KcpUserAccount))
+        }
+        if ($KeyPath) {
+            try {
+                $KeyPathItem = Get-Item $KeyPath -ErrorAction Stop
+                $CompositeKey.AddUserKey((New-Object KeepassLib.Keys.KcpKeyfile($KeyPathItem.FullName)))
+            } catch {
+                Write-Warning ('Could not read Key file [{0}].' -f $KeyPathItem.FullName)
+            }
+        }
+
+        if ($CompositeKey.UserKeyCount -le 0) {
+            $Credential = $Host.ui.PromptForCredential('KeepassCredential', 'Please enter your Keepass password.', 'Keepass', 'Keepass')
+            $CompositeKey.AddUserKey((New-Object KeepassLib.Keys.KcpPassword([System.Runtime.InteropServices.Marshal]::PtrToStringUni([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($Credential.Password)))))
+        }
+
+        $IOInfo = New-Object KeepassLib.Serialization.IOConnectionInfo
+        $IOInfo.Path = $DatabaseItem.FullName
+        $IStatusLogger = New-Object KeePassLib.Interfaces.NullStatusLogger
+
+        $DatabaseObject.Open($IOInfo,$CompositeKey,$IStatusLogger) | Out-Null
+
+        $DatabaseObject
+        if (-not $DatabaseObject.IsOpen) {
+            Throw 'InvalidDatabaseConnectionException : database is not opened.'
+        }
+    }   
 }
 
 function Get-KPConnection
