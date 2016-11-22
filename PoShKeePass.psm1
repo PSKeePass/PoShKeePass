@@ -1946,9 +1946,6 @@ function New-KPConnection
         if (($MasterKey) -and ($UseMasterKey)) {
             $CompositeKey.AddUserKey((New-Object KeepassLib.Keys.KcpPassword([System.Runtime.InteropServices.Marshal]::PtrToStringUni([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($MasterKey)))))
         }
-        if ($UseWindowsAccount) {
-            $CompositeKey.AddUserKey((New-Object KeepassLib.Keys.KcpUserAccount))
-        }
         if ($KeyPath) {
             try {
                 $KeyPathItem = Get-Item $KeyPath -ErrorAction Stop
@@ -1956,6 +1953,9 @@ function New-KPConnection
             } catch {
                 Write-Warning ('Could not read the specfied Key file [{0}].' -f $KeyPathItem.FullName)
             }
+        }
+        if ($UseWindowsAccount) {
+            $CompositeKey.AddUserKey((New-Object KeepassLib.Keys.KcpUserAccount))
         }
 
         if ($CompositeKey.UserKeyCount -le 0) {
