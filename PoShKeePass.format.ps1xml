@@ -7,23 +7,6 @@
                 <TypeName>PSKeePass.Entry</TypeName>
             </ViewSelectedBy>
             <TableControl>
-                <TableHeaders>
-                    <TableColumnHeader>
-                        <Width>20</Width>
-                    </TableColumnHeader>
-                    <TableColumnHeader>
-                        <Width>20</Width>
-                    </TableColumnHeader>
-                    <TableColumnHeader>
-                        <Width>25</Width>
-                    </TableColumnHeader>
-                    <TableColumnHeader>
-                        <Width>10</Width>
-                    </TableColumnHeader>
-                    <TableColumnHeader>
-                        <Width>50</Width>
-                    </TableColumnHeader>
-                </TableHeaders>
                 <TableRowEntries>
                     <TableRowEntry>
                         <TableColumnItems>

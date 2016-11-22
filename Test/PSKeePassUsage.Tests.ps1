@@ -7,88 +7,12 @@ InModuleScope "PoShKeePass" {
 
     $WarningPreference = 'SilentlyContinue'
 
-    Describe "Get-KPCredential - UnitTest" -Tag UnitTest {
-        
-        Context "Example 1: Mock with Key File and Master Key" {
-                    
-            It "Example 1.1: Get-KPCredential - Valid Authentication Type: KeyAndMaster" {
-                $KeePassCredential = Get-KPCredential -DatabaseFile "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.key" -MasterKey $(ConvertTo-SecureString "AtestPassWord" -AsPlainText -Force)
-                $KeePassCredential.DatabaseFile | Should BeLike "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx"
-                $KeePassCredential.KeyFile | Should BeLike "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.Key"    
-                $KeePassCredential.UseNetworkAccount | Should Be $false
-                $KeePassCredential.AuthenticationType | Should Be "KeyAndMaster"
-            }
-
-            It "Example 1.2: Get-KPCredential - Valid Authentication Type: KeyAndMaster with Network Account" {
-                {Get-KPCredential -DatabaseFile "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.key" -MasterKey $(ConvertTo-SecureString "AtestPassWord" -AsPlainText -Force) -UseNetworkAccount } | Should Throw 
-            }
-        }
-        
-        Context "Example 2: Mock with KeyFile" {
-            
-            It "Example 2.1: Get-KPCredential - Valid Authentication Type: Key" {
-                $KeePassCredential = Get-KPCredential -DatabaseFile "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.key"
-                $KeePassCredential.DatabaseFile | Should BeLike "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx"
-                $KeePassCredential.KeyFile | Should BeLike "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.Key"
-                $KeePassCredential.UseNetworkAccount | Should Be $false
-                $KeePassCredential.AuthenticationType | Should Be "Key"
-            }
-
-            It "Example 2.2: Get-KPCredential - Valid Authentication Type: Key with Network Account" {
-                $KeePassCredential = Get-KPCredential -DatabaseFile "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -KeyFile "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.key" -UseNetworkAccount
-                $KeePassCredential.DatabaseFile | Should BeLike "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx"
-                $KeePassCredential.KeyFile | Should BeLike "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.Key"
-                $KeePassCredential.UseNetworkAccount | Should Be $true
-                $KeePassCredential.AuthenticationType | Should Be "Key"
-            }
-        }
-        
-        Context "Example 3: Mock with MasterKey" {
-            
-            It "Example 3.1: Get-KPCredential - Valid Authentication Type: MasterKey" {
-                $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -MasterKey $(ConvertTo-SecureString "AtestPassWord" -AsPlainText -Force)
-                $KeePassCredential.DatabaseFile | Should BeLike "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx"
-                $KeePassCredential.KeyFile | Should Be ""         
-                $KeePassCredential.UseNetworkAccount | Should Be $false
-                $KeePassCredential.AuthenticationType | Should Be "Master"
-            }
-
-            It "Example 3.2: Get-KPCredential - Valid Authentication Type: MasterKey with Network Account" {
-                $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -MasterKey $(ConvertTo-SecureString "AtestPassWord" -AsPlainText -Force) -UseNetworkAccount
-                $KeePassCredential.DatabaseFile | Should BeLike "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx"
-                $KeePassCredential.KeyFile | Should Be ""
-                $KeePassCredential.UseNetworkAccount | Should Be $true
-                $KeePassCredential.AuthenticationType | Should Be "Master"
-            }
-        }
-
-        Context "Example 4: Mock with Network Account" {
-            
-            It "Example 4.1: Get-KPCredential - Valid Authentication Type: NetworkAccount" {
-                $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" -UseNetworkAccount
-                $KeePassCredential.DatabaseFile | Should BeLike "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx"
-                $KeePassCredential.KeyFile | Should Be ""
-                $KeePassCredential.MasterKey | Should Be $null
-                $KeePassCredential.UseNetworkAccount | Should Be $true
-                $KeePassCredential.AuthenticationType | Should Be "Network"
-            }
-        }
-
-        Context "Example 5: Mock Invalid Parameter Combination" {
-            
-            It "Example 5.1: Get-KPCredential - Invalid Authentication: Database Only " {
-                { Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\PSKeePassTestDatabase.kdbx" } | Should Throw "Please Specify a valid Credential Combination."
-            }
-        }
-    }
-
-    Describe "Get-KPConnection - UnitTest" -Tag UnitTest {
+    Describe "New-KPConnection - UnitTest" -Tag UnitTest {
         
         Context "Example 1: Open with PSKeePass Credential Object - KeyFile" {
             
             It "Example 1.1: Get KeePass Database Connection with KeyFile - Valid" {
-                $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\AuthenticationDatabases\KeyFile.kdbx" -KeyFile "$PSScriptRoot\Includes\AuthenticationDatabases\KeyFile.key"
-                $KeePassConnection = Get-KPConnection -KeePassCredential $KeePassCredential
+                $KeePassConnection = New-KPConnection -Database "$PSScriptRoot\Includes\AuthenticationDatabases\KeyFile.kdbx" -KeyPath "$PSScriptRoot\Includes\AuthenticationDatabases\KeyFile.key"
                 $KeePassConnection | Should BeOfType 'KeePassLib.PwDatabase'
                 $KeePassConnection.IsOpen | Should Be $true
                 $KeePassConnection.RootGroup.Name | Should Be 'KeyFile'
@@ -100,8 +24,7 @@ InModuleScope "PoShKeePass" {
         Context "Example 2: Open with PSKeePass Credential Object - MasterKey" {
             
             It "Example 2.1: Get KeePass Database Connection with MasterKey - Valid" {
-                $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\AuthenticationDatabases\MasterKey.kdbx" -MasterKey $(ConvertTo-SecureString -String "ATestPassWord" -AsPlainText -Force)
-                $KeePassConnection = Get-KPConnection -KeePassCredential $KeePassCredential
+                $KeePassConnection = New-KPConnection -Database "$PSScriptRoot\Includes\AuthenticationDatabases\MasterKey.kdbx" -MasterKey $(ConvertTo-SecureString -String "ATestPassWord" -AsPlainText -Force)
                 $KeePassConnection | Should BeOfType 'KeePassLib.PwDatabase'
                 $KeePassConnection.IsOpen | Should Be $true
                 $KeePassConnection.RootGroup.Name | Should Be 'MasterKey'
@@ -113,8 +36,7 @@ InModuleScope "PoShKeePass" {
         Context "Example 3: Open with PSKeePass Credential Object - MasterKey and KeyFile" {
             
             It "Example 3.1: Get KeePass Database Connection with KeyAndMaster - Valid" {
-                $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\AuthenticationDatabases\KeyAndMaster.kdbx" -KeyFile "$PSScriptRoot\Includes\AuthenticationDatabases\KeyAndMaster.key" -MasterKey $(ConvertTo-SecureString -String "ATestPassWord" -AsPlainText -Force)
-                $KeePassConnection = Get-KPConnection -KeePassCredential $KeePassCredential
+                $KeePassConnection = New-KPConnection -Database "$PSScriptRoot\Includes\AuthenticationDatabases\KeyAndMaster.kdbx" -KeyPath "$PSScriptRoot\Includes\AuthenticationDatabases\KeyAndMaster.key" -MasterKey $(ConvertTo-SecureString -String "ATestPassWord" -AsPlainText -Force)
                 $KeePassConnection | Should BeOfType 'KeePassLib.PwDatabase'
                 $KeePassConnection.IsOpen | Should Be $true
                 $KeePassConnection.RootGroup.Name | Should Be 'KeyAndMaster'
@@ -123,8 +45,7 @@ InModuleScope "PoShKeePass" {
             }
 
             It "Example 3.2: Get KeePass Database Connection with KeyAndMaster - Invalid Key File" {
-                $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\AuthenticationDatabases\KeyAndMaster.kdbx" -KeyFile "$PSScriptRoot\Includes\AuthenticationDatabases\KeyFile.key" -MasterKey $(ConvertTo-SecureString -String "ATestPassWord" -AsPlainText -Force)
-                { Get-KPConnection -KeePassCredential $KeePassCredential } | Should Throw
+                { New-KPConnection -Database "$PSScriptRoot\Includes\AuthenticationDatabases\KeyAndMaster.kdbx" -KeyPath "$PSScriptRoot\Includes\AuthenticationDatabases\KeyFile.key" -MasterKey $(ConvertTo-SecureString -String "ATestPassWord" -AsPlainText -Force) } | Should Throw
             }
         }
 
@@ -136,8 +57,7 @@ InModuleScope "PoShKeePass" {
         Context "Example 1: Close an Open PSKeePass Database Connection" {
             
             It "Example 1.1: Closes a KeePass Database Connection" {
-                $KeePassCredential = Get-KPCredential -DatabaseFile "$PSScriptRoot\Includes\AuthenticationDatabases\KeyFile.kdbx" -KeyFile "$PSScriptRoot\Includes\AuthenticationDatabases\KeyFile.key"
-                $KeePassConnection = Get-KPConnection -KeePassCredential $KeePassCredential
+                $KeePassConnection = New-KPConnection -Database "$PSScriptRoot\Includes\AuthenticationDatabases\KeyFile.kdbx" -KeyPath "$PSScriptRoot\Includes\AuthenticationDatabases\KeyFile.key"
                 $KeePassConnection.IsOpen | Should Be $true
                 Remove-KPConnection -KeePassConnection $KeePassConnection | Should Be $null
                 $KeePassConnection.IsOpen | Should Be $false
