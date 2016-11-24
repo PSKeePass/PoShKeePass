@@ -1900,7 +1900,6 @@ function New-KPConnection
         [ValidateNotNullOrEmpty()]
         [String] $Database,
 
-        
         [Parameter(Position=2, Mandatory=$false, ParameterSetName='CompositeKey')]
         [Parameter(Position=1, Mandatory=$false, ParameterSetName='Profile')]
         [AllowNull()]
