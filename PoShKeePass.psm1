@@ -99,7 +99,7 @@
             ## Open the database
             $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
             ## remove any sensitive data
-            if($MasterKey){Remove-Variable -Name KeePassCredentialObject}
+            if($MasterKey){Remove-Variable -Name MasterKey}
         }
         else 
         {
@@ -201,7 +201,7 @@ function Get-KeePassEntry
             ## Open the database
             $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
             ## remove any sensitive data
-            if($MasterKey){Remove-Variable -Name KeePassCredentialObject}
+            if($MasterKey){Remove-Variable -Name MasterKey}
         }
         else 
         {
@@ -360,7 +360,7 @@ function Update-KeePassEntry
             ## Open the database
             $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
             ## remove any sensitive data
-            if($MasterKey){Remove-Variable -Name KeePassCredentialObject}
+            if($MasterKey){Remove-Variable -Name MasterKey}
         }
         else 
         {
@@ -456,7 +456,7 @@ function Remove-KeePassEntry
             ## Open the database
             $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
             ## remove any sensitive data
-            if($MasterKey){Remove-Variable -Name KeePassCredentialObject}
+            if($MasterKey){Remove-Variable -Name MasterKey}
         }
         else 
         {
@@ -560,7 +560,7 @@ function New-KeePassGroup
             ## Open the database
             $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
             ## remove any sensitive data
-            if($MasterKey){Remove-Variable -Name KeePassCredentialObject}
+            if($MasterKey){Remove-Variable -Name MasterKey}
         }
         else 
         {
@@ -654,7 +654,7 @@ function Get-KeePassGroup
             ## Open the database
             $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
             ## remove any sensitive data
-            if($MasterKey){Remove-Variable -Name KeePassCredentialObject}
+            if($MasterKey){Remove-Variable -Name MasterKey}
         }
         else 
         {
@@ -778,7 +778,7 @@ function Update-KeePassGroup
             ## Open the database
             $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
             ## remove any sensitive data
-            if($MasterKey){Remove-Variable -Name KeePassCredentialObject}
+            if($MasterKey){Remove-Variable -Name MasterKey}
         }
         else 
         {
@@ -897,7 +897,7 @@ function Remove-KeePassGroup
             ## Open the database
             $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
             ## remove any sensitive data
-            if($MasterKey){Remove-Variable -Name KeePassCredentialObject}
+            if($MasterKey){Remove-Variable -Name MasterKey}
         }
         else 
         {
