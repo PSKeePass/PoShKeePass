@@ -97,9 +97,9 @@
             $MasterKey = $PSBoundParameters['MasterKey']
             $IconName = $PSBoundParameters['IconName']
             ## Open the database
-            $KeePassConnectionObject = Invoke-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
+            $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
             ## remove any sensitive data
-            if($MasterKey){Remove-Variable -Name KeePassCredentialObject}
+            if($MasterKey){Remove-Variable -Name MasterKey}
         }
         else 
         {
@@ -199,9 +199,9 @@ function Get-KeePassEntry
             $DatabaseProfileName = $PSBoundParameters['DatabaseProfileName']
             $MasterKey = $PSBoundParameters['MasterKey']
             ## Open the database
-            $KeePassConnectionObject = Invoke-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
+            $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
             ## remove any sensitive data
-            if($MasterKey){Remove-Variable -Name KeePassCredentialObject}
+            if($MasterKey){Remove-Variable -Name MasterKey}
         }
         else 
         {
@@ -358,9 +358,9 @@ function Update-KeePassEntry
             $MasterKey = $PSBoundParameters['MasterKey']
             $IconName = $PSBoundParameters['IconName']
             ## Open the database
-            $KeePassConnectionObject = Invoke-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
+            $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
             ## remove any sensitive data
-            if($MasterKey){Remove-Variable -Name KeePassCredentialObject}
+            if($MasterKey){Remove-Variable -Name MasterKey}
         }
         else 
         {
@@ -454,9 +454,9 @@ function Remove-KeePassEntry
             $DatabaseProfileName = $PSBoundParameters['DatabaseProfileName']
             $MasterKey = $PSBoundParameters['MasterKey']
             ## Open the database
-            $KeePassConnectionObject = Invoke-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
+            $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
             ## remove any sensitive data
-            if($MasterKey){Remove-Variable -Name KeePassCredentialObject}
+            if($MasterKey){Remove-Variable -Name MasterKey}
         }
         else 
         {
@@ -558,9 +558,9 @@ function New-KeePassGroup
             $MasterKey = $PSBoundParameters['MasterKey']
             $IconName = $PSBoundParameters['IconName']
             ## Open the database
-            $KeePassConnectionObject = Invoke-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
+            $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
             ## remove any sensitive data
-            if($MasterKey){Remove-Variable -Name KeePassCredentialObject}
+            if($MasterKey){Remove-Variable -Name MasterKey}
         }
         else 
         {
@@ -652,9 +652,9 @@ function Get-KeePassGroup
             $DatabaseProfileName = $PSBoundParameters['DatabaseProfileName']
             $MasterKey = $PSBoundParameters['MasterKey']
             ## Open the database
-            $KeePassConnectionObject = Invoke-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
+            $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
             ## remove any sensitive data
-            if($MasterKey){Remove-Variable -Name KeePassCredentialObject}
+            if($MasterKey){Remove-Variable -Name MasterKey}
         }
         else 
         {
@@ -776,9 +776,9 @@ function Update-KeePassGroup
             $MasterKey = $PSBoundParameters['MasterKey']
             $IconName = $PSBoundParameters['IconName']
             ## Open the database
-            $KeePassConnectionObject = Invoke-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
+            $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
             ## remove any sensitive data
-            if($MasterKey){Remove-Variable -Name KeePassCredentialObject}
+            if($MasterKey){Remove-Variable -Name MasterKey}
         }
         else 
         {
@@ -895,9 +895,9 @@ function Remove-KeePassGroup
             $DatabaseProfileName = $PSBoundParameters['DatabaseProfileName']
             $MasterKey = $PSBoundParameters['MasterKey']
             ## Open the database
-            $KeePassConnectionObject = Invoke-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
+            $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
             ## remove any sensitive data
-            if($MasterKey){Remove-Variable -Name KeePassCredentialObject}
+            if($MasterKey){Remove-Variable -Name MasterKey}
         }
         else 
         {
@@ -1511,9 +1511,6 @@ function Remove-KeePassDatabaseConfiguration
             $ParameterAttribute = New-Object -TypeName System.Management.Automation.ParameterAttribute
             $ParameterAttribute.Mandatory = $true
             $ParameterAttribute.Position = 0
-            # $ParameterAttribute.ValueFromPipelineByPropertyName = $true
-            # $ParameterAttribute.ValueFromPipeline = $true
-            # $ParameterAttribute.ParameterSetName = 'Profile'
             $AttributeCollection.Add($ParameterAttribute)
 
             $ValidateSetAttribute = New-Object -TypeName System.Management.Automation.ValidateSetAttribute($DatabaseProfileList)
@@ -1874,224 +1871,148 @@ function Remove-KPPasswordProfile
     }
 }
 
-function Get-KPCredential
-{
-	<#
-        .SYNOPSIS
-            This function Creates a Keepass Credential Object to be passed to the keepass module.
-        .DESCRIPTION
-            This function Creates a Keepass Credential Object to be passed to the keepass module. This will be used to to validate passed
-            keepass database credentials and then open said database in a specific way based on passed credentials
-        .EXAMPLE
-            PS> Get-KpCred -KpDBPath "\\mypath\database.kdbx" -KpKeyPath "\\mypath\database.key"
-
-            This Example will create a keepass credential object to be used when opening a keepass database, using the database file and a keepass kee file.
-        .EXAMPLE
-            PS> Get-KpCred -KpDBPath "\\mypath\database.kdbx" -KpKeyPath "\\mypath\database.key" -KpMasterKey "MyMasterKeyPassword"
-
-            This Example will create a keepass credential object to be used when opening a keepass database, using the database file, a keepass kee file, and a masterkey password.
-        .EXAMPLE
-            PS> Get-KpCred -KpDBPath "\\mypath\database.kdbx" -KpMasterKey "MyMasterKeyPassword"
-
-            This Example will create a keepass credential object to be used when opening a keepass database, using the database file and a masterkey password.
-        .PARAMETER DatabaseFile
-            The path to your Keepass Database File (.kdbx)
-        .PARAMETER KeyFile
-            The path to your Keepass Encryption Key File (.key)
-        .PARAMETER MasterKey
-            The Master Key Password to your Keepass Database.
-        .INPUTS
-            String. All Inputs are passed as a string.
-        .OUTPUTS
-            System.Management.Automation.PSCustomObject
-	#>
-    [CmdletBinding(DefaultParameterSetName='Network')]
-    [OutputType([PSCustomObject])]
-    param
-    (
-        [Parameter(Position=0, Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Profile')]
-        [ValidateNotNullOrEmpty()]
-        [PSObject] $ProfileCredentialObject,
-
-        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Key')]
-        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Master')]
-        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
-        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Network')]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript({Test-Path $_})]
-        [String] $DatabaseFile,
-
-        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Key')]
-        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript({Test-Path $_})]
-        [String] $KeyFile,
-
-        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Master')]
-        [Parameter(Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Profile')]
-        [Parameter(Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
-        [ValidateNotNullOrEmpty()]
-        [System.Security.SecureString] $MasterKey,
-
-        [Parameter(Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Key')]
-        [Parameter(Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Master')]
-        [Parameter(Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Network')]
-        [Switch] $UseNetworkAccount
-    )
-    begin
-    {
-        if($PSCmdlet.ParameterSetName -eq 'Network' -and -not $UseNetworkAccount)
-        {
-            Write-Warning -Message '[BEGIN] Please Specify a valid Credential Combination.'
-            Write-Warning -Message '[BEGIN] You can not have a only a database file with no authentication options.'
-            Throw 'Please Specify a valid Credential Combination.'
-        }
-    }
-    process
-    {
-        try
-        {
-            if($PSCmdlet.ParameterSetName -eq 'Profile')
-            {
-                if($DatabaseProfileObject.UseMasterKey -and -not $MasterKey)
-                {
-                    $MasterKey = Read-Host -Prompt "Database MasterKey" -AsSecureString
-                }
-                $Output = New-Object -TypeName PSObject
-                $Output | Add-Member -MemberType NoteProperty -Name 'DatabaseFile' -Value $ProfileCredentialObject.DatabasePath
-                $Output | Add-Member -MemberType NoteProperty -Name 'KeyFile' -Value $ProfileCredentialObject.KeyPath
-                $Output | Add-Member -MemberType NoteProperty -Name 'MasterKey' -Value $MasterKey
-                $Output | Add-Member -MemberType NoteProperty -Name 'AuthenticationType' -Value $ProfileCredentialObject.AuthenticationType
-                $Output | Add-Member -MemberType NoteProperty -Name 'UseNetworkAccount' -Value $ProfileCredentialObject.UseNetworkAccount
-            }
-            else
-            {
-                $Output = New-Object -TypeName PSObject
-                $Output | Add-Member -MemberType NoteProperty -Name 'DatabaseFile' -Value $DatabaseFile
-                $Output | Add-Member -MemberType NoteProperty -Name 'KeyFile' -Value $KeyFile
-                $Output | Add-Member -MemberType NoteProperty -Name 'MasterKey' -Value $MasterKey
-                $Output | Add-Member -MemberType NoteProperty -Name 'AuthenticationType' -Value $PSCmdlet.ParameterSetName
-                $Output | Add-Member -MemberType NoteProperty -Name 'UseNetworkAccount' -Value $UseNetworkAccount
-            }
-        }
-        catch [Exception]
-        {
-            Throw $_.Exception.Message
-        }
-        finally
-        {
-            if($MasterKey){Remove-Variable -Name MasterKey}
-            [PSCustomObject] $Output
-        }
-    }
-}
-
-function Get-KPConnection
+function New-KPConnection
 {
     <#
         .SYNOPSIS
-            This Function Creates a Connection to a KeePass Database.
+            Creates an open connection to a Keepass database
         .DESCRIPTION
-            This Function Creates a Connection to a KeePass Database. It Uses a KpCred Object-
-            to determine the authentication method. It then connectes to the database and returns-
-            an open KeePassLib.PwDatabase object.
-
-            Currently this funciton supports these methods of authentication:
-                KeyFile
-                Master Password
-                Master Password and KeyFile
-
-            Future Versions will support Windows User Authentication Types.
-        .EXAMPLE
-            PS> Get-KeePassConnection -KeePassCredential $Creds
-
-            This Example will return an KeePass Database Connection using a pre-defined KeePass Credential Object.
-        .PARAMETER KeePassCredential
-            This is the KeePass Credential Object, that is used to open a connection to the KeePass DB.
-
-            See Get-KeePassCredential in order to generate this credential object.
+            Creates an open connection to a Keepass database using all available authentication methods
+        .PARAMETER Database
+            Path to the Keepass database (.kdbx file)
+        .PARAMETER ProfileName
+            Name of the profile entry
+        .PARAMETER MasterKey
+            Path to the keyfile (.key file) used to open the database
+        .PARAMETER Keyfile
+            Path to the keyfile (.key file) used to open the database
+        .PARAMETER UseWindowsAccount
+            Use the current windows account as an authentication method
     #>
-    [CmdletBinding()]
-    [OutputType('KeePassLib.PwDatabase')]
+    [CmdletBinding(DefaultParameterSetName='Profile')]
     param
     (
-        [Parameter(Position=0, Mandatory=$true, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)]
+        [Parameter(Position=0, Mandatory=$true, ParameterSetName='Profile')]
         [ValidateNotNullOrEmpty()]
-        [PSCustomObject] $KeePassCredential
+        [String] $DatabaseProfileName,
+
+        [Parameter(Position=0, Mandatory=$true, ParameterSetName='CompositeKey')]
+        [ValidateNotNullOrEmpty()]
+        [String] $Database,
+
+        [Parameter(Position=2, Mandatory=$false, ParameterSetName='CompositeKey')]
+        [Parameter(Position=1, Mandatory=$false, ParameterSetName='Profile')]
+        [AllowNull()]
+        [PSObject] $MasterKey,
+
+        [Parameter(Position=1, Mandatory=$false, ParameterSetName='CompositeKey')]
+        [ValidateNotNullOrEmpty()]
+        [String] $KeyPath,
+
+        [Parameter(Position=3, ParameterSetName='CompositeKey')]
+        [Switch] $UseWindowsAccount
     )
     process
     {
-        ## Create IOConnectionInfo to KPDB using KPLib
+        ## Create KP Database Object
         try
         {
-            $KeePassIOConnectionInfo = New-Object KeePassLib.Serialization.IOConnectionInfo
-            $KeePassIOConnectionInfo.Path = $KeePassCredential.DatabaseFile
-            $KeePassCompositeKey = New-Object KeePassLib.Keys.CompositeKey
+            $DatabaseObject = New-Object -TypeName KeepassLib.PWDatabase -ErrorAction Stop
         }
-        catch [Exception]
+        catch
         {
-            Write-Warning -Message ('[PROCESS] {0}' -f $_.Exception.Message)
-            Throw $_
+            Import-KPLibrary
+            $DatabaseObject = New-Object -TypeName KeepassLib.PWDatabase -ErrorAction Stop
         }
 
-        ## Determine AuthenticationType and Create KPLib CompositeKey
-        try
+        ## Create KP CompositeKey Object
+        $CompositeKey = New-Object -TypeName KeepassLib.Keys.CompositeKey
+
+        ## Validate MasterKey Type
+        if(($MasterKey -isnot [PSCredential]) -and ($MasterKey -isnot [SecureString]) -and $MasterKey)
         {
-            if ($KeePassCredential.AuthenticationType -eq 'Key')
-            {
-                $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpKeyFile($KeePassCredential.KeyFile)))
-                if($KeePassCredential.UseNetworkAccount)
-                {
-                    $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpUserAccount))
-                }
-            }
-            elseif ($KeePassCredential.AuthenticationType -eq 'KeyAndMaster')
-            {
-                $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpPassword([Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($KeePassCredential.MasterKey)))))
-                # $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpUserAccount))
-                $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpKeyFile($KeePassCredential.KeyFile)))
-            }
-            elseif ($KeePassCredential.AuthenticationType -eq 'Master')
-            {
-                $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpPassword([Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($KeePassCredential.MasterKey)))))
-                if($KeePassCredential.UseNetworkAccount)
-                {
-                    $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpUserAccount))
-                }
-            }
-            elseif ($KeePassCredential.AuthenticationType -eq 'Network')
-            {
-                $KeePassCompositeKey.AddUserKey((New-Object KeePassLib.Keys.KcpUserAccount))
-            }
-        }
-        catch [Exception]
-        {
-            Write-Warning -Message ('[PROCESS] {0}' -f $_.Exception.Message)
-            Throw $_
-        }
-        finally
-        {
-            if($KeePassCredential){Remove-Variable -Name KeePassCredential}
+            Write-Error -Message ('[PROCESS] The MasterKey of type: ({0}). Is not Supported Please supply a MasterKey of Types (SecureString or PSCredential).' -f $($MasterKey.GetType().Name)) -Category InvalidType -TargetObject $MasterKey -RecommendedAction 'Provide a MasterKey of Type PSCredential or SecureString'
         }
 
-        ## Open KPDB Connection
-        try
+        ## Get Profile Values
+        if($PSCmdlet.ParameterSetName -eq 'Profile')
         {
-            $KeePassDatabase = New-Object KeePassLib.PwDatabase
-            $KeePassDatabase.Open($KeePassIOConnectionInfo, $KeePassCompositeKey, $null)
+            $KeepassConfigurationObject = Get-KeePassDatabaseConfiguration -DatabaseProfileName $DatabaseProfileName
+
+            if(-not $KeepassConfigurationObject) 
+            {
+                throw 'InvalidKeePassConfiguration : No KeePass Configuration has been created.'
+            }
+
+            $Database = $KeepassConfigurationObject.DatabasePath
+            $KeyPath = if($KeepassConfigurationObject.KeyPath -ne '' ){$KeepassConfigurationObject.KeyPath}else{$false}
+            [Switch] $UseWindowsAccount = $KeepassConfigurationObject.UseNetworkAccount
+            [Switch] $UseMasterKey = $KeepassConfigurationObject.UseMasterKey
+            
+            ## Prompt for MasterKey if specified in the profile and was not provided.
+            if($UseMasterKey -and -not $MasterKey)
+            {
+                $Host.ui.PromptForCredential('KeePassCredential', 'Please enter your KeePass password.', 'KeePass', 'KeePass')
+            }
         }
-        catch [Exception]
+        ## Added this separation for easier future Management.
+        elseif($PSCmdlet.ParameterSetName -eq 'CompositeKey')
         {
-            Write-Warning -Message ('[PROCESS] {0}' -f $_.Exception.Message)
-            Throw $_
+            $UseMasterKey = if($MasterKey){ $true }
         }
-        finally
+
+        ## Handle if the master key is a PSCredential
+        if($MasterKey -is [PSCredential])
         {
-            if($KeePassCompositeKey){Remove-Variable -Name KeePassCompositeKey}
+            [SecureString] $MasterKey = $MasterKey.Password
         }
-        
-        ## Return Open KeePass Database
-        $KeePassDatabase
+
+        ##Exception : I will want to handle this error in a more user friendly error, as is the style of the rest of this module.
+        $DatabaseItem = Get-Item -Path $Database -ErrorAction Stop
+
+        ## Start Building CompositeKey
+        ## Order in which the CompositeKey is created is important and must follow the order of : MasterKey, KeyFile, Windows Account
+        if($UseMasterKey)
+        {
+            $CompositeKey.AddUserKey((New-Object KeepassLib.Keys.KcpPassword([System.Runtime.InteropServices.Marshal]::PtrToStringUni([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($MasterKey)))))
+        }
+
+        if($KeyPath)
+        {
+            try
+            {
+                ##Exception : I will want to handle this error in a more user friendly error, as is the style of the rest of this module.
+                $KeyPathItem = Get-Item $KeyPath -ErrorAction Stop
+                $CompositeKey.AddUserKey((New-Object KeepassLib.Keys.KcpKeyfile($KeyPathItem.FullName)))
+            }
+            catch
+            {
+                ##Exception : I will want to handle this error in a more user friendly error, as is the style of the rest of this module.
+                Write-Warning ('Could not read the specfied Key file [{0}].' -f $KeyPathItem.FullName)
+            }
+        }
+
+        if($UseWindowsAccount)
+        {
+            $CompositeKey.AddUserKey((New-Object KeepassLib.Keys.KcpUserAccount))
+        }
+
+        ## Create IOConnection Object
+        $IOInfo = New-Object KeepassLib.Serialization.IOConnectionInfo
+        $IOInfo.Path = $DatabaseItem.FullName
+
+        ## We currently are not using a status logger hence the null.
+        $IStatusLogger = New-Object KeePassLib.Interfaces.NullStatusLogger
+
+        ## Connect, Open and Return Database Object
+        $DatabaseObject.Open($IOInfo, $CompositeKey, $IStatusLogger) | Out-Null
+        $DatabaseObject
+
+        ##Exception : I will want to handle this error in a more user friendly error, as is the style of the rest of this module.
+        if(-not $DatabaseObject.IsOpen)
+        {
+            Throw 'InvalidDatabaseConnectionException : The database is not open.'
+        }
     }
 }
 
@@ -2137,42 +2058,6 @@ function Remove-KPConnection
             Write-Warning -Message ('[PROCESS] {0}' -f $_.Exception.Message)
             Throw $_
         }
-    }
-}
-
-function Invoke-KPConnection
-{
-    param
-    (
-        [Parameter(Position=0, Mandatory=$true)]
-        [ValidateNotNullOrEmpty()]
-        [String] $DatabaseProfileName,
-
-        [Parameter(Position=1, Mandatory=$false)]
-        [SecureString] $MasterKey
-    )
-    process
-    {
-        ## Get the database profile definition
-        $DatabaseProfileObject = Get-KeePassDatabaseConfiguration -DatabaseProfileName $DatabaseProfileName
-
-        ## Get the KeePass credential object based on the authentication type in the profile definition.
-        if($MasterKey)
-        {
-            $KeePassCredentialObject = Get-KPCredential -ProfileCredentialObject $DatabaseProfileObject -MasterKey $MasterKey
-        }
-        else
-        {
-            $KeePassCredentialObject = Get-KPCredential -ProfileCredentialObject $DatabaseProfileObject
-        }
-        
-        Get-KPConnection -KeePassCredential $KeePassCredentialObject
-    }
-    end
-    {
-        ## remove any sensitive data
-        if($KeePassCredentialObject){Remove-Variable -Name KeePassCredentialObject}
-        if($MasterKey){Remove-Variable -Name MasterKey}
     }
 }
 
@@ -3389,11 +3274,6 @@ function ConvertTo-KPPSObject
 
                 ## Custom Object Formatting and Type
                 $KeePassPsObject.PSObject.TypeNames.Insert(0,'PSKeePass.Entry')
-                $PSKeePassEntryDisplaySet = 'Title','UserName','Password','FullPath'
-                $PSKeePassEntryDefaultPropertySet = New-Object -TypeName System.Management.Automation.PSPropertySet('DefaultDisplayPropertySet',[String[]] $PSKeePassEntryDisplaySet)
-                $PSKeePassEntryStandardMembers = [System.Management.Automation.PSMemberInfo[]] @($PSKeePassEntryDefaultPropertySet)
-
-                $KeePassPsObject | Add-Member MemberSet PSStandardMembers $PSKeePassEntryStandardMembers
 
                 ## Return Object
                 $KeePassPsObject
@@ -3493,37 +3373,6 @@ function Import-KPLibrary
 
 ## Source KpLib
 Import-KPLibrary
-
-Export-ModuleMember -Function New-KeePassEntry
-Export-ModuleMember -Function Get-KeePassEntry
-Export-ModuleMember -Function Update-KeePassEntry
-Export-ModuleMember -Function Remove-KeePassEntry
-Export-ModuleMember -Function New-KeePassGroup
-Export-ModuleMember -Function Get-KeePassGroup
-Export-ModuleMember -Function Update-KeePassGroup
-Export-ModuleMember -Function Remove-KeePassGroup
-Export-ModuleMember -Function New-KeePassPassword
-Export-ModuleMember -Function New-KeePassDatabaseConfiguration
-Export-ModuleMember -Function Get-KeePassDatabaseConfiguration
-Export-ModuleMember -Function Remove-KeePassDatabaseConfiguration
-# Export-ModuleMember -Function New-KPConfigurationFile
-# Export-ModuleMember -Function New-KPPasswordProfile
-# Export-ModuleMember -Function Get-KPPasswordProfile
-# Export-ModuleMember -Function Remove-KPPasswordProfile
-# Export-ModuleMember -Function Get-KPCredential
-# Export-ModuleMember -Function Get-KPConnection
-# Export-ModuleMember -Function Remove-KPConnection
-# Export-ModuleMember -Function Get-KPEntry
-# Export-ModuleMember -Function Add-KPEntry
-# Export-ModuleMember -Function Set-KPEntry
-# Export-ModuleMember -Function Remove-KPEntry
-# Export-ModuleMember -Function Get-KPGroup
-# Export-ModuleMember -Function Add-KPGroup
-# Export-ModuleMember -Function Set-KPGroup
-# Export-ModuleMember -Function Remove-KPGroup
-# Export-ModuleMember -Function ConvertFrom-KPProtectedString
-Export-ModuleMember -Function ConvertTo-KPPSObject
-# Export-ModuleMember -Function Import-KPLibrary
 
 if (-not(Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml))
 {
