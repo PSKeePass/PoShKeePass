@@ -1651,6 +1651,48 @@ function New-KPConfigurationFile
     }
 }
 
+function Restore-KPConfigurationFile
+{
+    <#
+        .SYNOPSIS
+            Restore Config file from previous version
+        .DESCRIPTION
+            Restore Config file from previous version
+        .PARAMETER
+        .EXAMPLE
+        .NOTES
+        .INPUTS
+        .OUTPUTS
+    #>
+    [CmdletBinding()]
+    param
+    (
+        
+    )
+    process
+    {
+        $ReturnStatus = $false
+        Write-Verbose -Message '[PROCESS] Checking if there is a previous KeePassConfiguration.xml file to be loaded.'
+        $PreviousVerision = ((Get-ChildItem "$PSScriptRoot\..\").Name | Sort-Object -Descending | Select-Object -First 2)[1]
+        $PreviousVerisionConfigurationFile = Resolve-Path -Path ('{0}\..\{1}\KeePassConfiguration.xml' -f $PSScriptRoot, $PreviousVerision) -ErrorAction SilentlyContinue -ErrorVariable GetPreviousConfigurationFileError
+        if(-not $GetPreviousConfigurationFileError -and $PreviousVerision)
+        {
+            Write-Verbose -Message ('[PROCESS] Copying last Configuration file from the previous version ({0}).' -f $PreviousVerision)
+            Copy-Item -Path $PreviousVerisionConfigurationFile -Destination "$PSScriptRoot" -ErrorAction SilentlyContinue -ErrorVariable RestorePreviousConfigurationFileError
+            if($RestorePreviousConfigurationFileError)
+            {
+                Write-Warning -Message '[PROCESS] Unable to restore previous KeePassConfiguration.xml file. You will need to copy your previous file from your previous module version folder or create a new one.'
+            }
+            else
+            {
+                $ReturnStatus = $true
+            }
+        }
+
+        return $ReturnStatus
+    }
+}
+
 function New-KPPasswordProfile
 {
     <#
@@ -3378,5 +3420,8 @@ if (-not(Test-Path -Path $PSScriptRoot\KeePassConfiguration.xml))
 {
     Write-Warning -Message '**IMPORTANT NOTE:** Please always keep an up-to-date backup of your keepass database files and key files if used.'
     Write-Warning -Message 'This message will not show again on next import.'
-    New-KPConfigurationFile
+    if(-not $(Restore-KPConfigurationFile))
+    {
+        New-KPConfigurationFile
+    }
 }
