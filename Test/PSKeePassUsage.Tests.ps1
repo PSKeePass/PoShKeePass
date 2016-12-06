@@ -8,7 +8,7 @@ InModuleScope "PoShKeePass" {
     $WarningPreference = 'SilentlyContinue'
 
     Describe "New-KPConnection - UnitTest" -Tag UnitTest {
-        
+
         Context "Example 1: Open with PSKeePass Credential Object - KeyFile" {
             
             It "Example 1.1: Get KeePass Database Connection with KeyFile - Valid" {
@@ -271,6 +271,53 @@ InModuleScope "PoShKeePass" {
 
         New-KPConfigurationFile -Force
     }
+
+    Describe "New-KPConnection - Profile - UnitTest" -Tag UnitTest {
+
+        Context "Example 1: Open with PSKeePass Credential Object - KeyFile - Profile" {
+            New-KPConfigurationFile -Force
+
+            It "Example 1.1: Get KeePass Database Connection with KeyFile from a Profile- Valid" {
+                New-KeePassDatabaseConfiguration -DatabaseProfileName 'KeyFileTest' -DatabasePath "$PSScriptRoot\Includes\AuthenticationDatabases\KeyFile.kdbx" -KeyPath "$PSScriptRoot\Includes\AuthenticationDatabases\KeyFile.key" | Should Be $null
+                $KeePassConnection = New-KPConnection  -DatabaseProfileName 'KeyFileTest'
+                $KeePassConnection | Should BeOfType 'KeePassLib.PwDatabase'
+                $KeePassConnection.IsOpen | Should Be $true
+                $KeePassConnection.RootGroup.Name | Should Be 'KeyFile'
+                $KeePassConnection.Close() | Should Be $null
+                $KeePassConnection.IsOpen | Should Be $false
+            }
+        }
+
+        Context "Example 2: Open with PSKeePass Credential Object - MasterKey - Profile" {
+            New-KPConfigurationFile -Force
+
+            It "Example 2.1: Get KeePass Database Connection with MasterKey from a Profile - Valid" {
+                New-KeePassDatabaseConfiguration -DatabaseProfileName 'MasterKeyTest' -DatabasePath "$PSScriptRoot\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseMasterKey | Should Be $null
+                $KeePassConnection = New-KPConnection -DatabaseProfileName 'MasterKeyTest' -MasterKey $(ConvertTo-SecureString -String "ATestPassWord" -AsPlainText -Force)
+                $KeePassConnection | Should BeOfType 'KeePassLib.PwDatabase'
+                $KeePassConnection.IsOpen | Should Be $true
+                $KeePassConnection.RootGroup.Name | Should Be 'MasterKey'
+                $KeePassConnection.Close() | Should Be $null
+                $KeePassConnection.IsOpen | Should Be $false
+            }
+        }
+
+        Context "Example 3: Open with PSKeePass Credential Object - MasterKey and KeyFile - Profile" {
+            New-KPConfigurationFile -Force
+
+            It "Example 3.1: Get KeePass Database Connection with KeyAndMaster from a Profile - Valid" {
+                New-KeePassDatabaseConfiguration -DatabaseProfileName 'KeyFileAndMasterKeyTest' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\KeyAndMaster.kdbx" -KeyPath "$($PSScriptRoot)\Includes\AuthenticationDatabases\KeyAndMaster.key" -UseMasterKey | Should Be $null
+                $KeePassConnection = New-KPConnection -DatabaseProfileName 'KeyFileAndMasterKeyTest' -MasterKey $(ConvertTo-SecureString -String "ATestPassWord" -AsPlainText -Force)
+                $KeePassConnection | Should BeOfType 'KeePassLib.PwDatabase'
+                $KeePassConnection.IsOpen | Should Be $true
+                $KeePassConnection.RootGroup.Name | Should Be 'KeyAndMaster'
+                $KeePassConnection.Close() | Should Be $null
+                $KeePassConnection.IsOpen | Should Be $false
+            }
+        }
+
+        ## Holding off on Network Account Testing until I can script the creation of a database.
+    }
     
     Describe "New-KeePassPassword - UnitTest" -Tag UnitTest {
 
@@ -475,6 +522,12 @@ InModuleScope "PoShKeePass" {
 
             It "Example 1.2 Gets All KeePass Entries - Valid" {
                 $ResultEntries = Get-KeePassEntry -DatabaseProfileName SampleProfile
+                $ResultEntries.Count | Should Be 2
+            }
+
+            It "Example 1.2 Gets All KeePass Entries - MasterKey Profile - Valid" {
+                New-KeePassDatabaseConfiguration -DatabaseProfileName 'MasterKeyTest' -DatabasePath "$PSScriptRoot\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseMasterKey | Should Be $null
+                $ResultEntries = Get-KeePassEntry -DatabaseProfileName 'MasterKeyTest' -MasterKey $(ConvertTo-SecureString -String "ATestPassWord" -AsPlainText -Force)
                 $ResultEntries.Count | Should Be 2
             }
 
