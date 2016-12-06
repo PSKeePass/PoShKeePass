@@ -1994,7 +1994,7 @@ function New-KPConnection
             ## Prompt for MasterKey if specified in the profile and was not provided.
             if($UseMasterKey -and -not $MasterKey)
             {
-                $Host.ui.PromptForCredential('KeePassCredential', 'Please enter your KeePass password.', 'KeePass', 'KeePass')
+                $MasterKey = $Host.ui.PromptForCredential('KeePassCredential', 'Please enter your KeePass password.', 'KeePass', 'KeePass')
             }
         }
         ## Added this separation for easier future Management.
