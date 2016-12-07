@@ -1,3 +1,6 @@
+## Changelog PoShKeePass v2.0.4.0
+1. #108 Fixed bug by capturing PSCredential to MasterKey variable.
+
 ## Changelog PoShKeePass v2.0.3.9
 
 1. #92 Added PowerShell Format XML File for creating PowerShell Object views.
