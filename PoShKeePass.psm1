@@ -2021,7 +2021,7 @@ function New-KPConnection
             $CompositeKey.AddUserKey((New-Object KeepassLib.Keys.KcpPassword([System.Runtime.InteropServices.Marshal]::PtrToStringUni([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($MasterKey)))))
         }
 
-        if($KeyPath -ne $false)
+        if($KeyPath)
         {
             try
             {
