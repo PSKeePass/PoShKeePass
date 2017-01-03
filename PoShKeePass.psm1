@@ -181,25 +181,29 @@ function Get-KeePassEntry
         .OUTPUTS
             PSObject
     #>
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName='None')]
     param
     (
-        [Parameter(Position=0, Mandatory=$false)]
+        [Parameter(Position=0, Mandatory=$false, ParameterSetName='None')]
+        [Parameter(Position=0, Mandatory=$false, ParameterSetName='AsPlainText')]
+        [Parameter(Position=0, Mandatory=$false, ParameterSetName='AsPSCredential')]
         [ValidateNotNullOrEmpty()]
         [String] $KeePassEntryGroupPath,
         
-        [Parameter(Mandatory=$false)]
+        [Parameter(Position=1, Mandatory=$false,ParameterSetName='None')]
+        [Parameter(Position=1, Mandatory=$true,ParameterSetName='AsPSCredential')]
+        [Parameter(Position=1, Mandatory=$false,ParameterSetName='AsPlainText')]
         [String] $Title,
 
-        [Parameter(Position=1, Mandatory=$false,ParameterSetName="AsPlainText")]
+        [Parameter(Position=2, Mandatory=$false,ParameterSetName='AsPlainText')]
         [Switch] $AsPlainText,
 
-        [Parameter(Position=1, Mandatory=$false,ParameterSetName="AsPSCredential")]
+        [Parameter(Position=3, Mandatory=$false,ParameterSetName='AsPSCredential')]
         [Switch] $AsPSCredential
     )
     dynamicparam
     {
-        Get-KPDynamicParameters -DBProfilePosition 2 -MasterKeyPosition 3
+        Get-KPDynamicParameters -DBProfilePosition 4 -MasterKeyPosition 5
     }
     begin
     {
@@ -254,7 +258,7 @@ function Get-KeePassEntry
                 $ResultEntries = Get-KPEntry -KeePassConnection $KeePassConnectionObject
             }
         }
-
+        Write-Verbose $PSCmdlet.ParameterSetName
         switch ($PSCmdlet.ParameterSetName)
         {
             "AsPlainText"
@@ -263,7 +267,7 @@ function Get-KeePassEntry
             }
             "AsPSCredential"
             {
-                if ($ResultEntries.count > 1)
+                if ($ResultEntries.count -gt 1)
                 {
                     Write-Warning "Multiple entries found, will only return first entry as PSCredential"
                 }
