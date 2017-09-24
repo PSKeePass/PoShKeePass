@@ -1643,7 +1643,7 @@ function New-KeePassDatabase
         ## Create KP CompositeKey Object
         $CompositeKey = New-Object -TypeName KeepassLib.Keys.CompositeKey
 
-       if($MasterKey)
+        if($MasterKey)
         {
             $KcpPassword = New-Object -TypeName KeePassLib.Keys.KcpPassword($MasterKey.GetNetworkCredential().Password)
             $CompositeKey.AddUserKey($KcpPassword)
