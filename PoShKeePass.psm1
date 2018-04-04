@@ -1672,8 +1672,10 @@ function Restore-KPConfigurationFile
     process
     {
         $ReturnStatus = $false
-        Write-Verbose -Message '[PROCESS] Checking if there is a previous KeePassConfiguration.xml file to be loaded.'
-        $PreviousVerision = ((Get-ChildItem "$PSScriptRoot\..\").Name | Sort-Object -Descending | Select-Object -First 2)[1]
+        $Path = Resolve-Path -Path ('{0}\..' -f $PSScriptRoot)
+        Write-Verbose -Message ('[PROCESS] Checking if there is a previous KeePassConfiguration.xml file to be loaded from: {0}.' -f $Path.Path )
+        $PreviousVerision = ((Get-ChildItem $Path.Path).Name | Sort-Object -Descending | Select-Object -First 2)[1]
+        Write-Verbose -Message ('PreviousVersion: {0}.' -f $PreviousVersion)
         $PreviousVerisionConfigurationFile = Resolve-Path -Path ('{0}\..\{1}\KeePassConfiguration.xml' -f $PSScriptRoot, $PreviousVerision) -ErrorAction SilentlyContinue -ErrorVariable GetPreviousConfigurationFileError
         if(-not $GetPreviousConfigurationFileError -and $PreviousVerision)
         {

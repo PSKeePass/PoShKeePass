@@ -1,3 +1,6 @@
+## Changelog PoShKeePass v2.0.4.3
+* [#133](https://github.com/PSKeePass/PoShKeePass/issues/133) Fixed
+
 ## Changelog PoShKeePass v2.0.4.1
 * [#132](https://github.com/PSKeePass/PoShKeePass/issues/132) Fixed - Windows Defender identifies PoshKeepass as trojan. Please see the issue for more details.
 
