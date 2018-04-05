@@ -151,7 +151,7 @@ function Get-KeePassEntry
         .PARAMETER KeePassEntryGroupPath
             Specify this parameter if you wish to only return entries form a specific folder path.
             Notes:
-                * Path Separator is the foward slash character '/'
+                * Path Separator is the forward slash character '/'
         .PARAMETER AsPlainText
             Specify this parameter if you want the KeePass database entries to be returns in plain text objects.
         .PARAMETER DatabaseProfileName
@@ -162,6 +162,8 @@ function Get-KeePassEntry
             Specify a SecureString MasterKey if necessary to authenticat a keepass databse.
             If not provided and the database requires one you will be prompted for it.
             This parameter was created with scripting in mind.
+        .PARAMETER AsPSCredential
+            Output Entry as an PSCredential Object
         .EXAMPLE
             PS> Get-KeePassEntry -DatabaseProfileName TEST -AsPlainText
 
@@ -170,24 +172,38 @@ function Get-KeePassEntry
             PS> Get-KeePassEntry -DatabaseProfileName TEST -KeePassEntryGroupPath 'General' -AsPlainText
 
             This Example will return all entries in plain text format from the General folder of the keepass database with the profile name TEST.
+        .EXAMPLE
+            PS> Get-KeePassEntry -DatabaseProfileName TEST -Title test -AsPSCredential
+
+            This Example will return one entry as PSCredential Object
         .INPUTS
             String
         .OUTPUTS
             PSObject
     #>
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'None')]
     param
     (
-        [Parameter(Position = 0, Mandatory = $false)]
+        [Parameter(Position = 0, Mandatory = $false, ParameterSetName = 'None')]
+        [Parameter(Position = 0, Mandatory = $false, ParameterSetName = 'AsPlainText')]
+        [Parameter(Position = 0, Mandatory = $false, ParameterSetName = 'AsPSCredential')]
         [ValidateNotNullOrEmpty()]
         [String] $KeePassEntryGroupPath,
 
-        [Parameter(Position = 1, Mandatory = $false)]
-        [Switch] $AsPlainText
+        [Parameter(Position = 1, Mandatory = $false, ParameterSetName = 'None')]
+        [Parameter(Position = 1, Mandatory = $true, ParameterSetName = 'AsPSCredential')]
+        [Parameter(Position = 1, Mandatory = $false, ParameterSetName = 'AsPlainText')]
+        [String] $Title,
+
+        [Parameter(Position = 2, Mandatory = $false, ParameterSetName = 'AsPlainText')]
+        [Switch] $AsPlainText,
+
+        [Parameter(Position = 3, Mandatory = $false, ParameterSetName = 'AsPSCredential')]
+        [Switch] $AsPSCredential
     )
     dynamicparam
     {
-        Get-KPDynamicParameters -DBProfilePosition 2 -MasterKeyPosition 3
+        Get-KPDynamicParameters -DBProfilePosition 4 -MasterKeyPosition 5
     }
     begin
     {
@@ -221,22 +237,53 @@ function Get-KeePassEntry
                 Write-Warning -Message ('[PROCESS] The Specified KeePass Entry Group Path ({0}) does not exist.' -f $KeePassEntryGroupPath)
                 Throw 'The Specified KeePass Entry Group Path ({0}) does not exist.' -f $KeePassEntryGroupPath
             }
-            $ResultEntries = Get-KpEntry -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroup
+            if($Title)
+            {
+                $ResultEntries = Get-KpEntry -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroup -Title $Title
+            }
+            else
+            {
+                $ResultEntries = Get-KpEntry -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroup
+            }
         }
         else
         {
             ## Get all entries in all groups.
-            $ResultEntries = Get-KPEntry -KeePassConnection $KeePassConnectionObject
+            if($Title)
+            {
+                $ResultEntries = Get-KPEntry -KeePassConnection $KeePassConnectionObject -Title $Title
+            }
+            else
+            {
+                $ResultEntries = Get-KPEntry -KeePassConnection $KeePassConnectionObject
+            }
         }
-
-        ## return results in plain text or not.
-        if($AsPlainText)
+        Write-Verbose $PSCmdlet.ParameterSetName
+        switch ($PSCmdlet.ParameterSetName)
         {
-            $ResultEntries | ConvertTo-KpPsObject
-        }
-        else
-        {
-            $ResultEntries
+            "AsPlainText"
+            {
+                $ResultEntries | ConvertTo-KpPsObject
+            }
+            "AsPSCredential"
+            {
+                if ($ResultEntries.count -gt 1)
+                {
+                    Write-Warning "Multiple entries found, will only return first entry as PSCredential"
+                }
+                $secureString = ConvertTo-SecureString -String ($ResultEntries[0].Strings.ReadSafe('Password')) -AsPlainText -Force
+                [string] $username = $ResultEntries[0].Strings.ReadSafe('UserName')
+                if ($username.Length -eq 0)
+                {
+                    $Errorcode = 'ERROR: Cannot create credential, username is blank'
+                    throw
+                }
+                New-Object System.Management.Automation.PSCredential($username, $secureString)
+            }
+            default
+            {
+                $ResultEntries
+            }
         }
     }
     end
@@ -1579,6 +1626,94 @@ function Remove-KeePassDatabaseConfiguration
     }
 }
 
+function New-KeePassDatabase
+{
+    <#
+        .SYNOPSIS
+            Function to create a keepass database.
+        .DESCRIPTION
+            This function creates a new keepass database
+        .PARAMETER DatabasePath
+            Path to the Keepass database (.kdbx file)
+        .PARAMETER KeyPath
+            Not yet implemented
+        .PARAMETER UseNetworkAccount
+            Specify of you want the database to use windows authentication
+        .PARAMETER MasterKey
+            The masterkey that provides access to the database
+        .INPUTS
+            String
+            SecureString
+        .OUTPUTS
+            $null
+    #>
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(Position = 0, Mandatory = $false)]
+        [ValidateNotNullOrEmpty()]
+        [String] $DatabasePath,
+
+        [Parameter(Position = 1, Mandatory = $true, ValueFromPipeline = $false, ParameterSetName = 'Key')]
+        [Parameter(Position = 1, Mandatory = $true, ValueFromPipeline = $false, ParameterSetName = 'KeyAndMaster')]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript({Test-Path $_})]
+        [String] $KeyPath,
+
+        [Parameter(Position = 2, Mandatory = $false, ValueFromPipeline = $false, ParameterSetName = 'Key')]
+        [Parameter(Position = 2, Mandatory = $false, ValueFromPipeline = $false, ParameterSetName = 'Master')]
+        [Parameter(Position = 2, Mandatory = $true, ValueFromPipeline = $false, ParameterSetName = 'Network')]
+        [Switch] $UseNetworkAccount,
+
+        [Parameter(Position = 3, Mandatory = $true, ValueFromPipeline = $false, ParameterSetName = 'Master')]
+        [Parameter(Position = 3, Mandatory = $true, ValueFromPipeline = $false, ParameterSetName = 'KeyAndMaster')]
+        [PSCredential] $MasterKey
+    )
+
+    begin
+    {
+        if ($KeyPath)
+        {
+            throw "KeyPath is not implemented yet"
+        }
+    }
+    process
+    {
+        try
+        {
+            $DatabaseObject = New-Object -TypeName KeepassLib.PWDatabase -ErrorAction Stop
+        }
+        catch
+        {
+            Import-KPLibrary
+            $DatabaseObject = New-Object -TypeName KeepassLib.PWDatabase -ErrorAction Stop
+        }
+
+        ## Create KP CompositeKey Object
+        $CompositeKey = New-Object -TypeName KeepassLib.Keys.CompositeKey
+
+        if($MasterKey)
+        {
+            $KcpPassword = New-Object -TypeName KeePassLib.Keys.KcpPassword($MasterKey.GetNetworkCredential().Password)
+            $CompositeKey.AddUserKey($KcpPassword)
+        }
+
+        #if masterkey is specified, it should
+        if($UseNetworkAccount)
+        {
+            $CompositeKey.AddUserKey((New-Object KeepassLib.Keys.KcpUserAccount))
+        }
+
+        $IOInfo = New-Object KeepassLib.Serialization.IOConnectionInfo
+        $IOInfo.Path = $DatabasePath
+
+        $IStatusLogger = New-Object KeePassLib.Interfaces.NullStatusLogger
+
+        $DatabaseObject.New($IOInfo, $CompositeKey) | Out-Null
+        $DatabaseObject.Save($IStatusLogger)
+    }
+}
+
 <#
 # Internals
 # *These functions below support all of the functions above.
@@ -1989,7 +2124,7 @@ function New-KPConnection
             }
 
             $Database = $KeepassConfigurationObject.DatabasePath
-            $KeyPath = if($KeepassConfigurationObject.KeyPath -ne '' ){$KeepassConfigurationObject.KeyPath}else{$false}
+            if($KeepassConfigurationObject.KeyPath -ne '' ){ $KeyPath = $KeepassConfigurationObject.KeyPath }
             [Switch] $UseWindowsAccount = $KeepassConfigurationObject.UseNetworkAccount
             [Switch] $UseMasterKey = $KeepassConfigurationObject.UseMasterKey
 
