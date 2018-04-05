@@ -54,32 +54,32 @@
     [CmdletBinding()]
     param
     (
-        [Parameter(Position=0, Mandatory=$true)]
+        [Parameter(Position = 0, Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [String] $KeePassEntryGroupPath,
 
-        [Parameter(Position=1, Mandatory=$false)]
+        [Parameter(Position = 1, Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [String] $Title,
 
-        [Parameter(Position=2, Mandatory=$false)]
+        [Parameter(Position = 2, Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [String] $UserName,
 
-        [Parameter(Position=3, Mandatory=$false)]
+        [Parameter(Position = 3, Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [ValidateScript({$_.GetType().Name -eq 'ProtectedString' -or $_.GetType().Name -eq 'SecureString'})]
         [PSObject] $KeePassPassword,
 
-        [Parameter(Position=4, Mandatory=$false)]
+        [Parameter(Position = 4, Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [String] $Notes,
 
-        [Parameter(Position=5, Mandatory=$false)]
+        [Parameter(Position = 5, Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [String] $URL,
 
-        [Parameter(Position=6, Mandatory=$false)]
+        [Parameter(Position = 6, Mandatory = $false)]
         [Switch] $PassThru
     )
     dynamicparam
@@ -89,7 +89,7 @@
     begin
     {
         ## Get a list of all database profiles saved to the config xml.
-        $DatabaseProfileList =  (Get-KeePassDatabaseConfiguration).Name
+        $DatabaseProfileList = (Get-KeePassDatabaseConfiguration).Name
         ## If no profiles exists do not return the parameter.
         if($DatabaseProfileList)
         {
@@ -118,7 +118,7 @@
             if(-not $KeePassGroup)
             {
                 Write-Warning -Message ('[PROCESS] The Specified KeePass Entry Group Path ({0}) does not exist.' -f $KeePassEntryGroupPath)
-                Throw 'The Specified KeePass Entry Group Path ({0}) does not exist.' -$KeePassEntryGroupPath
+                Throw 'The Specified KeePass Entry Group Path ({0}) does not exist.' - $KeePassEntryGroupPath
             }
 
             ## Set Default Icon if not specified.
@@ -178,11 +178,11 @@ function Get-KeePassEntry
     [CmdletBinding()]
     param
     (
-        [Parameter(Position=0, Mandatory=$false)]
+        [Parameter(Position = 0, Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [String] $KeePassEntryGroupPath,
 
-        [Parameter(Position=1, Mandatory=$false)]
+        [Parameter(Position = 1, Mandatory = $false)]
         [Switch] $AsPlainText
     )
     dynamicparam
@@ -192,7 +192,7 @@ function Get-KeePassEntry
     begin
     {
         ## Get a list of all database profiles saved to the config xml.
-        $DatabaseProfileList =  (Get-KeePassDatabaseConfiguration).Name
+        $DatabaseProfileList = (Get-KeePassDatabaseConfiguration).Name
         ## If no profiles exists do not return the parameter.
         if($DatabaseProfileList)
         {
@@ -303,42 +303,42 @@ function Update-KeePassEntry
         .OUTPUTS
             $null
     #>
-    [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='High')]
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
     param
     (
-        [Parameter(Position=0, Mandatory=$true, ValueFromPipeline=$true)]
+        [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true)]
         [ValidateNotNullOrEmpty()]
         [PSObject] $KeePassEntry,
 
-        [Parameter(Position=1, Mandatory=$true)]
+        [Parameter(Position = 1, Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [String] $KeePassEntryGroupPath,
 
-        [Parameter(Position=2, Mandatory=$false)]
+        [Parameter(Position = 2, Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [String] $Title,
 
-        [Parameter(Position=3, Mandatory=$false)]
+        [Parameter(Position = 3, Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [String] $UserName,
 
-        [Parameter(Position=4, Mandatory=$false)]
+        [Parameter(Position = 4, Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [ValidateScript({$_.GetType().Name -eq 'ProtectedString' -or $_.GetType().Name -eq 'SecureString'})]
         [PSObject] $KeePassPassword,
 
-        [Parameter(Position=5, Mandatory=$false)]
+        [Parameter(Position = 5, Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [String] $Notes,
 
-        [Parameter(Position=6, Mandatory=$false)]
+        [Parameter(Position = 6, Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [String] $URL,
 
-        [Parameter(Position=7, Mandatory=$false)]
+        [Parameter(Position = 7, Mandatory = $false)]
         [Switch] $PassThru,
 
-        [Parameter(Position=8, Mandatory=$false)]
+        [Parameter(Position = 8, Mandatory = $false)]
         [Switch] $Force
 
         ## Dynamic Param Position = 9
@@ -350,7 +350,7 @@ function Update-KeePassEntry
     begin
     {
         ## Get a list of all database profiles saved to the config xml.
-        $DatabaseProfileList =  (Get-KeePassDatabaseConfiguration).Name
+        $DatabaseProfileList = (Get-KeePassDatabaseConfiguration).Name
         ## If no profiles exists do not return the parameter.
         if($DatabaseProfileList)
         {
@@ -371,7 +371,7 @@ function Update-KeePassEntry
     }
     process
     {
-        $KPEntry=Get-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassUuid $KeePassEntry.Uuid
+        $KPEntry = Get-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassUuid $KeePassEntry.Uuid
         if(-not $KPEntry)
         {
             Write-Warning -Message '[PROCESS] The Specified KeePass Entry does not exist or cannot be found.'
@@ -427,17 +427,17 @@ function Remove-KeePassEntry
 
             This example removed the specified kee pass entry.
     #>
-    [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='High')]
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
     param
     (
-        [Parameter(Position=0, Mandatory=$true, ValueFromPipeline=$true)]
+        [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true)]
         [ValidateNotNullOrEmpty()]
         [PSObject] $KeePassEntry,
 
-        [Parameter(Position=1, Mandatory=$false)]
+        [Parameter(Position = 1, Mandatory = $false)]
         [Switch] $NoRecycle,
 
-        [Parameter(Position=2, Mandatory=$false)]
+        [Parameter(Position = 2, Mandatory = $false)]
         [Switch] $Force
     )
     dynamicparam
@@ -447,7 +447,7 @@ function Remove-KeePassEntry
     begin
     {
         ## Get a list of all database profiles saved to the config xml.
-        $DatabaseProfileList =  (Get-KeePassDatabaseConfiguration).Name
+        $DatabaseProfileList = (Get-KeePassDatabaseConfiguration).Name
         ## If no profiles exists do not return the parameter.
         if($DatabaseProfileList)
         {
@@ -467,13 +467,13 @@ function Remove-KeePassEntry
     }
     process
     {
-        $KPEntry=Get-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassUuid $KeePassEntry.Uuid
+        $KPEntry = Get-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassUuid $KeePassEntry.Uuid
         if(-not $KPEntry)
         {
             Write-Warning -Message '[PROCESS] The Specified KeePass Entry does not exist or cannot be found.'
             Throw 'The Specified KeePass Entry does not exist or cannot be found.'
         }
-        $EntryDisplayName = '{0}/{1}' -f $KPEntry.ParentGroup.GetFullPath('/',$true), $KPEntry.Strings.ReadSafe('Title')
+        $EntryDisplayName = '{0}/{1}' -f $KPEntry.ParentGroup.GetFullPath('/', $true), $KPEntry.Strings.ReadSafe('Title')
         if($Force -or $PSCmdlet.ShouldProcess($EntryDisplayName))
         {
             if($NoRecycle)
@@ -532,15 +532,15 @@ function New-KeePassGroup
     [CmdletBinding()]
     param
     (
-        [Parameter(Position=0, Mandatory=$true)]
+        [Parameter(Position = 0, Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [String] $KeePassGroupParentPath,
 
-        [Parameter(Position=1, Mandatory=$true)]
+        [Parameter(Position = 1, Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [String] $KeePassGroupName,
 
-        [Parameter(Position=2, Mandatory=$false)]
+        [Parameter(Position = 2, Mandatory = $false)]
         [Switch] $PassThru
     )
     dynamicparam
@@ -550,7 +550,7 @@ function New-KeePassGroup
     begin
     {
         ## Get a list of all database profiles saved to the config xml.
-        $DatabaseProfileList =  (Get-KeePassDatabaseConfiguration).Name
+        $DatabaseProfileList = (Get-KeePassDatabaseConfiguration).Name
         ## If no profiles exists do not return the parameter.
         if($DatabaseProfileList)
         {
@@ -631,11 +631,11 @@ function Get-KeePassGroup
     [CmdletBinding()]
     param
     (
-        [Parameter(Position=0, Mandatory=$false)]
+        [Parameter(Position = 0, Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [String] $KeePassGroupPath,
 
-        [Parameter(Position=1, Mandatory=$false)]
+        [Parameter(Position = 1, Mandatory = $false)]
         [Switch] $AsPlainText
     )
     dynamicparam
@@ -645,7 +645,7 @@ function Get-KeePassGroup
     begin
     {
         ## Get a list of all database profiles saved to the config xml.
-        $DatabaseProfileList =  (Get-KeePassDatabaseConfiguration).Name
+        $DatabaseProfileList = (Get-KeePassDatabaseConfiguration).Name
         ## If no profiles exists do not return the parameter.
         if($DatabaseProfileList)
         {
@@ -740,25 +740,25 @@ function Update-KeePassGroup
         .OUTPUTS
             $null
     #>
-    [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='High')]
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
     param
     (
-        [Parameter(Position=0, Mandatory=$true, ValueFromPipeline=$true)]
+        [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true)]
         [ValidateNotNullOrEmpty()]
         [PSObject] $KeePassGroup,
 
-        [Parameter(Position=1, Mandatory=$false)]
+        [Parameter(Position = 1, Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [String] $KeePassParentGroupPath,
 
-        [Parameter(Position=2, Mandatory=$false)]
+        [Parameter(Position = 2, Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [String] $GroupName,
 
-        [Parameter(Position=3, Mandatory=$false)]
+        [Parameter(Position = 3, Mandatory = $false)]
         [Switch] $PassThru,
 
-        [Parameter(Position=4, Mandatory=$false)]
+        [Parameter(Position = 4, Mandatory = $false)]
         [Switch] $Force
     )
     dynamicparam
@@ -768,7 +768,7 @@ function Update-KeePassGroup
     begin
     {
         ## Get a list of all database profiles saved to the config xml.
-        $DatabaseProfileList =  (Get-KeePassDatabaseConfiguration).Name
+        $DatabaseProfileList = (Get-KeePassDatabaseConfiguration).Name
         ## If no profiles exists do not return the parameter.
         if($DatabaseProfileList)
         {
@@ -801,7 +801,7 @@ function Update-KeePassGroup
 
         if($KeePassGroup.GetType().Name -eq 'PwGroup')
         {
-            $KeePassGroupFullPath = '{0}' -f $KeePassGroup.GetFullPath('/',$true)
+            $KeePassGroupFullPath = '{0}' -f $KeePassGroup.GetFullPath('/', $true)
         }
         else
         {
@@ -868,17 +868,17 @@ function Remove-KeePassGroup
 
             This example removed the specified keepass Group.
     #>
-    [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='High')]
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
     param
     (
-        [Parameter(Position=0, Mandatory=$true, ValueFromPipeline=$true)]
+        [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true)]
         [ValidateNotNullOrEmpty()]
         [PSObject] $KeePassGroup,
 
-        [Parameter(Position=1, Mandatory=$false)]
+        [Parameter(Position = 1, Mandatory = $false)]
         [Switch] $NoRecycle,
 
-        [Parameter(Position=2, Mandatory=$false)]
+        [Parameter(Position = 2, Mandatory = $false)]
         [Switch] $Force
     )
     dynamicparam
@@ -888,7 +888,7 @@ function Remove-KeePassGroup
     begin
     {
         ## Get a list of all database profiles saved to the config xml.
-        $DatabaseProfileList =  (Get-KeePassDatabaseConfiguration).Name
+        $DatabaseProfileList = (Get-KeePassDatabaseConfiguration).Name
         ## If no profiles exists do not return the parameter.
         if($DatabaseProfileList)
         {
@@ -910,7 +910,7 @@ function Remove-KeePassGroup
     {
         if($KeePassGroup.GetType().Name -eq 'PwGroup')
         {
-            $KeePassGroupFullPath = '{0}' -f $KeePassGroup.GetFullPath('/',$true)
+            $KeePassGroupFullPath = '{0}' -f $KeePassGroup.GetFullPath('/', $true)
         }
         else
         {
@@ -935,7 +935,7 @@ function Remove-KeePassGroup
         {
             if(-not $NoRecycle)
             {
-               Remove-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroupObject -Confirm:$false -Force
+                Remove-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroupObject -Confirm:$false -Force
             }
             else
             {
@@ -1030,53 +1030,53 @@ function New-KeePassPassword
         .OUTPUTS
             KeePassLib.Security.ProtectedString
     #>
-    [CmdletBinding(DefaultParameterSetName='NoProfile')]
+    [CmdletBinding(DefaultParameterSetName = 'NoProfile')]
     param
     (
-        [Parameter(Position=0, Mandatory=$false, ParameterSetName='NoProfile')]
+        [Parameter(Position = 0, Mandatory = $false, ParameterSetName = 'NoProfile')]
         [ValidateNotNull()]
         [Switch] $UpperCase,
-        [Parameter(Position=1, Mandatory=$false, ParameterSetName='NoProfile')]
+        [Parameter(Position = 1, Mandatory = $false, ParameterSetName = 'NoProfile')]
         [ValidateNotNull()]
         [Switch] $LowerCase,
-        [Parameter(Position=2, Mandatory=$false, ParameterSetName='NoProfile')]
+        [Parameter(Position = 2, Mandatory = $false, ParameterSetName = 'NoProfile')]
         [ValidateNotNull()]
         [Switch] $Digits,
-        [Parameter(Position=3, Mandatory=$false, ParameterSetName='NoProfile')]
+        [Parameter(Position = 3, Mandatory = $false, ParameterSetName = 'NoProfile')]
         [ValidateNotNull()]
         [Switch] $SpecialCharacters,
-        [Parameter(Position=4, Mandatory=$false, ParameterSetName='NoProfile')]
+        [Parameter(Position = 4, Mandatory = $false, ParameterSetName = 'NoProfile')]
         [ValidateNotNull()]
         [Switch] $Minus,
-        [Parameter(Position=5, Mandatory=$false, ParameterSetName='NoProfile')]
+        [Parameter(Position = 5, Mandatory = $false, ParameterSetName = 'NoProfile')]
         [ValidateNotNull()]
         [Switch] $UnderScore,
-        [Parameter(Position=6, Mandatory=$false, ParameterSetName='NoProfile')]
+        [Parameter(Position = 6, Mandatory = $false, ParameterSetName = 'NoProfile')]
         [ValidateNotNull()]
         [Switch] $Space,
-        [Parameter(Position=7, Mandatory=$false, ParameterSetName='NoProfile')]
+        [Parameter(Position = 7, Mandatory = $false, ParameterSetName = 'NoProfile')]
         [ValidateNotNull()]
         [Switch] $Brackets,
-        [Parameter(Position=8, Mandatory=$false, ParameterSetName='NoProfile')]
+        [Parameter(Position = 8, Mandatory = $false, ParameterSetName = 'NoProfile')]
         [ValidateNotNull()]
         [Switch] $ExcludeLookALike,
-        [Parameter(Position=9, Mandatory=$false, ParameterSetName='NoProfile')]
+        [Parameter(Position = 9, Mandatory = $false, ParameterSetName = 'NoProfile')]
         [ValidateNotNull()]
         [Switch] $NoRepeatingCharacters,
-        [Parameter(Position=10, Mandatory=$false, ParameterSetName='NoProfile')]
+        [Parameter(Position = 10, Mandatory = $false, ParameterSetName = 'NoProfile')]
         [ValidateNotNullOrEmpty()]
         [String] $ExcludeCharacters,
-        [Parameter(Position=11, Mandatory=$false, ParameterSetName='NoProfile')]
+        [Parameter(Position = 11, Mandatory = $false, ParameterSetName = 'NoProfile')]
         [ValidateNotNullOrEmpty()]
         [Int] $Length,
-        [Parameter(Position=12, Mandatory=$false, ParameterSetName='NoProfile')]
+        [Parameter(Position = 12, Mandatory = $false, ParameterSetName = 'NoProfile')]
         [ValidateNotNullOrEmpty()]
         [String] $SaveAs
     )
     dynamicparam
     {
         ##Create and Define Validate Set Attribute
-        $PasswordProfileList =  (Get-KPPasswordProfile).Name
+        $PasswordProfileList = (Get-KPPasswordProfile).Name
         if($PasswordProfileList)
         {
             $ParameterName = 'PasswordProfileName'
@@ -1098,7 +1098,7 @@ function New-KeePassPassword
             ##Create,Define, and Return DynamicParam
             $RuntimeParameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter($ParameterName, [string], $AttributeCollection)
             $RuntimeParameterDictionary = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameterDictionary
-            $RuntimeParameterDictionary.Add($ParameterName,$RuntimeParameter)
+            $RuntimeParameterDictionary.Add($ParameterName, $RuntimeParameter)
             return $RuntimeParameterDictionary
         }
     }
@@ -1116,7 +1116,7 @@ function New-KeePassPassword
 
         if($PSCmdlet.ParameterSetName -eq 'NoProfile')
         {
-            $NewProfileObject = '' | Select-Object ProfileName,CharacterSet,ExcludeLookAlike,NoRepeatingCharacters,ExcludeCharacters,Length
+            $NewProfileObject = '' | Select-Object ProfileName, CharacterSet, ExcludeLookAlike, NoRepeatingCharacters, ExcludeCharacters, Length
             if($PSBoundParameters.Count -gt 0)
             {
                 $PassProfile.CharSet = New-Object KeePassLib.Cryptography.PasswordGenerator.PwCharSet
@@ -1206,7 +1206,7 @@ function New-KeePassPassword
         }
         elseif($PSCmdlet.ParameterSetName -eq 'Profile')
         {
-            $PasswordProfileObject=Get-KPPasswordProfile -PasswordProfileName $PasswordProfileName
+            $PasswordProfileObject = Get-KPPasswordProfile -PasswordProfileName $PasswordProfileName
             $PassProfile.CharSet.Add($PasswordProfileObject.CharacterSet)
             $PassProfile.ExcludeLookAlike = if($PasswordProfileObject.ExlcudeLookAlike -eq 'True'){$true}else{$false}
             $PassProfile.NoRepeatingCharacters = if($PasswordProfileObject.NoRepeatingCharacters -eq 'True'){$true}else{$false}
@@ -1227,8 +1227,8 @@ function New-KeePassPassword
             Write-Warning -Message ('[PROCESS] Password Generation Failed with the Result Text: {0}.' -f $ResultMessage)
             if($ResultMessage -eq 'TooFewCharacters')
             {
-                Write-Warning -Message ('[PROCESS] Result Text {0}, typically means that you specified a length that is longer than the possible generated outcome.'-f $ResultMessage)
-                $ExcludeCharacterCount=if($PassProfile.ExcludeCharacters){($PassProfile.ExcludeCharacters -split ',').Count}else{0}
+                Write-Warning -Message ('[PROCESS] Result Text {0}, typically means that you specified a length that is longer than the possible generated outcome.' -f $ResultMessage)
+                $ExcludeCharacterCount = if($PassProfile.ExcludeCharacters){($PassProfile.ExcludeCharacters -split ',').Count}else{0}
                 if($PassProfile.NoRepeatingCharacters -and $PassProfile.Length -gt ($PassProfile.CharSet.Size - $ExcludeCharacterCount))
                 {
                     Write-Warning -Message "[PROCESS] Checked for the invalid specification. `n`tSpecified Length: $($PassProfile.Length). `n`tCharacterSet Count: $($PassProfile.CharSet.Size). `n`tNo Repeating Characters is set to: $($PassProfile.NoRepeatingCharacters). `n`tExclude Character Count: $ExcludeCharacterCount."
@@ -1303,34 +1303,34 @@ function New-KeePassDatabaseConfiguration
     [CmdletBinding()]
     param
     (
-        [Parameter(Position=0, Mandatory=$true)]
+        [Parameter(Position = 0, Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [String] $DatabaseProfileName,
 
-        [Parameter(Position=1, Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Key')]
-        [Parameter(Position=1, Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Master')]
-        [Parameter(Position=1, Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Network')]
-        [Parameter(Position=1, Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
+        [Parameter(Position = 1, Mandatory = $true, ValueFromPipeline = $false, ParameterSetName = 'Key')]
+        [Parameter(Position = 1, Mandatory = $true, ValueFromPipeline = $false, ParameterSetName = 'Master')]
+        [Parameter(Position = 1, Mandatory = $true, ValueFromPipeline = $false, ParameterSetName = 'Network')]
+        [Parameter(Position = 1, Mandatory = $true, ValueFromPipeline = $false, ParameterSetName = 'KeyAndMaster')]
         [ValidateNotNullOrEmpty()]
         [ValidateScript({Test-Path $_})]
         [String] $DatabasePath,
 
-        [Parameter(Position=2, Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Key')]
-        [Parameter(Position=2, Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
+        [Parameter(Position = 2, Mandatory = $true, ValueFromPipeline = $false, ParameterSetName = 'Key')]
+        [Parameter(Position = 2, Mandatory = $true, ValueFromPipeline = $false, ParameterSetName = 'KeyAndMaster')]
         [ValidateNotNullOrEmpty()]
         [ValidateScript({Test-Path $_})]
         [String] $KeyPath,
 
-        [Parameter(Position=3, Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Key')]
-        [Parameter(Position=3, Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Master')]
-        [Parameter(Position=3, Mandatory=$false, ValueFromPipeline=$false, ParameterSetName='Network')]
+        [Parameter(Position = 3, Mandatory = $false, ValueFromPipeline = $false, ParameterSetName = 'Key')]
+        [Parameter(Position = 3, Mandatory = $false, ValueFromPipeline = $false, ParameterSetName = 'Master')]
+        [Parameter(Position = 3, Mandatory = $false, ValueFromPipeline = $false, ParameterSetName = 'Network')]
         [Switch] $UseNetworkAccount,
 
-        [Parameter(Position=4, Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='Master')]
-        [Parameter(Position=4, Mandatory=$true, ValueFromPipeline=$false, ParameterSetName='KeyAndMaster')]
+        [Parameter(Position = 4, Mandatory = $true, ValueFromPipeline = $false, ParameterSetName = 'Master')]
+        [Parameter(Position = 4, Mandatory = $true, ValueFromPipeline = $false, ParameterSetName = 'KeyAndMaster')]
         [Switch] $UseMasterKey,
 
-        [Parameter(Position=5, Mandatory=$false)]
+        [Parameter(Position = 5, Mandatory = $false)]
         [Switch] $PassThru
     )
     begin
@@ -1372,23 +1372,23 @@ function New-KeePassDatabaseConfiguration
                 $DatabaseProfile.Attributes.Append($DatabaseProfileAtribute) | Out-Null
 
                 ## Build and Add Element Nodes
-                $DatabasePathNode = $XML.CreateNode('element','DatabasePath','')
+                $DatabasePathNode = $XML.CreateNode('element', 'DatabasePath', '')
                 $DatabasePathNode.InnerText = $DatabasePath
                 $DatabaseProfile.AppendChild($DatabasePathNode) | Out-Null
 
-                $KeyPathNode = $XML.CreateNode('element','KeyPath','')
+                $KeyPathNode = $XML.CreateNode('element', 'KeyPath', '')
                 $KeyPathNode.InnerText = $KeyPath
                 $DatabaseProfile.AppendChild($KeyPathNode) | Out-Null
 
-                $UseNetworkAccountNode = $XML.CreateNode('element','UseNetworkAccount','')
+                $UseNetworkAccountNode = $XML.CreateNode('element', 'UseNetworkAccount', '')
                 $UseNetworkAccountNode.InnerText = $UseNetworkAccount
                 $DatabaseProfile.AppendChild($UseNetworkAccountNode) | Out-Null
 
-                $UseMasterKeyNode = $XML.CreateNode('element','UseMasterKey','')
+                $UseMasterKeyNode = $XML.CreateNode('element', 'UseMasterKey', '')
                 $UseMasterKeyNode.InnerText = $UseMasterKey
                 $DatabaseProfile.AppendChild($UseMasterKeyNode) | Out-Null
 
-                $AuthenticationTypeNode = $XML.CreateNode('element','AuthenticationType','')
+                $AuthenticationTypeNode = $XML.CreateNode('element', 'AuthenticationType', '')
                 $AuthenticationTypeNode.InnerText = $PSCmdlet.ParameterSetName
                 $DatabaseProfile.AppendChild($AuthenticationTypeNode) | Out-Null
 
@@ -1437,7 +1437,7 @@ function Get-KeePassDatabaseConfiguration
     [CmdletBinding()]
     param
     (
-        [Parameter(Position=0, Mandatory=$false)]
+        [Parameter(Position = 0, Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [String] $DatabaseProfileName
     )
@@ -1453,7 +1453,7 @@ function Get-KeePassDatabaseConfiguration
             }
             else
             {
-               $ProfileResults = $XML.Settings.DatabaseProfiles.Profile
+                $ProfileResults = $XML.Settings.DatabaseProfiles.Profile
             }
 
             foreach($ProfileResult in $ProfileResults)
@@ -1497,12 +1497,12 @@ function Remove-KeePassDatabaseConfiguration
         .OUTPUTS
             $null
     #>
-    [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='High')]
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
     param()
     dynamicparam
     {
         ##Create and Define Validate Set Attribute
-        $DatabaseProfileList =  (Get-KeePassDatabaseConfiguration).Name
+        $DatabaseProfileList = (Get-KeePassDatabaseConfiguration).Name
         if($DatabaseProfileList)
         {
             $ParameterName = 'DatabaseProfileName'
@@ -1523,7 +1523,7 @@ function Remove-KeePassDatabaseConfiguration
             ##Create,Define, and Return DynamicParam
             $RuntimeParameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter($ParameterName, [string], $AttributeCollection)
             $RuntimeParameterDictionary = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameterDictionary
-            $RuntimeParameterDictionary.Add($ParameterName,$RuntimeParameter)
+            $RuntimeParameterDictionary.Add($ParameterName, $RuntimeParameter)
             return $RuntimeParameterDictionary
         }
     }
@@ -1608,7 +1608,7 @@ function New-KPConfigurationFile
     [CmdletBinding()]
     param
     (
-        [Parameter(Position=0, Mandatory=$false)]
+        [Parameter(Position = 0, Mandatory = $false)]
         [Switch] $Force
     )
     process
@@ -1624,7 +1624,7 @@ function New-KPConfigurationFile
             {
                 $Path = '{0}\KeePassConfiguration.xml' -f $PSScriptRoot
 
-                $XML = New-Object System.Xml.XmlTextWriter($Path,$null)
+                $XML = New-Object System.Xml.XmlTextWriter($Path, $null)
                 $XML.Formatting = 'Indented'
                 $XML.Indentation = 1
                 $XML.IndentChar = "`t"
@@ -1719,7 +1719,7 @@ function New-KPPasswordProfile
     [CmdletBinding()]
     param
     (
-        [Parameter(Position=0, Mandatory=$true)]
+        [Parameter(Position = 0, Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [PSCustomObject] $KeePassPasswordObject
     )
@@ -1743,23 +1743,23 @@ function New-KPPasswordProfile
             $PasswordProfile.Attributes.Append($PasswordProfileAtribute) | Out-Null
 
             ## Build and Add Element Nodes
-            $CharacterSetNode = $XML.CreateNode('element','CharacterSet','')
+            $CharacterSetNode = $XML.CreateNode('element', 'CharacterSet', '')
             $CharacterSetNode.InnerText = $KeePassPasswordObject.CharacterSet
             $PasswordProfile.AppendChild($CharacterSetNode) | Out-Null
 
-            $ExcludeLookAlikeNode = $XML.CreateNode('element','ExcludeLookAlike','')
+            $ExcludeLookAlikeNode = $XML.CreateNode('element', 'ExcludeLookAlike', '')
             $ExcludeLookAlikeNode.InnerText = $KeePassPasswordObject.ExcludeLookAlike
             $PasswordProfile.AppendChild($ExcludeLookAlikeNode) | Out-Null
 
-            $NoRepeatingCharactersNode = $XML.CreateNode('element','NoRepeatingCharacters','')
+            $NoRepeatingCharactersNode = $XML.CreateNode('element', 'NoRepeatingCharacters', '')
             $NoRepeatingCharactersNode.InnerText = $KeePassPasswordObject.NoRepeatingCharacters
             $PasswordProfile.AppendChild($NoRepeatingCharactersNode) | Out-Null
 
-            $ExcludeCharactersNode = $XML.CreateNode('element','ExcludeCharacters','')
+            $ExcludeCharactersNode = $XML.CreateNode('element', 'ExcludeCharacters', '')
             $ExcludeCharactersNode.InnerText = $KeePassPasswordObject.ExcludeCharacters
             $PasswordProfile.AppendChild($ExcludeCharactersNode) | Out-Null
 
-            $LengthNode = $XML.CreateNode('element','Length','')
+            $LengthNode = $XML.CreateNode('element', 'Length', '')
             $LengthNode.InnerText = $KeePassPasswordObject.Length
             $PasswordProfile.AppendChild($LengthNode) | Out-Null
 
@@ -1798,7 +1798,7 @@ function Get-KPPasswordProfile
     [CmdletBinding()]
     param
     (
-        [Parameter(Position=0, Mandatory=$false)]
+        [Parameter(Position = 0, Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [String] $PasswordProfileName
     )
@@ -1845,7 +1845,7 @@ function Remove-KPPasswordProfile
         .OUTPUTS
             $null
     #>
-    [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='High')]
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
     param()
     dynamicparam
     {
@@ -1871,7 +1871,7 @@ function Remove-KPPasswordProfile
             ## Create,Define, and Return DynamicParam
             $RuntimeParameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter($ParameterName, [string], $AttributeCollection)
             $RuntimeParameterDictionary = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameterDictionary
-            $RuntimeParameterDictionary.Add($ParameterName,$RuntimeParameter)
+            $RuntimeParameterDictionary.Add($ParameterName, $RuntimeParameter)
             return $RuntimeParameterDictionary
         }
     }
@@ -1933,27 +1933,27 @@ function New-KPConnection
         .PARAMETER UseWindowsAccount
             Use the current windows account as an authentication method
     #>
-    [CmdletBinding(DefaultParameterSetName='Profile')]
+    [CmdletBinding(DefaultParameterSetName = 'Profile')]
     param
     (
-        [Parameter(Position=0, Mandatory=$true, ParameterSetName='Profile')]
+        [Parameter(Position = 0, Mandatory = $true, ParameterSetName = 'Profile')]
         [ValidateNotNullOrEmpty()]
         [String] $DatabaseProfileName,
 
-        [Parameter(Position=0, Mandatory=$true, ParameterSetName='CompositeKey')]
+        [Parameter(Position = 0, Mandatory = $true, ParameterSetName = 'CompositeKey')]
         [ValidateNotNullOrEmpty()]
         [String] $Database,
 
-        [Parameter(Position=2, Mandatory=$false, ParameterSetName='CompositeKey')]
-        [Parameter(Position=1, Mandatory=$false, ParameterSetName='Profile')]
+        [Parameter(Position = 2, Mandatory = $false, ParameterSetName = 'CompositeKey')]
+        [Parameter(Position = 1, Mandatory = $false, ParameterSetName = 'Profile')]
         [AllowNull()]
         [PSObject] $MasterKey,
 
-        [Parameter(Position=1, Mandatory=$false, ParameterSetName='CompositeKey')]
+        [Parameter(Position = 1, Mandatory = $false, ParameterSetName = 'CompositeKey')]
         [ValidateNotNullOrEmpty()]
         [String] $KeyPath,
 
-        [Parameter(Position=3, ParameterSetName='CompositeKey')]
+        [Parameter(Position = 3, ParameterSetName = 'CompositeKey')]
         [Switch] $UseWindowsAccount
     )
     process
@@ -2077,7 +2077,7 @@ function Remove-KPConnection
     [CmdletBinding()]
     param
     (
-        [Parameter(Position=0, Mandatory=$true)]
+        [Parameter(Position = 0, Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwDatabase] $KeePassConnection
     )
@@ -2109,22 +2109,22 @@ function Get-KPDynamicParameters
 {
     param
     (
-        [Parameter(Position=0, Mandatory=$true)]
+        [Parameter(Position = 0, Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [Int] $DBProfilePosition,
 
-        [Parameter(Position=1, Mandatory=$true)]
+        [Parameter(Position = 1, Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [Int] $MasterKeyPosition,
 
-        [Parameter(Position=2, Mandatory=$false)]
+        [Parameter(Position = 2, Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [Int] $PwIconPosition
     )
     process
     {
         ## Get a list of all database profiles saved to the config xml.
-        $DatabaseProfileList =  (Get-KeePassDatabaseConfiguration).Name
+        $DatabaseProfileList = (Get-KeePassDatabaseConfiguration).Name
         ## If no profiles exists do not return the parameter.
         if($DatabaseProfileList)
         {
@@ -2185,12 +2185,12 @@ function Get-KPDynamicParameters
 
 
             $RuntimeParameterDictionary = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameterDictionary
-            $RuntimeParameterDictionary.Add($DBProfileParameterName,$DBProfileRuntimeParameter)
-            $RuntimeParameterDictionary.Add($MasterKeyParameterName,$MasterKeyRuntimeParameter)
+            $RuntimeParameterDictionary.Add($DBProfileParameterName, $DBProfileRuntimeParameter)
+            $RuntimeParameterDictionary.Add($MasterKeyParameterName, $MasterKeyRuntimeParameter)
 
             if($PwIconPosition)
             {
-                $RuntimeParameterDictionary.Add($IconEnumParameterName,$IconEnumRuntimeParameter)
+                $RuntimeParameterDictionary.Add($IconEnumParameterName, $IconEnumRuntimeParameter)
             }
 
             return $RuntimeParameterDictionary
@@ -2230,36 +2230,36 @@ function Get-KPEntry
         .PARAMETER KeePassUuid
             Specify the KeePass Entry Uuid for reverse lookup.
     #>
-    [CmdletBinding(DefaultParameterSetName='None')]
+    [CmdletBinding(DefaultParameterSetName = 'None')]
     [OutputType('KeePassLib.PwEntry')]
     param
     (
-        [Parameter(Position=0, Mandatory=$true, ParameterSetName='None')]
-        [Parameter(Position=0, Mandatory=$true, ParameterSetName='UUID')]
-        [Parameter(Position=0, Mandatory=$true, ParameterSetName='Group')]
-        [Parameter(Position=0, Mandatory=$true, ParameterSetName='Title')]
-        [Parameter(Position=0, Mandatory=$true, ParameterSetName='UserName')]
-        [Parameter(Position=0, Mandatory=$true, ParameterSetName='Password')]
+        [Parameter(Position = 0, Mandatory = $true, ParameterSetName = 'None')]
+        [Parameter(Position = 0, Mandatory = $true, ParameterSetName = 'UUID')]
+        [Parameter(Position = 0, Mandatory = $true, ParameterSetName = 'Group')]
+        [Parameter(Position = 0, Mandatory = $true, ParameterSetName = 'Title')]
+        [Parameter(Position = 0, Mandatory = $true, ParameterSetName = 'UserName')]
+        [Parameter(Position = 0, Mandatory = $true, ParameterSetName = 'Password')]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwDatabase] $KeePassConnection,
 
-        [Parameter(Position=1, Mandatory=$true, ParameterSetName='Group')]
+        [Parameter(Position = 1, Mandatory = $true, ParameterSetName = 'Group')]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwGroup[]] $KeePassGroup,
 
-        [Parameter(Position=1, Mandatory=$true, ParameterSetName='UUID', ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)]
+        [Parameter(Position = 1, Mandatory = $true, ParameterSetName = 'UUID', ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [Alias('Uuid')]
         [KeePassLib.PwUuid] $KeePassUuid,
 
-        [Parameter(Position=2, Mandatory=$false, ParameterSetName='Group')]
-        [Parameter(Position=1, Mandatory=$true, ParameterSetName='Title')]
+        [Parameter(Position = 2, Mandatory = $false, ParameterSetName = 'Group')]
+        [Parameter(Position = 1, Mandatory = $true, ParameterSetName = 'Title')]
         [ValidateNotNullOrEmpty()]
         [String] $Title,
 
-        [Parameter(Position=3, Mandatory=$false, ParameterSetName='Group')]
-        [Parameter(Position=2, Mandatory=$false, ParameterSetName='Title')]
-        [Parameter(Position=1, Mandatory=$true, ParameterSetName='UserName')]
+        [Parameter(Position = 3, Mandatory = $false, ParameterSetName = 'Group')]
+        [Parameter(Position = 2, Mandatory = $false, ParameterSetName = 'Title')]
+        [Parameter(Position = 1, Mandatory = $true, ParameterSetName = 'UserName')]
         [ValidateNotNullOrEmpty()]
         [String] $UserName
     )
@@ -2357,33 +2357,33 @@ function Add-KPEntry
     [CmdletBinding()]
     param
     (
-        [Parameter(Position=0, Mandatory=$true)]
+        [Parameter(Position = 0, Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwDatabase] $KeePassConnection,
 
-        [Parameter(Position=1, Mandatory=$true)]
+        [Parameter(Position = 1, Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwGroup] $KeePassGroup,
 
-        [Parameter(Position=2, Mandatory=$false)]
+        [Parameter(Position = 2, Mandatory = $false)]
         [String] $Title,
 
-        [Parameter(Position=3, Mandatory=$false)]
+        [Parameter(Position = 3, Mandatory = $false)]
         [String] $UserName,
 
-        [Parameter(Position=4, Mandatory=$false)]
+        [Parameter(Position = 4, Mandatory = $false)]
         [PSObject] $KeePassPassword,
 
-        [Parameter(Position=5, Mandatory=$false)]
+        [Parameter(Position = 5, Mandatory = $false)]
         [String] $Notes,
 
-        [Parameter(Position=6, Mandatory=$false)]
+        [Parameter(Position = 6, Mandatory = $false)]
         [String] $URL,
 
-        [Parameter(Position=7, Mandatory=$false)]
+        [Parameter(Position = 7, Mandatory = $false)]
         [KeePassLib.PwIcon] $IconName,
 
-        [Parameter(Position=8, Mandatory=$false)]
+        [Parameter(Position = 8, Mandatory = $false)]
         [Switch] $PassThru
     )
     begin
@@ -2443,7 +2443,7 @@ function Add-KPEntry
             if($KeePassPassword.GetType().Name -eq 'SecureString')
             {
                 $KeePassSecurePasswordString = New-Object KeePassLib.Security.ProtectedString
-                $KeePassSecurePasswordString = $KeePassSecurePasswordString.Insert(0,[Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($KeePassPassword))).WithProtection($true)
+                $KeePassSecurePasswordString = $KeePassSecurePasswordString.Insert(0, [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($KeePassPassword))).WithProtection($true)
             }
             elseif($KeePassPassword.GetType().Name -eq 'ProtectedString')
             {
@@ -2479,7 +2479,7 @@ function Add-KPEntry
         }
 
         #Add to Group
-        $KeePassGroup.AddEntry($KeePassEntry,$true)
+        $KeePassGroup.AddEntry($KeePassEntry, $true)
 
         #save database
         $KeePassConnection.Save($null)
@@ -2527,43 +2527,43 @@ function Set-KPEntry
         .NOTES
             This Cmdlet will autosave on exit
     #>
-    [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='High')]
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
     param
     (
-        [Parameter(Position=0, Mandatory=$true)]
+        [Parameter(Position = 0, Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwDatabase] $KeePassConnection,
 
-        [Parameter(Position=1, Mandatory=$true)]
+        [Parameter(Position = 1, Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwEntry] $KeePassEntry,
 
-        [Parameter(Position=2, Mandatory=$false)]
+        [Parameter(Position = 2, Mandatory = $false)]
         [String] $Title,
 
-        [Parameter(Position=3, Mandatory=$false)]
+        [Parameter(Position = 3, Mandatory = $false)]
         [String] $UserName,
 
-        [Parameter(Position=4, Mandatory=$false)]
+        [Parameter(Position = 4, Mandatory = $false)]
         [PSObject] $KeePassPassword,
 
-        [Parameter(Position=5, Mandatory=$false)]
+        [Parameter(Position = 5, Mandatory = $false)]
         [String] $Notes,
 
-        [Parameter(Position=6, Mandatory=$false)]
+        [Parameter(Position = 6, Mandatory = $false)]
         [String] $URL,
 
-        [Parameter(Position=7, Mandatory=$false)]
+        [Parameter(Position = 7, Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwGroup] $KeePassGroup,
 
-        [Parameter(Position=8, Mandatory=$false)]
+        [Parameter(Position = 8, Mandatory = $false)]
         [KeePassLib.PwIcon] $IconName,
 
-        [Parameter(Position=9, Mandatory=$false)]
+        [Parameter(Position = 9, Mandatory = $false)]
         [Switch] $PassThru,
 
-        [Parameter(Position=10, Mandatory=$false)]
+        [Parameter(Position = 10, Mandatory = $false)]
         [Switch] $Force
     )
     begin
@@ -2604,7 +2604,7 @@ function Set-KPEntry
                 if($KeePassPassword.GetType().Name -eq 'SecureString')
                 {
                     $KeePassSecurePasswordString = New-Object KeePassLib.Security.ProtectedString
-                    $KeePassSecurePasswordString = $KeePassSecurePasswordString.Insert(0,[Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($KeePassPassword))).WithProtection($true)
+                    $KeePassSecurePasswordString = $KeePassSecurePasswordString.Insert(0, [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($KeePassPassword))).WithProtection($true)
                 }
                 elseif($KeePassPassword.GetType().Name -eq 'ProtectedString')
                 {
@@ -2641,7 +2641,7 @@ function Set-KPEntry
                 ## Assign New Uuid to CloneDeep
                 $NewKeePassEntry.Uuid = New-Object KeePassLib.PwUuid($true)
                 ## Add Clone to Specified group
-                $KeePassGroup.AddEntry($NewKeePassEntry,$true)
+                $KeePassGroup.AddEntry($NewKeePassEntry, $true)
                 ## Save for safety
                 $KeePassConnection.Save($null)
                 ## Delete previous entry
@@ -2655,6 +2655,7 @@ function Set-KPEntry
                     $NewKeePassEntry
                 }
             }
+
             ## user "colaloc" added this line. comment: we must change LastModificationTime to prevent synchronization problems
             $KeePassEntry.LastModificationTime = Get-Date
             ## user "colaloc" added this line. comment: any changes must be saved!
@@ -2695,7 +2696,7 @@ function Remove-KPEntry
     [CmdletBinding(
         SupportsShouldProcess = $true,
         ConfirmImpact = "High"
-     )]
+    )]
     param
     (
         [Parameter(
@@ -2743,10 +2744,10 @@ function Remove-KPEntry
             $RecycleBin = $KeePassConnection.RootGroup.FindGroup($KeePassConnection.RecycleBinUuid, $true)
             if(-not $RecycleBin)
             {
-                $RecycleBin = New-Object -TypeName KeePassLib.PwGroup($true,$true,'RecycleBin',43)
+                $RecycleBin = New-Object -TypeName KeePassLib.PwGroup($true, $true, 'RecycleBin', 43)
                 $RecycleBin.EnableAutoType = $false
                 $RecycleBin.EnableSearching = $false
-                $KeePassConnection.RootGroup.AddGroup($RecycleBin,$true)
+                $KeePassConnection.RootGroup.AddGroup($RecycleBin, $true)
                 $KeePassConnection.RecycleBinUuid = $RecycleBin.Uuid
                 $KeePassConnection.Save($null)
                 $RecycleBin = $KeePassConnection.RootGroup.FindGroup($KeePassConnection.RecycleBinUuid, $true)
@@ -2823,21 +2824,21 @@ function Get-KPGroup
         .PARAMETER KeePassUuid
             Specify the Uuid of the Group.
     #>
-    [CmdletBinding(DefaultParameterSetName='None')]
+    [CmdletBinding(DefaultParameterSetName = 'None')]
     [OutputType('KeePassLib.PwGroup')]
     param
     (
-        [Parameter(Position=0, Mandatory=$true, ParameterSetName='Full')]
-        [Parameter(Position=0, Mandatory=$true, ParameterSetName='Partial')]
-        [Parameter(Position=0, Mandatory=$true, ParameterSetName='None')]
+        [Parameter(Position = 0, Mandatory = $true, ParameterSetName = 'Full')]
+        [Parameter(Position = 0, Mandatory = $true, ParameterSetName = 'Partial')]
+        [Parameter(Position = 0, Mandatory = $true, ParameterSetName = 'None')]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwDatabase] $KeePassConnection,
 
-        [Parameter(Position=1, Mandatory=$true, ValueFromPipelineByPropertyName=$true, ParameterSetName='Full')]
+        [Parameter(Position = 1, Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Full')]
         [ValidateNotNullOrEmpty()]
         [String] $FullPath,
 
-        [Parameter(Position=1, Mandatory=$true, ValueFromPipelineByPropertyName=$true, ParameterSetName='Partial')]
+        [Parameter(Position = 1, Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Partial')]
         [ValidateNotNullOrEmpty()]
         [String] $GroupName
     )
@@ -2931,22 +2932,22 @@ function Add-KPGroup
     [CmdletBinding()]
     param
     (
-        [Parameter(Position=0, Mandatory=$true, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)]
+        [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [KeePassLib.PwDatabase] $KeePassConnection,
 
-        [Parameter(Position=1, Mandatory=$true)]
+        [Parameter(Position = 1, Mandatory = $true)]
         [ValidateNotNullorEmpty()]
         [String] $GroupName,
 
-        [Parameter(Position=2, Mandatory=$true)]
+        [Parameter(Position = 2, Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwGroup] $KeePassParentGroup,
 
-        [Parameter(Position=3, Mandatory=$false)]
+        [Parameter(Position = 3, Mandatory = $false)]
         [KeePassLib.PwIcon] $IconName,
 
-        [Parameter(Position=4, Mandatory=$false)]
+        [Parameter(Position = 4, Mandatory = $false)]
         [Switch] $PassThru
     )
     begin
@@ -3024,31 +3025,31 @@ function Set-KPGroup
         .NOTES
             This Cmdlet Does AutoSave on exit.
     #>
-    [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='High')]
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
     param
     (
-        [Parameter(Position=0, Mandatory=$true, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)]
+        [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [KeePassLib.PwDatabase] $KeePassConnection,
 
-        [Parameter(Position=1, Mandatory=$true)]
+        [Parameter(Position = 1, Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwGroup] $KeePassGroup,
 
-        [Parameter(Position=2, Mandatory=$false)]
+        [Parameter(Position = 2, Mandatory = $false)]
         [String] $GroupName,
 
-        [Parameter(Position=3, Mandatory=$false)]
+        [Parameter(Position = 3, Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwGroup] $KeePassParentGroup,
 
-        [Parameter(Position=4, Mandatory=$false)]
+        [Parameter(Position = 4, Mandatory = $false)]
         [KeePassLib.PwIcon] $IconName,
 
-        [Parameter(Position=5, Mandatory=$false)]
+        [Parameter(Position = 5, Mandatory = $false)]
         [Switch] $PassThru,
 
-        [Parameter(Position=6, Mandatory=$false)]
+        [Parameter(Position = 6, Mandatory = $false)]
         [Switch] $Force
     )
     begin
@@ -3062,7 +3063,7 @@ function Set-KPGroup
     }
     process
     {
-        if($Force -or $PSCmdlet.ShouldProcess($($KeePassGroup.GetFullPath('/',$true))))
+        if($Force -or $PSCmdlet.ShouldProcess($($KeePassGroup.GetFullPath('/', $true))))
         {
             if($GroupName)
             {
@@ -3125,21 +3126,21 @@ function Remove-KPGroup
         .OUTPUTS
             $null
     #>
-    [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='High')]
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
     param
     (
-        [Parameter(Position=0, Mandatory=$true, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)]
+        [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [KeePassLib.PwDatabase] $KeePassConnection,
 
-        [Parameter(Position=1, Mandatory=$true, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)]
+        [Parameter(Position = 1, Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwGroup] $KeePassGroup,
 
-        [Parameter(Position=2, Mandatory=$false)]
+        [Parameter(Position = 2, Mandatory = $false)]
         [Switch] $NoRecycle,
 
-        [Parameter(Position=3, Mandatory=$false)]
+        [Parameter(Position = 3, Mandatory = $false)]
         [Switch] $Force
     )
     begin
@@ -3156,10 +3157,10 @@ function Remove-KPGroup
             $RecycleBin = $KeePassConnection.RootGroup.FindGroup($KeePassConnection.RecycleBinUuid, $true)
             if(-not $RecycleBin)
             {
-                $RecycleBin = New-Object -TypeName KeePassLib.PwGroup($true,$true,'RecycleBin',43)
+                $RecycleBin = New-Object -TypeName KeePassLib.PwGroup($true, $true, 'RecycleBin', 43)
                 $RecycleBin.EnableAutoType = $false
                 $RecycleBin.EnableSearching = $false
-                $KeePassConnection.RootGroup.AddGroup($RecycleBin,$true)
+                $KeePassConnection.RootGroup.AddGroup($RecycleBin, $true)
                 $KeePassConnection.RecycleBinUuid = $RecycleBin.Uuid
                 $KeePassConnection.Save($null)
                 $RecycleBin = $KeePassConnection.RootGroup.FindGroup($KeePassConnection.RecycleBinUuid, $true)
@@ -3249,7 +3250,7 @@ function ConvertFrom-KPProtectedString
     [OutputType([String])]
     param
     (
-        [Parameter(Position=0, Mandatory=$true, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)]
+        [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [KeePassLib.Security.ProtectedString] $KeePassProtectedString
     )
@@ -3282,14 +3283,14 @@ function ConvertTo-KPPSObject
         .PARAMETER KeePassEntry
             This is the one or more KeePass Entries to be converted.
     #>
-    [CmdletBinding(DefaultParameterSetName='Entry')]
+    [CmdletBinding(DefaultParameterSetName = 'Entry')]
     [OutputType([PSCustomObject])]
     param
     (
-        [Parameter(Position=0, Mandatory=$true, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true, ParameterSetName='Entry')]
+        [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Entry')]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwEntry[]] $KeePassEntry,
-        [Parameter(Position=0, Mandatory=$true, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true, ParameterSetName='Group')]
+        [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Group')]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwGroup[]] $KeePassGroup
     )
@@ -3321,7 +3322,7 @@ function ConvertTo-KPPSObject
                 $KeePassPsObject | Add-Member -Name 'IconId' -MemberType NoteProperty -Value $_keepassItem.IconId
 
                 ## Custom Object Formatting and Type
-                $KeePassPsObject.PSObject.TypeNames.Insert(0,'PSKeePass.Entry')
+                $KeePassPsObject.PSObject.TypeNames.Insert(0, 'PSKeePass.Entry')
 
                 ## Return Object
                 $KeePassPsObject
@@ -3333,7 +3334,7 @@ function ConvertTo-KPPSObject
             {
                 if($_keepassItem.ParentGroup.Name)
                 {
-                    $FullPath=$_keepassItem.ParentGroup.GetFullPath('/', $true)
+                    $FullPath = $_keepassItem.ParentGroup.GetFullPath('/', $true)
                 }
                 else
                 {
@@ -3356,9 +3357,9 @@ function ConvertTo-KPPSObject
                 $KeePassPsObject | Add-Member -Name 'EntryCount' -MemberType NoteProperty -Value $_keepassItem.Entries.Count
                 $KeePassPsObject | Add-Member -Name 'IconId' -MemberType NoteProperty -Value $_keepassItem.IconId
 
-                $KeePassPsObject.PSObject.TypeNames.Insert(0,'PSKeePass.Group')
-                $PSKeePassGroupDisplaySet = 'Name','EntryCount','FullPath','IconId'
-                $PSKeePassGroupDefaultPropertySet = New-Object -TypeName System.Management.Automation.PSPropertySet('DefaultDisplayPropertySet',[String[]] $PSKeePassGroupDisplaySet)
+                $KeePassPsObject.PSObject.TypeNames.Insert(0, 'PSKeePass.Group')
+                $PSKeePassGroupDisplaySet = 'Name', 'EntryCount', 'FullPath', 'IconId'
+                $PSKeePassGroupDefaultPropertySet = New-Object -TypeName System.Management.Automation.PSPropertySet('DefaultDisplayPropertySet', [String[]] $PSKeePassGroupDisplaySet)
                 $PSKeePassGroupStandardMembers = [System.Management.Automation.PSMemberInfo[]] @($PSKeePassGroupDefaultPropertySet)
 
                 $KeePassPsObject | Add-Member MemberSet PSStandardMembers $PSKeePassGroupStandardMembers
@@ -3382,8 +3383,8 @@ function Import-KPLibrary
         if($KeePassAssembly)
         {
             $KeePassAssemblyInfo = @{
-                'Name' = $KeePassAssembly.FullName.Replace(' ','').Split(',')[0]
-                'Version' = $KeePassAssembly.FullName.Replace(' ','').Split(',')[1].Split('=')[1]
+                'Name'     = $KeePassAssembly.FullName.Replace(' ', '').Split(',')[0]
+                'Version'  = $KeePassAssembly.FullName.Replace(' ', '').Split(',')[1].Split('=')[1]
                 'Location' = $KeePassAssembly.Location
             }
 
