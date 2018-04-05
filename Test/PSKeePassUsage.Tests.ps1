@@ -10,7 +10,7 @@ InModuleScope "PoShKeePass" {
     Describe "New-KPConnection - UnitTest" -Tag UnitTest {
 
         Context "Example 1: Open with PSKeePass Credential Object - KeyFile" {
-            
+
             It "Example 1.1: Get KeePass Database Connection with KeyFile - Valid" {
                 $KeePassConnection = New-KPConnection -Database "$PSScriptRoot\Includes\AuthenticationDatabases\KeyFile.kdbx" -KeyPath "$PSScriptRoot\Includes\AuthenticationDatabases\KeyFile.key"
                 $KeePassConnection | Should BeOfType 'KeePassLib.PwDatabase'
@@ -22,7 +22,7 @@ InModuleScope "PoShKeePass" {
         }
 
         Context "Example 2: Open with PSKeePass Credential Object - MasterKey" {
-            
+
             It "Example 2.1: Get KeePass Database Connection with MasterKey - Valid" {
                 $KeePassConnection = New-KPConnection -Database "$PSScriptRoot\Includes\AuthenticationDatabases\MasterKey.kdbx" -MasterKey $(ConvertTo-SecureString -String "ATestPassWord" -AsPlainText -Force)
                 $KeePassConnection | Should BeOfType 'KeePassLib.PwDatabase'
@@ -34,7 +34,7 @@ InModuleScope "PoShKeePass" {
         }
 
         Context "Example 3: Open with PSKeePass Credential Object - MasterKey and KeyFile" {
-            
+
             It "Example 3.1: Get KeePass Database Connection with KeyAndMaster - Valid" {
                 $KeePassConnection = New-KPConnection -Database "$PSScriptRoot\Includes\AuthenticationDatabases\KeyAndMaster.kdbx" -KeyPath "$PSScriptRoot\Includes\AuthenticationDatabases\KeyAndMaster.key" -MasterKey $(ConvertTo-SecureString -String "ATestPassWord" -AsPlainText -Force)
                 $KeePassConnection | Should BeOfType 'KeePassLib.PwDatabase'
@@ -53,9 +53,9 @@ InModuleScope "PoShKeePass" {
     }
 
     Describe "Remove-KPConnection - UnitTest" -Tag UnitTest {
-        
+
         Context "Example 1: Close an Open PSKeePass Database Connection" {
-            
+
             It "Example 1.1: Closes a KeePass Database Connection" {
                 $KeePassConnection = New-KPConnection -Database "$PSScriptRoot\Includes\AuthenticationDatabases\KeyFile.kdbx" -KeyPath "$PSScriptRoot\Includes\AuthenticationDatabases\KeyFile.key"
                 $KeePassConnection.IsOpen | Should Be $true
@@ -70,7 +70,8 @@ InModuleScope "PoShKeePass" {
         Context "Example 1: Create a new KeePass Database Configuration XML File" {
 
             It "Example 1.1: Creates a New Config File - Valid" {
-                if((Test-Path -Path "$($PSScriptRoot)\..\KeePassConfiguration.xml")){
+                if((Test-Path -Path "$($PSScriptRoot)\..\KeePassConfiguration.xml"))
+                {
                     Remove-Item -Path "$($PSScriptRoot)\..\KeePassConfiguration.xml" -Force
                 }
                 New-KPConfigurationFile | Should Be $null
@@ -245,18 +246,18 @@ InModuleScope "PoShKeePass" {
                 # It "Example 1.2: Remove Database Configuration Profile - Valid - By Name - Via Pipeline" {
                 #     New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount | Should Be $null
 
-                #     Get-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' | Remove-KeePassDatabaseConfiguration -confirm:$false | Should Be $null 
+                #     Get-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' | Remove-KeePassDatabaseConfiguration -confirm:$false | Should Be $null
 
                 #     Get-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' | Should Be $null
                 # }
-                
+
                 ## On Hold until can figure out pipe line for this
                 # It "Example 1.3: Remove Database Configuration Profile - Valid - Multiple - Via Pipeline" {
                 #     New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount | Should Be $null
 
                 #     New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile1' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount | Should Be $null
 
-                #     Get-KeePassDatabaseConfiguration | Remove-KeePassDatabaseConfiguration -confirm:$false | Should Be $null 
+                #     Get-KeePassDatabaseConfiguration | Remove-KeePassDatabaseConfiguration -confirm:$false | Should Be $null
 
                 #     Get-KeePassDatabaseConfiguration | Should Be $null
                 # }
@@ -318,13 +319,13 @@ InModuleScope "PoShKeePass" {
 
         ## Holding off on Network Account Testing until I can script the creation of a database.
     }
-    
+
     Describe "New-KeePassPassword - UnitTest" -Tag UnitTest {
 
         Context "Example 1: Generate a new KeePass Password - Options" {
 
             It "Example 1.1: New Password using all basic options - Valid" {
-                New-KeePassPassword -UpperCase -LowerCase -Digits -SpecialCharacters -Minus -UnderScore -Space -Brackets -Length 20 | Should BeOfType KeePassLib.Security.ProtectedString 
+                New-KeePassPassword -UpperCase -LowerCase -Digits -SpecialCharacters -Minus -UnderScore -Space -Brackets -Length 20 | Should BeOfType KeePassLib.Security.ProtectedString
             }
 
             It "Example 1.2: New Password using all basic options + ExcludeLookALike - Valid" {
@@ -332,7 +333,7 @@ InModuleScope "PoShKeePass" {
             }
 
             It "Example 1.3: New Password using all basic options + NoRepeatingCharacters - Valid" {
-                New-KeePassPassword -UpperCase -LowerCase -Digits -SpecialCharacters -Minus -UnderScore -Space -Brackets -Length 20 -NoRepeatingCharacters | Should BeOfType KeePassLib.Security.ProtectedString 
+                New-KeePassPassword -UpperCase -LowerCase -Digits -SpecialCharacters -Minus -UnderScore -Space -Brackets -Length 20 -NoRepeatingCharacters | Should BeOfType KeePassLib.Security.ProtectedString
             }
 
             It "Example 1.4: New Password using some basic options + NoRepeatingCharacters - Invalid" {
@@ -343,8 +344,8 @@ InModuleScope "PoShKeePass" {
                 $SecurePass = New-KeePassPassword -UpperCase -LowerCase -Digits -SpecialCharacters -Minus -UnderScore -Space -Brackets -Length 70 -ExcludeCharacters '1,],-a'
 
                 $SecurePass |  Should BeOfType KeePassLib.Security.ProtectedString
-                 
-                $SecurePass.ReadString() | Should Not Match ([regex]::Escape("^.*[1\]-a].*$")) 
+
+                $SecurePass.ReadString() | Should Not Match ([regex]::Escape("^.*[1\]-a].*$"))
             }
         }
 
@@ -353,7 +354,7 @@ InModuleScope "PoShKeePass" {
             New-KPConfigurationFile -Force
 
             It "Example 2.1: New Password using all basic options - Valid" {
-                New-KeePassPassword -UpperCase -LowerCase -Digits -SpecialCharacters -Minus -UnderScore -Space -Brackets -Length 20 -SaveAs 'Basic20' | Should BeOfType KeePassLib.Security.ProtectedString 
+                New-KeePassPassword -UpperCase -LowerCase -Digits -SpecialCharacters -Minus -UnderScore -Space -Brackets -Length 20 -SaveAs 'Basic20' | Should BeOfType KeePassLib.Security.ProtectedString
 
                 $PassProfile = Get-KPPasswordProfile -PasswordProfileName 'Basic20'
                 $PassProfile.Name | Should Be 'Basic20'
@@ -365,7 +366,7 @@ InModuleScope "PoShKeePass" {
             }
 
             It "Example 2.2: New Password using all basic options + ExcludeLookALike - Valid" {
-                New-KeePassPassword -UpperCase -LowerCase -Digits -SpecialCharacters -Minus -UnderScore -Space -Brackets -Length 20 -ExcludeLookALike -SaveAs 'BasicNoLookAlike20' | Should BeOfType KeePassLib.Security.ProtectedString 
+                New-KeePassPassword -UpperCase -LowerCase -Digits -SpecialCharacters -Minus -UnderScore -Space -Brackets -Length 20 -ExcludeLookALike -SaveAs 'BasicNoLookAlike20' | Should BeOfType KeePassLib.Security.ProtectedString
 
                 $PassProfile = Get-KPPasswordProfile -PasswordProfileName 'BasicNoLookAlike20'
                 $PassProfile.Name | Should Be 'BasicNoLookAlike20'
@@ -373,19 +374,19 @@ InModuleScope "PoShKeePass" {
                 $PassProfile.ExcludeLookAlike | Should Be 'True'
                 $PassProfile.NoRepeatingCharacters | Should Be 'False'
                 $PassProfile.ExcludeCharacters | Should Be ''
-                $PassProfile.Length | Should Be 20 
+                $PassProfile.Length | Should Be 20
             }
 
             It "Example 2.3: New Password using all basic options + NoRepeatingCharacters - Valid" {
-                New-KeePassPassword -UpperCase -LowerCase -Digits -SpecialCharacters -Minus -UnderScore -Space -Brackets -Length 20 -NoRepeatingCharacters -SaveAs 'BasicNoRepeat20' | Should BeOfType KeePassLib.Security.ProtectedString 
-                
+                New-KeePassPassword -UpperCase -LowerCase -Digits -SpecialCharacters -Minus -UnderScore -Space -Brackets -Length 20 -NoRepeatingCharacters -SaveAs 'BasicNoRepeat20' | Should BeOfType KeePassLib.Security.ProtectedString
+
                 $PassProfile = Get-KPPasswordProfile -PasswordProfileName 'BasicNoRepeat20'
                 $PassProfile.Name | Should Be 'BasicNoRepeat20'
                 $PassProfile.CharacterSet | Should Be 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!"#$%&''*+,./:;=?@\^`|~-_ []{}()<>'
                 $PassProfile.ExcludeLookAlike | Should Be 'False'
                 $PassProfile.NoRepeatingCharacters | Should Be 'True'
                 $PassProfile.ExcludeCharacters | Should Be ''
-                $PassProfile.Length | Should Be 20 
+                $PassProfile.Length | Should Be 20
             }
 
             It "Example 2.4: New Password using some basic options + NoRepeatingCharacters - Invalid" {
@@ -397,7 +398,7 @@ InModuleScope "PoShKeePass" {
             It "Example 2.5: New Password using all basic options + ExcludedCharactes - Valid" {
                 $SecurePass = New-KeePassPassword -UpperCase -LowerCase -Digits -SpecialCharacters -Minus -UnderScore -Space -Brackets -Length 70 -ExcludeCharacters '1,],-a' -SaveAs 'BasicExcudle1]-a'
 
-                $SecurePass | Should BeOfType KeePassLib.Security.ProtectedString 
+                $SecurePass | Should BeOfType KeePassLib.Security.ProtectedString
                 $SecurePass.ReadString() | Should Not Match ([regex]::Escape("^.*[1\]-a].*$"))
 
                 $PassProfile = Get-KPPasswordProfile -PasswordProfileName 'BasicExcudle1]-a'
@@ -413,15 +414,15 @@ InModuleScope "PoShKeePass" {
         Context "Example 3: Generate a new KeePass Password - Profile" {
 
             It "Example 3.1: New Password using Profile Basic20 - Valid" {
-                New-KeePassPassword  -PasswordProfileName 'Basic20' | Should BeOfType KeePassLib.Security.ProtectedString 
+                New-KeePassPassword  -PasswordProfileName 'Basic20' | Should BeOfType KeePassLib.Security.ProtectedString
             }
 
             It "Example 3.2: New Password using Profile BasicNoLookAlike20 - Valid" {
-                New-KeePassPassword -PasswordProfileName 'BasicNoLookAlike20' | Should BeOfType KeePassLib.Security.ProtectedString 
+                New-KeePassPassword -PasswordProfileName 'BasicNoLookAlike20' | Should BeOfType KeePassLib.Security.ProtectedString
             }
 
             It "Example 3.3: New Password using Profile BasicNoRepeat20 - Valid" {
-                New-KeePassPassword -PasswordProfileName 'BasicNoRepeat20' | Should BeOfType KeePassLib.Security.ProtectedString 
+                New-KeePassPassword -PasswordProfileName 'BasicNoRepeat20' | Should BeOfType KeePassLib.Security.ProtectedString
             }
 
             It "Example 3.4: New Password using Profile BasicNoRepeatInvalid - Invalid - Does Not Exist" {
@@ -431,14 +432,14 @@ InModuleScope "PoShKeePass" {
             It "Example 3.5: New Password using Profile BasicExcudle1]-a - Valid" {
                 $SecurePass = New-KeePassPassword -PasswordProfileName 'BasicExcudle1]-a'
 
-                $SecurePass | Should BeOfType KeePassLib.Security.ProtectedString 
+                $SecurePass | Should BeOfType KeePassLib.Security.ProtectedString
                 $SecurePass.ReadString() | Should Not Match ([regex]::Escape("^.*[1\]-a].*$"))
             }
         }
     }
 
     Describe "New-KeePassEntry - UnitTest" -Tag UnitTest {
-        
+
         Context "Example 1: Creates a New KeePass Entry." {
 
             New-KPConfigurationFile -Force
@@ -467,7 +468,7 @@ InModuleScope "PoShKeePass" {
                 $PassThruResult.ParentGroup.Name | Should BeLike 'PSKeePassTestDatabase'
                 $PassThruResult.Strings.ReadSafe('Title') | Should Be 'testPassThru'
                 $PassThruResult.Strings.ReadSafe('UserName') | Should Be 'testuser'
-                $PassThruResult.Strings.ReadSafe('Notes') | Should Be 'testnotes' 
+                $PassThruResult.Strings.ReadSafe('Notes') | Should Be 'testnotes'
                 $PassThruResult.Strings.ReadSafe('URL') | Should be 'http://url.test.com'
             }
 
@@ -481,7 +482,7 @@ InModuleScope "PoShKeePass" {
 
             It "Example 1.6: Creates a New KeePass Entry with a generated Password - Valid" {
                 $GeneratedPassword = New-KeePassPassword -Upper -Lower -Digits -Length 50
-                
+
                 New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'testPass' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -KeePassPassword $GeneratedPassword -DatabaseProfileName 'SampleProfile' | Should Be $null
             }
 
@@ -493,7 +494,7 @@ InModuleScope "PoShKeePass" {
                 $PassThruResult.ParentGroup.Name | Should BeLike 'PSKeePassTestDatabase'
                 $PassThruResult.Strings.ReadSafe('Title') | Should Be 'testPassThruIcon'
                 $PassThruResult.Strings.ReadSafe('UserName') | Should Be 'testuser'
-                $PassThruResult.Strings.ReadSafe('Notes') | Should Be 'testnotes' 
+                $PassThruResult.Strings.ReadSafe('Notes') | Should Be 'testnotes'
                 $PassThruResult.Strings.ReadSafe('URL') | Should Be 'http://url.test.com'
                 $PassThruResult.IconId | Should Be 'Apple'
             }
@@ -503,7 +504,7 @@ InModuleScope "PoShKeePass" {
     }
 
     Describe "Get-KeePassEntry - UnitTest" -Tag UnitTest {
-        
+
         Context "Example 1: Gets KeePass Entries." {
 
             New-KPConfigurationFile -Force
@@ -557,7 +558,7 @@ InModuleScope "PoShKeePass" {
     }
 
     Describe "Update-KeePassEntry - UnitTest" -Tag UnitTest {
-        
+
         Context "Example 1: Updates a KeePass Entry." {
 
             New-KPConfigurationFile -Force
@@ -575,20 +576,20 @@ InModuleScope "PoShKeePass" {
 
             It "Example 1.2: Updates a KeePass Entry - Valid  - Properties" {
                 New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'test1' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' | Should Be $null
-                $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -AsPlainText -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Title -eq 'test1' } 
+                $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -AsPlainText -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Title -eq 'test1' }
                 Update-KeePassEntry -KeePassEntry $KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -title 'UpdateTest1' -UserName 'UpdateTestUser' -Notes 'UpdateTestNotes' -URL 'http://UpdateURL.Test.com' -DatabaseProfileName 'SampleProfile' -Force | Should Be $null
             }
 
             It "Example 1.3: Updates a KeePass Entry - Valid  - Properties - Via Pipeline" {
-                New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'test2' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' | Should Be $null 
+                New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'test2' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' | Should Be $null
                 Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -AsPlainText -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Title -eq 'test2'} |
-                Update-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -title 'UpdateTest2' -UserName 'UpdateTestUser' -Notes 'UpdateTestNotes' -URL 'http://UpdateURL.Test.com' -DatabaseProfileName 'SampleProfile' -Force | Should Be $null
+                    Update-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -title 'UpdateTest2' -UserName 'UpdateTestUser' -Notes 'UpdateTestNotes' -URL 'http://UpdateURL.Test.com' -DatabaseProfileName 'SampleProfile' -Force | Should Be $null
             }
 
             It "Example 1.4: Update a KeePass Entry - Valid - Properties - PassThru" {
 
                 New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'test3' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' | Should Be $null
-                $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -AsPlainText -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Title -eq 'test3' } 
+                $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -AsPlainText -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Title -eq 'test3' }
                 $UpdatePassThruResult = Update-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -KeePassEntry $KeePassEntry -title 'UpdateTest3' -UserName 'UpdateTestUser' -Notes 'UpdateTestNotes' -URL 'http://UpdateURL.Test.com' -DatabaseProfileName 'SampleProfile' -PassThru -Force
 
                 $UpdatePassThruResult | Should BeOfType KeePassLib.PwEntry
@@ -601,7 +602,7 @@ InModuleScope "PoShKeePass" {
             It "Example 1.5: Update a KeePass Entry - Valid - Group & Properties - PassThru" {
 
                 New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'test4' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' | Should Be $null
-                $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -AsPlainText -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Title -eq 'test4' } 
+                $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -AsPlainText -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Title -eq 'test4' }
                 $UpdatePassThruResult = Update-KeePassEntry -KeePassEntry $KeePassEntry -title 'UpdateTest4' -UserName 'UpdateTestUser' -Notes 'UpdateTestNotes' -URL 'http://UpdateURL.Test.com' -KeePassEntryGroupPath 'PSKeePassTestDatabase/General' -DatabaseProfileName 'SampleProfile' -PassThru -Force
 
                 $UpdatePassThruResult | Should BeOfType KeePassLib.PwEntry
@@ -615,14 +616,14 @@ InModuleScope "PoShKeePass" {
             It "Example 1.6: Update a KeePass Entry - Invalid - Group & Properties - PassThru - BadPath" {
 
                 New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'test5' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' | Should Be $null
-                $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -AsPlainText -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Title -eq 'test5' } 
+                $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -AsPlainText -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Title -eq 'test5' }
                 { Update-KeePassEntry -KeePassEntry $KeePassEntry -title 'UpdateTest5' -UserName 'UpdateTestUser' -Notes 'UpdateTestNotes' -URL 'http://UpdateURL.Test.com' -KeePassEntryGroupPath 'PSKeePassTestDatabase/BadPath' -DatabaseProfileName 'SampleProfile' -PassThru -Force } | Should Throw
             }
 
             It "Example 1.7: Update a KeePass Entry - Valid - Properties - PassThru - Icon" {
 
                 New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'test6' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' | Should Be $null
-                $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -AsPlainText -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Title -eq 'test6' } 
+                $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -AsPlainText -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Title -eq 'test6' }
                 $UpdatePassThruResult = Update-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -KeePassEntry $KeePassEntry -title 'UpdateTest6' -UserName 'UpdateTestUser' -Notes 'UpdateTestNotes' -URL 'http://UpdateURL.Test.com' -DatabaseProfileName 'SampleProfile' -IconName Apple -PassThru -Force
 
                 $UpdatePassThruResult | Should BeOfType KeePassLib.PwEntry
@@ -655,25 +656,25 @@ InModuleScope "PoShKeePass" {
 
             It "Example 1.2: Removes a KeePass Entry - Valid " {
                 New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'test1' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' | Should Be $null
-                $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -AsPlainText -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Title -eq 'test1' } 
+                $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -AsPlainText -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Title -eq 'test1' }
                 Remove-KeePassEntry -KeePassEntry $KeePassEntry -DatabaseProfileName 'SampleProfile' -Force | Should Be $null
             }
 
             It "Example 1.3: Removes a KeePass Entry - Valid - NoRecycle " {
                 New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'test2' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' | Should Be $null
-                $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -AsPlainText -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Title -eq 'test2' } 
+                $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -AsPlainText -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Title -eq 'test2' }
                 Remove-KeePassEntry -KeePassEntry $KeePassEntry -DatabaseProfileName 'SampleProfile' -NoRecycle -Force | Should Be $null
             }
 
             It "Example 1.4: Removes a KeePass Entry - Valid - Pipeline " {
                 New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'test3' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' | Should Be $null
-                $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -AsPlainText -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Title -eq 'test3' } 
+                $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -AsPlainText -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Title -eq 'test3' }
                 $KeePassEntry | Remove-KeePassEntry -DatabaseProfileName 'SampleProfile' -Force | Should Be $null
             }
 
             It "Example 1.5: Removes a KeePass Entry - Valid - Pipeline - PWEntry" {
                 New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'test4' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' | Should Be $null
-                $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Strings.ReadSafe('Title') -eq 'test4' } 
+                $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Strings.ReadSafe('Title') -eq 'test4' }
                 $KeePassEntry | Remove-KeePassEntry -DatabaseProfileName 'SampleProfile' -Force | Should Be $null
             }
         }
@@ -682,7 +683,7 @@ InModuleScope "PoShKeePass" {
     }
 
     Describe "New-KeePassGroup - UnitTest" -Tag UnitTest {
-        
+
         Context "Example 1: Creates a New KeePass Group." {
 
             New-KPConfigurationFile -Force
@@ -729,7 +730,7 @@ InModuleScope "PoShKeePass" {
     }
 
     Describe "Get-KeePassGroup - UnitTest" -Tag UnitTest {
-        
+
         Context "Example 1: Gets KeePass Groups." {
 
             New-KPConfigurationFile -Force
@@ -752,7 +753,7 @@ InModuleScope "PoShKeePass" {
             }
 
             It "Example 1.3 Gets All KeePass Groups - Valid As Plain Text" {
-                $ResultGroups =  Get-KeePassGroup -DatabaseProfileName SampleProfile -AsPlainText
+                $ResultGroups = Get-KeePassGroup -DatabaseProfileName SampleProfile -AsPlainText
                 $ResultGroups.Count | Should Be 7
             }
 
@@ -774,7 +775,7 @@ InModuleScope "PoShKeePass" {
     }
 
     Describe "Update-KeePassGroup - UnitTest" -Tag UnitTest {
-        
+
         Context "Example 1: Updates a KeePass Group." {
 
             New-KPConfigurationFile -Force
@@ -802,7 +803,7 @@ InModuleScope "PoShKeePass" {
             It "Example 1.3: Updates a KeePass Group - Valid  - Name" {
                 New-KeePassGroup -KeePassGroupParentPath 'PSKeePassTestDatabase' -KeePassGroupName 'test2' -DatabaseProfileName 'SampleProfile' | Should Be $null
                 Get-KeePassGroup -DatabaseProfileName SampleProfile -AsPlainText -KeePassGroupPath 'PSKeePassTestDatabase/test2' |
-                Update-KeePassGroup -GroupName 'Test2Update' -DatabaseProfileName 'SampleProfile' -Force | Should Be $null
+                    Update-KeePassGroup -GroupName 'Test2Update' -DatabaseProfileName 'SampleProfile' -Force | Should Be $null
                 $KeePassGroup = Get-KeePassGroup -DatabaseProfileName SampleProfile -AsPlainText -KeePassGroupPath 'PSKeePassTestDatabase/Test2Update'
                 $KeePassGroup.Name | Should Be 'Test2Update'
             }
@@ -819,7 +820,7 @@ InModuleScope "PoShKeePass" {
             It "Example 1.5: Updates a KeePass Group - Valid  - ParentGroup - Pipeline" {
                 New-KeePassGroup -KeePassGroupParentPath 'PSKeePassTestDatabase' -KeePassGroupName 'test4' -DatabaseProfileName 'SampleProfile' | Should Be $null
                 Get-KeePassGroup -DatabaseProfileName SampleProfile -AsPlainText -KeePassGroupPath 'PSKeePassTestDatabase/test4' |
-                Update-KeePassGroup -DatabaseProfileName 'SampleProfile' -KeePassParentGroupPath 'PSKeePassTestDatabase/General' -Force | Should Be $null
+                    Update-KeePassGroup -DatabaseProfileName 'SampleProfile' -KeePassParentGroupPath 'PSKeePassTestDatabase/General' -Force | Should Be $null
                 $KeePassGroup = Get-KeePassGroup -DatabaseProfileName SampleProfile -AsPlainText -KeePassGroupPath 'PSKeePassTestDatabase/General/test4'
                 $KeePassGroup.Name | Should Be 'test4'
                 $KeePassGroup.ParentGroup | Should be 'General'
@@ -828,7 +829,7 @@ InModuleScope "PoShKeePass" {
             It "Example 1.6: Updates a KeePass Group - Invalid  - ParentGroup - BadPath" {
                 New-KeePassGroup -KeePassGroupParentPath 'PSKeePassTestDatabase' -KeePassGroupName 'test5' -DatabaseProfileName 'SampleProfile' | Should Be $null
                 { Get-KeePassGroup -DatabaseProfileName SampleProfile -AsPlainText -KeePassGroupPath 'PSKeePassTestDatabase/test5' |
-                Update-KeePassGroup -DatabaseProfileName 'SampleProfile' -KeePassParentGroupPath 'PSKeePassTestDatabase/BadPath' -Force}| Should Throw
+                        Update-KeePassGroup -DatabaseProfileName 'SampleProfile' -KeePassParentGroupPath 'PSKeePassTestDatabase/BadPath' -Force}| Should Throw
             }
 
             It "Example 1.7: Updates a KeePass Group - Valid  - Name - PassThru - Icon" {
@@ -905,4 +906,4 @@ InModuleScope "PoShKeePass" {
     Copy-Item -Path "$($PSScriptRoot)\Includes\Backup\PSKeePassTestDatabase.kdbx" -Destination "$($PSScriptRoot)\Includes\"
 }
 
-Invoke-Expression -Command "$($PSScriptRoot)\..\bin\AutoVersion.ps1" 
+Invoke-Expression -Command "$($PSScriptRoot)\..\bin\AutoVersion.ps1"
