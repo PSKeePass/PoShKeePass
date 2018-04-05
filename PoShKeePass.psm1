@@ -2655,6 +2655,10 @@ function Set-KPEntry
                     $NewKeePassEntry
                 }
             }
+            ## user "colaloc" added this line. comment: we must change LastModificationTime to prevent synchronization problems
+            $KeePassEntry.LastModificationTime = Get-Date
+            ## user "colaloc" added this line. comment: any changes must be saved!
+            $KeePassConnection.Save($null)
         }
     }
 }
