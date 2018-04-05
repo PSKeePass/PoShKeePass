@@ -1,13 +1,32 @@
-## Changelog PoShKeePass v2.0.4.3
+# Changelog
+
+## v2.0.4.5
+
+* #135 - Restructured Module to a more modular structure. Single file per function, seperate root folders for exported functions vs internal functions, (functions, internal).
+* Added global variable `$Global:KeePassConfigurationFile` with the path of the config file and updated all references to file.
+* Updated formatting of readme and changelog to abide by md standards.
+
+## v2.0.4.4
+
+* Some Community PR here, great help thank you
+* #53, #117 `-AsPSCredential` Support to `Get-KeePassEntry`
+* `-Title` Parameter Added to `Get-KeePassEntry`
+* General bug fixes #115, #116, #120, #123, #127
+* `New-KeePassDatabase` function added
+
+## v2.0.4.3
+
 * [#133](https://github.com/PSKeePass/PoShKeePass/issues/133) Fixed
 
-## Changelog PoShKeePass v2.0.4.1
+## v2.0.4.1
+
 * [#132](https://github.com/PSKeePass/PoShKeePass/issues/132) Fixed - Windows Defender identifies PoshKeepass as trojan. Please see the issue for more details.
 
-## Changelog PoShKeePass v2.0.4.0
+## v2.0.4.0
+
 * #108 Fixed bug by capturing PSCredential to MasterKey variable.
 
-## Changelog PoShKeePass v2.0.3.9
+## v2.0.3.9
 
 1. #92 Added PowerShell Format XML File for creating PowerShell Object views.
 2. #90 Updated default properties returned for KeePass Entries to Include the Notes Property. Did this via the new format XML file.
@@ -17,35 +36,36 @@
 6. #95 Added internal function `Restore-KPConfigurationFile`. This is implemented to restore your configuration file from a previous version of the module, when updating from PSGallery.
 7. Moved exported functions to the Module Manifest.
 
-## Changelog PoShKeePass v2.0.3.1
+## v2.0.3.1
 
 ### Issue #79 - Added support Icon Management
-* Updated `New` and `Update` Entry and Group functions to support setting and
-updating Icon values.
+
+* Updated `New` and `Update` Entry and Group functions to support setting and updating Icon values.
 * Update `ConvertTo-KPPSObject` to output the IconId.
 * Added Pester Tests for adding and updating Icons.
-* Update `Get-KPDynamicParameters` to support creating the Icon dynamic
-param from the `KeePassLib.PwIcon` Enum.
+* Update `Get-KPDynamicParameters` to support creating the Icon dynamic param from the `KeePassLib.PwIcon` Enum.
 
-## Changelog PoShKeePass v2.0.3.0
+## v2.0.3.0
+
 * Issue 68 - Update getting XML Configuration Document from `Get-Content` to creating a new `System.Xml.XmlDocument` object and using the `Load()` Method.
 
-## Changelog PoShKeePass v2.0.2.9
+## v2.0.2.9
+
 * Issue 66 - Updated `ReadString()` method calls to `ReadSafe()` method calls.
 * Issue 71 - Updated to Use Proper String Interpolation.
 * Issue 72 - Removed Commented out code.
 * Issue 73 - Converted to Single Quotes Where Possible.
 * Issue 74 - Formatted Code consistently.
 
-## ChangeLog PoShKeePass v2.0.2.6
+## v2.0.2.6
 
-* Updated `New-KeePassPassword` to output as `KeePassLib.Security.ProtectedString` - _This removed the plain text
-conversion to secure string._
+* Updated `New-KeePassPassword` to output as `KeePassLib.Security.ProtectedString` - _This removed the plain text conversion to secure string.
 * Updated All New/Update Entry Functions to support _SecureString_ or _ProtectedString_ for the KeePassPassword Parameter.
 
-## Changelog PoShKeePass v2.0.2.1
+## v2.0.2.1
 
 ## Added Dynamic Parameter MasterKey
+
 Added optional Parameter `-MasterKey` to core functions.
 
 This parameter was added to allow for easier scripting with databases that use a masterkey password.
@@ -64,11 +84,13 @@ Functions Updated:
 8. `Remove-KeePassGroup`
 
 ## Simplfied Dynamic Parameters
+
 Internally created a function that builds the commonly used Dynamic Parameters.
 
 `Get-KPDynamicParameter`
 
 ## Simplfied Building an Automatic Database Connection 
+
 Internally created a function that builds the Database connection based off of the Database Configuration Profile Specified.
 
 `Invoke-KPConnection`
