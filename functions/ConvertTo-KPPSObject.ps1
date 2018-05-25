@@ -25,10 +25,11 @@ function ConvertTo-KPPSObject
     [OutputType([PSCustomObject])]
     param
     (
-        [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Entry')]
+        [Parameter(Position = 0, Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName, ParameterSetName = 'Entry')]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwEntry[]] $KeePassEntry,
-        [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Group')]
+
+        [Parameter(Position = 0, Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName, ParameterSetName = 'Group')]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwGroup[]] $KeePassGroup
     )
@@ -39,25 +40,26 @@ function ConvertTo-KPPSObject
             foreach ($_keepassItem in $KeePassEntry)
             {
                 ## Build Object
-                $KeePassPsObject = New-Object -TypeName PSObject
-                $KeePassPsObject | Add-Member -Name 'Uuid' -MemberType NoteProperty -Value $_keepassItem.Uuid
-                $KeePassPsObject | Add-Member -Name 'CreationTime' -MemberType NoteProperty -Value $_keepassItem.CreationTime
-                $KeePassPsObject | Add-Member -Name 'Expires' -MemberType NoteProperty -Value $_keepassItem.Expires
-                $KeePassPsObject | Add-Member -Name 'ExpireTime' -MemberType NoteProperty -Value $_keepassItem.ExpiryTime
-                $KeePassPsObject | Add-Member -Name 'LastAccessTime' -MemberType NoteProperty -Value $_keepassItem.LastAccessTime
-                $KeePassPsObject | Add-Member -Name 'LastModificationTime' -MemberType NoteProperty -Value $_keepassItem.LastModificationTime
-                $KeePassPsObject | Add-Member -Name 'LocationChanged' -MemberType NoteProperty -Value $_keepassItem.LocationChanged
-                $KeePassPsObject | Add-Member -Name 'Tags' -MemberType NoteProperty -Value $_keepassItem.Tags
-                $KeePassPsObject | Add-Member -Name 'Touched' -MemberType NoteProperty -Value $_keepassItem.Touched
-                $KeePassPsObject | Add-Member -Name 'UsageCount' -MemberType NoteProperty -Value $_keepassItem.UsageCount
-                $KeePassPsObject | Add-Member -Name 'ParentGroup' -MemberType NoteProperty -Value $_keepassItem.ParentGroup.Name
-                $KeePassPsObject | Add-Member -Name 'FullPath' -MemberType NoteProperty -Value $_keepassItem.ParentGroup.GetFullPath('/', $true)
-                $KeePassPsObject | Add-Member -Name 'Title' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe('Title')
-                $KeePassPsObject | Add-Member -Name 'UserName' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe('UserName')
-                $KeePassPsObject | Add-Member -Name 'Password' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe('Password')
-                $KeePassPsObject | Add-Member -Name 'URL' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe('URL')
-                $KeePassPsObject | Add-Member -Name 'Notes' -MemberType NoteProperty -Value $_keepassItem.Strings.ReadSafe('Notes')
-                $KeePassPsObject | Add-Member -Name 'IconId' -MemberType NoteProperty -Value $_keepassItem.IconId
+                $KeePassPsObject = New-Object -TypeName PSObject -Property ([ordered]@{
+                        'Uuid'                 = $_keepassItem.Uuid;
+                        'CreationTime'         = $_keepassItem.CreationTime;
+                        'Expires'              = $_keepassItem.Expires;
+                        'ExpireTime'           = $_keepassItem.ExpiryTime;
+                        'LastAccessTime'       = $_keepassItem.LastAccessTime;
+                        'LastModificationTime' = $_keepassItem.LastModificationTime;
+                        'LocationChanged'      = $_keepassItem.LocationChanged;
+                        'Tags'                 = $_keepassItem.Tags;
+                        'Touched'              = $_keepassItem.Touched;
+                        'UsageCount'           = $_keepassItem.UsageCount;
+                        'ParentGroup'          = $_keepassItem.ParentGroup.Name;
+                        'FullPath'             = $_keepassItem.ParentGroup.GetFullPath('/', $true);
+                        'Title'                = $_keepassItem.Strings.ReadSafe('Title');
+                        'UserName'             = $_keepassItem.Strings.ReadSafe('UserName');
+                        'Password'             = $_keepassItem.Strings.ReadSafe('Password');
+                        'URL'                  = $_keepassItem.Strings.ReadSafe('URL');
+                        'Notes'                = $_keepassItem.Strings.ReadSafe('Notes');
+                        'IconId'               = $_keepassItem.IconId;
+                    })
 
                 ## Custom Object Formatting and Type
                 $KeePassPsObject.PSObject.TypeNames.Insert(0, 'PSKeePass.Entry')
@@ -78,22 +80,24 @@ function ConvertTo-KPPSObject
                 {
                     $FullPath = ''
                 }
-                $KeePassPsObject = New-Object -TypeName PSObject
-                $KeePassPsObject | Add-Member -Name 'Uuid' -MemberType NoteProperty -Value $_keepassItem.Uuid
-                $KeePassPsObject | Add-Member -Name 'Name' -MemberType NoteProperty -Value $_keepassItem.Name
-                $KeePassPsObject | Add-Member -Name 'CreationTime' -MemberType NoteProperty -Value $_keepassItem.CreationTime
-                $KeePassPsObject | Add-Member -Name 'Expires' -MemberType NoteProperty -Value $_keepassItem.Expires
-                $KeePassPsObject | Add-Member -Name 'ExpireTime' -MemberType NoteProperty -Value $_keepassItem.ExpiryTime
-                $KeePassPsObject | Add-Member -Name 'LastAccessTime' -MemberType NoteProperty -Value $_keepassItem.LastAccessTime
-                $KeePassPsObject | Add-Member -Name 'LastModificationTime' -MemberType NoteProperty -Value $_keepassItem.LastModificationTime
-                $KeePassPsObject | Add-Member -Name 'LocationChanged' -MemberType NoteProperty -Value $_keepassItem.LocationChanged
-                $KeePassPsObject | Add-Member -Name 'Touched' -MemberType NoteProperty -Value $_keepassItem.Touched
-                $KeePassPsObject | Add-Member -Name 'UsageCount' -MemberType NoteProperty -Value $_keepassItem.UsageCount
-                $KeePassPsObject | Add-Member -Name 'ParentGroup' -MemberType NoteProperty -Value $_keepassItem.ParentGroup.Name
-                $KeePassPsObject | Add-Member -Name 'FullPath' -MemberType NoteProperty -Value $FullPath
-                $KeePassPsObject | Add-Member -Name 'Groups' -MemberType NoteProperty -Value $_keepassItem.Groups
-                $KeePassPsObject | Add-Member -Name 'EntryCount' -MemberType NoteProperty -Value $_keepassItem.Entries.Count
-                $KeePassPsObject | Add-Member -Name 'IconId' -MemberType NoteProperty -Value $_keepassItem.IconId
+
+                $KeePassPsObject = New-Object -TypeName PSObject -Property ([ordered]@{
+                        'Uuid'                 = $_keepassItem.Uuid;
+                        'Name'                 = $_keepassItem.Name;
+                        'CreationTime'         = $_keepassItem.CreationTime;
+                        'Expires'              = $_keepassItem.Expires;
+                        'ExpireTime'           = $_keepassItem.ExpiryTime;
+                        'LastAccessTime'       = $_keepassItem.LastAccessTime;
+                        'LastModificationTime' = $_keepassItem.LastModificationTime;
+                        'LocationChanged'      = $_keepassItem.LocationChanged;
+                        'Touched'              = $_keepassItem.Touched;
+                        'UsageCount'           = $_keepassItem.UsageCount;
+                        'ParentGroup'          = $_keepassItem.ParentGroup.Name;
+                        'FullPath'             = $FullPath;
+                        'Groups'               = $_keepassItem.Groups;
+                        'EntryCount'           = $_keepassItem.Entries.Count;
+                        'IconId'               = $_keepassItem.IconId;
+                    })
 
                 $KeePassPsObject.PSObject.TypeNames.Insert(0, 'PSKeePass.Group')
                 $PSKeePassGroupDisplaySet = 'Name', 'EntryCount', 'FullPath', 'IconId'
