@@ -15,7 +15,7 @@ function Remove-KPConnection
     [CmdletBinding()]
     param
     (
-        [Parameter(Position = 0, Mandatory = $true)]
+        [Parameter(Position = 0, Mandatory)]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwDatabase] $KeePassConnection
     )
@@ -23,22 +23,20 @@ function Remove-KPConnection
     {
         try
         {
-            ## Close KeePass Database Connection
-            if( $KeePassConnection.IsOpen)
+            if($KeePassConnection.IsOpen)
             {
                 $KeePassConnection.Close()
             }
             else
             {
                 Write-Warning -Message '[PROCESS] The KeePass Database Specified is already closed or does not exist.'
-                Throw 'The KeePass Database Specified is already closed or does not exist.'
+                Write-Error -Message 'The KeePass Database Specified is already closed or does not exist.' -ea Stop
             }
-
         }
         catch [Exception]
         {
             Write-Warning -Message ('[PROCESS] {0}' -f $_.Exception.Message)
-            Throw $_
+            Write-Error -ErrorRecord $_ -ea Stop
         }
     }
 }
