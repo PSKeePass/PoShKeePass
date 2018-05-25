@@ -31,6 +31,25 @@ Please check out our [Getting Started](https://github.com/PSKeePass/PoShKeePass/
 
 Please review the [changelog document](https://github.com/PSKeePass/PoShKeePass/blob/master/changelog.md) for a full history.
 
+### v2.0.5.6
+
+* Update-KeePassEntry no longer creates a new entry, Entry history is retained, UUID is never changed, All time modificiation fields are now updated when appropriate. 
+  * [#127](https://github.com/PSKeePass/PoShKeePass/issues/127)
+  * [#123](https://github.com/PSKeePass/PoShKeePass/issues/123)
+  * [#120](https://github.com/PSKeePass/PoShKeePass/issues/120)
+* Code clean up in the internal functions
+  * Removed unecessary comments.
+  * Simplified parameter attributes, and formatting.
+  * Updated error handling to use write-error and simplified handling.
+* Normalized repetative checks to their own `Test-X` functions and moved error\null handling inside.
+  * Test-KPConnection - Checks to see if connection exists and and is open.
+  * Test-KPPasswordValue - Correctly checks for supported types and moved error handling inside.
+* Fixed Dev Tool AutoVersioning Script, now updates psd1 version again.
+* Simplified `Import-KPLibrary` function.
+* Updated `ConvertTo-KPPSObject` to be construct PSObject differently and gained 86% speed performance improvement.
+* Created a `build.ps1` script to build the module for use and publishing to gallery
+* Updated `New-KPConnection` to prompt for user MasterKey (keepass passsword) via console prompt `Read-host` instead of `$Host.ui.PromptForCredential()`, this is much faster than loading the gui.
+
 ### v2.0.4.5
 
 * #135 - Restructured Module to a more modular structure. Single file per function, seperate root folders for exported functions vs internal functions, (functions, internal).
