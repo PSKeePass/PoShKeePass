@@ -77,8 +77,11 @@ function Set-KPEntry
     {
         if((Test-KPPasswordValue $KeePassPassword) -and (Test-KPConnection $KeePassConnection))
         {
+
             if($Force -or $PSCmdlet.ShouldProcess("Title: $($KeePassEntry.Strings.ReadSafe('Title')). `n`tUserName: $($KeePassEntry.Strings.ReadSafe('UserName')). `n`tGroup Path $($KeePassEntry.ParentGroup.GetFullPath('/', $true))"))
             {
+                [KeePassLib.PwEntry] $OldEntry = $KeePassEntry.CloneDeep()
+
                 if($Title)
                 {
                     $SecureTitle = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectTitle, $Title)
@@ -125,33 +128,28 @@ function Set-KPEntry
                     }
                 }
 
-                ## If you are moving the entry to another group then take these actions.
+                $KeePassEntry.History.Add($OldEntry)
+
                 if($KeePassGroup)
                 {
-                    ## Make Full Copy of Entry
-                    $NewKeePassEntry = $KeePassEntry.CloneDeep()
-                    ## Assign New Uuid to CloneDeep
-                    $NewKeePassEntry.Uuid = New-Object KeePassLib.PwUuid($true)
-                    ## Add Clone to Specified group
-                    $KeePassGroup.AddEntry($NewKeePassEntry, $true)
-                    ## Save for safety
-                    $KeePassConnection.Save($null)
-                    ## Delete previous entry
-                    ## Hide output
-                    $KeePassEntry.ParentGroup.Entries.Remove($KeePassEntry) > $null
-
-                    $KeePassConnection.Save($null)
-
-                    if($PassThru)
-                    {
-                        $NewKeePassEntry
-                    }
+                    $OldKeePassGroup = $KeePassEntry.ParentGroup
+                    ## Add to group and move
+                    $KeePassGroup.AddEntry($KeePassEntry, $true, $true)
+                    ## delete old entry
+                    $null = $OldKeePassGroup.Entries.Remove($KeePassEntry)
                 }
 
-                ## user "colaloc" added this line. comment: we must change LastModificationTime to prevent synchronization problems
+                ## Add History Entry
                 $KeePassEntry.LastModificationTime = Get-Date
-                ## user "colaloc" added this line. comment: any changes must be saved!
+                $KeePassEntry.LastAccessTime = Get-Date
+
+                ## Save for safety
                 $KeePassConnection.Save($null)
+
+                if($PassThru)
+                {
+                    $KeePassEntry
+                }
             }
         }
     }
