@@ -22,13 +22,13 @@ function New-KPPasswordProfile
     [CmdletBinding()]
     param
     (
-        [Parameter(Position = 0, Mandatory = $true)]
+        [Parameter(Position = 0, Mandatory)]
         [ValidateNotNullOrEmpty()]
         [PSCustomObject] $KeePassPasswordObject
     )
     process
     {
-        if (Test-Path -Path $Global:KeePassConfigurationFile)
+        if(Test-Path -Path $Global:KeePassConfigurationFile)
         {
             $CheckIfExists = Get-KPPasswordProfile -PasswordProfileName $KeePassPasswordObject.ProfileName
             if($CheckIfExists)

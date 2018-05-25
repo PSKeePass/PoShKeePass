@@ -49,23 +49,12 @@ function Add-KPGroup
     {
         try
         {
-            [KeePassLib.PwGroup] $KeePassGroup = New-Object KeePassLib.PwGroup -ErrorAction Stop -ErrorVariable ErrorNewPwGroupObject
+            [KeePassLib.PwGroup] $KeePassGroup = New-Object KeePassLib.PwGroup -ea Stop
         }
         catch
         {
-            Write-Warning -Message '[BEGIN] An error occured in the Add-KpGroup Cmdlet.'
-            if($ErrorNewPwGroupObject)
-            {
-                Write-Warning -Message '[BEGIN] An error occured while creating a new KeePassLib.PwGroup Object.'
-                Write-Warning -Message ('[BEGIN] {0}' -f $ErrorNewPwGroupObject.ErrorRecord.Message)
-                Throw $_
-            }
-            else
-            {
-                Write-Warning -Message '[BEGIN] An unhandled exception occured.'
-                Write-Warning -Message '[BEGIN] Verify your KeePass Database Connection is Open.'
-                Throw $_
-            }
+            Write-Warning -Message '[BEGIN] An error occured while creating a new KeePassLib.PwGroup Object.'
+            Write-Error -ErrorRecord $_ -ea Stop
         }
     }
     process
@@ -73,10 +62,12 @@ function Add-KPGroup
         if(Test-KPConnection $KeePassConnection)
         {
             $KeePassGroup.Name = $GroupName
+
             if($IconName -ne $KeePassGroup.IconId)
             {
                 $KeePassGroup.IconId = $IconName
             }
+
             $KeePassParentGroup.AddGroup($KeePassGroup, $true)
             $KeePassConnection.Save($null)
 

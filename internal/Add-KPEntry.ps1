@@ -130,10 +130,8 @@ function Add-KPEntry
                 }
             }
 
-            #Add to Group
             $KeePassGroup.AddEntry($KeePassEntry, $true)
 
-            #save database
             $KeePassConnection.Save($null)
 
             if($PassThru)

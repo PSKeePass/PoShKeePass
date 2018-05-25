@@ -67,12 +67,11 @@ function Get-KPEntry
     {
         if(Test-KPConnection $KeePassConnection)
         {
-            ## Get Entries and Filter
             $KeePassItems = $KeePassConnection.RootGroup.GetEntries($true)
 
             if($PSCmdlet.ParameterSetName -eq 'UUID')
             {
-                $KeePassItems  | Where-Object { $KeePassUuid.CompareTo($_.Uuid) -eq 0 }
+                $KeePassItems | Where-Object { $KeePassUuid.CompareTo($_.Uuid) -eq 0 }
             }
             else
             {
@@ -87,6 +86,7 @@ function Get-KPEntry
                         }
                     }
                 }
+
                 if ($Title)
                 {
                     $KeePassItems = foreach($_keepassItem in $KeePassItems)
@@ -97,6 +97,7 @@ function Get-KPEntry
                         }
                     }
                 }
+
                 if ($UserName)
                 {
                     $KeePassItems = foreach($_keepassItem in $KeePassItems)
@@ -108,7 +109,6 @@ function Get-KPEntry
                     }
                 }
 
-                ## Return results
                 $KeePassItems
             }
         }

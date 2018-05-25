@@ -21,13 +21,13 @@ function Get-KPPasswordProfile
     [CmdletBinding()]
     param
     (
-        [Parameter(Position = 0, Mandatory = $false)]
+        [Parameter(Position = 0)]
         [ValidateNotNullOrEmpty()]
         [String] $PasswordProfileName
     )
     process
     {
-        if (Test-Path -Path $Global:KeePassConfigurationFile)
+        if(Test-Path -Path $Global:KeePassConfigurationFile)
         {
             [Xml] $XML = New-Object -TypeName System.Xml.XmlDocument
             $XML.Load($Global:KeePassConfigurationFile)

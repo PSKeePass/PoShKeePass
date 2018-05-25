@@ -2,15 +2,15 @@ function Get-KPDynamicParameters
 {
     param
     (
-        [Parameter(Position = 0, Mandatory = $true)]
+        [Parameter(Position = 0, Mandatory)]
         [ValidateNotNullOrEmpty()]
         [Int] $DBProfilePosition,
 
-        [Parameter(Position = 1, Mandatory = $true)]
+        [Parameter(Position = 1, Mandatory)]
         [ValidateNotNullOrEmpty()]
         [Int] $MasterKeyPosition,
 
-        [Parameter(Position = 2, Mandatory = $false)]
+        [Parameter(Position = 2)]
         [ValidateNotNullOrEmpty()]
         [Int] $PwIconPosition
     )

@@ -18,9 +18,8 @@ function ConvertFrom-KPProtectedString
     [OutputType([String])]
     param
     (
-        [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
-        [ValidateNotNull()]
-        [KeePassLib.Security.ProtectedString] $KeePassProtectedString
+        [Parameter(Position = 0, Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
+        [ValidateNotNull()] [KeePassLib.Security.ProtectedString] $KeePassProtectedString
     )
     process
     {

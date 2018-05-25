@@ -22,15 +22,15 @@ function New-KPConfigurationFile
     [CmdletBinding()]
     param
     (
-        [Parameter(Position = 0, Mandatory = $false)]
+        [Parameter(Position = 0)]
         [Switch] $Force
     )
     process
     {
-        if ((Test-Path -Path $PSScriptRoot\..\KeePassConfiguration.xml) -and -not $Force)
+        if((Test-Path -Path $PSScriptRoot\..\KeePassConfiguration.xml) -and -not $Force)
         {
             Write-Warning -Message '[PROCESS] A KeePass Configuration File already exists. Please rerun with -force to overwrite the existing configuration.'
-            Throw 'A KeePass Configuration File already exists.'
+            Write-Error -Message 'A KeePass Configuration File already exists.' -ea Stop
         }
         else
         {
@@ -56,11 +56,9 @@ function New-KPConfigurationFile
             }
             catch
             {
-                Write-Warning -Message '[PROCESS] An exception occured while trying to create a new keepass configuration file.'
-                Write-Warning -Message ('[PROCESS] {0}' -f $_.Exception.Message)
-                Throw $_
+                Write-Warning -Message 'An exception occured while trying to create a new keepass configuration file.'
+                Write-Error -ErrorRecord $_ -ea Stop
             }
-
         }
     }
 }
