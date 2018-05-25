@@ -27,33 +27,26 @@ function Add-KPGroup
     [CmdletBinding()]
     param
     (
-        [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [Parameter(Position = 0, Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
         [ValidateNotNull()]
         [KeePassLib.PwDatabase] $KeePassConnection,
 
-        [Parameter(Position = 1, Mandatory = $true)]
+        [Parameter(Position = 1, Mandatory)]
         [ValidateNotNullorEmpty()]
         [String] $GroupName,
 
-        [Parameter(Position = 2, Mandatory = $true)]
+        [Parameter(Position = 2, Mandatory)]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwGroup] $KeePassParentGroup,
 
-        [Parameter(Position = 3, Mandatory = $false)]
+        [Parameter(Position = 3)]
         [KeePassLib.PwIcon] $IconName,
 
-        [Parameter(Position = 4, Mandatory = $false)]
+        [Parameter(Position = 4)]
         [Switch] $PassThru
     )
     begin
     {
-        ## Check if database is open.
-        if(-not $KeePassConnection.IsOpen)
-        {
-            Write-Warning -Message '[BEGIN] The KeePass Connection Sepcified is not open or does not exist.'
-            Throw 'The KeePass Connection Sepcified is not open or does not exist.'
-        }
-
         try
         {
             [KeePassLib.PwGroup] $KeePassGroup = New-Object KeePassLib.PwGroup -ErrorAction Stop -ErrorVariable ErrorNewPwGroupObject
@@ -77,17 +70,20 @@ function Add-KPGroup
     }
     process
     {
-        $KeePassGroup.Name = $GroupName
-        if($IconName -ne $KeePassGroup.IconId)
+        if(Test-KPConnection $KeePassConnection)
         {
-            $KeePassGroup.IconId = $IconName
-        }
-        $KeePassParentGroup.AddGroup($KeePassGroup, $true)
-        $KeePassConnection.Save($null)
+            $KeePassGroup.Name = $GroupName
+            if($IconName -ne $KeePassGroup.IconId)
+            {
+                $KeePassGroup.IconId = $IconName
+            }
+            $KeePassParentGroup.AddGroup($KeePassGroup, $true)
+            $KeePassConnection.Save($null)
 
-        if($PassThru)
-        {
-            $KeePassGroup
+            if($PassThru)
+            {
+                $KeePassGroup
+            }
         }
     }
 }

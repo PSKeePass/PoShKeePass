@@ -34,90 +34,83 @@ function Get-KPEntry
     [OutputType('KeePassLib.PwEntry')]
     param
     (
-        [Parameter(Position = 0, Mandatory = $true, ParameterSetName = 'None')]
-        [Parameter(Position = 0, Mandatory = $true, ParameterSetName = 'UUID')]
-        [Parameter(Position = 0, Mandatory = $true, ParameterSetName = 'Group')]
-        [Parameter(Position = 0, Mandatory = $true, ParameterSetName = 'Title')]
-        [Parameter(Position = 0, Mandatory = $true, ParameterSetName = 'UserName')]
-        [Parameter(Position = 0, Mandatory = $true, ParameterSetName = 'Password')]
+        [Parameter(Position = 0, Mandatory, ParameterSetName = 'None')]
+        [Parameter(Position = 0, Mandatory, ParameterSetName = 'UUID')]
+        [Parameter(Position = 0, Mandatory, ParameterSetName = 'Group')]
+        [Parameter(Position = 0, Mandatory, ParameterSetName = 'Title')]
+        [Parameter(Position = 0, Mandatory, ParameterSetName = 'UserName')]
+        [Parameter(Position = 0, Mandatory, ParameterSetName = 'Password')]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwDatabase] $KeePassConnection,
 
-        [Parameter(Position = 1, Mandatory = $true, ParameterSetName = 'Group')]
+        [Parameter(Position = 1, Mandatory, ParameterSetName = 'Group')]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwGroup[]] $KeePassGroup,
 
-        [Parameter(Position = 1, Mandatory = $true, ParameterSetName = 'UUID', ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [Parameter(Position = 1, Mandatory, ParameterSetName = 'UUID', ValueFromPipeline, ValueFromPipelineByPropertyName)]
         [ValidateNotNullOrEmpty()]
         [Alias('Uuid')]
         [KeePassLib.PwUuid] $KeePassUuid,
 
-        [Parameter(Position = 2, Mandatory = $false, ParameterSetName = 'Group')]
-        [Parameter(Position = 1, Mandatory = $true, ParameterSetName = 'Title')]
+        [Parameter(Position = 2, ParameterSetName = 'Group')]
+        [Parameter(Position = 1, Mandatory, ParameterSetName = 'Title')]
         [ValidateNotNullOrEmpty()]
         [String] $Title,
 
-        [Parameter(Position = 3, Mandatory = $false, ParameterSetName = 'Group')]
-        [Parameter(Position = 2, Mandatory = $false, ParameterSetName = 'Title')]
-        [Parameter(Position = 1, Mandatory = $true, ParameterSetName = 'UserName')]
+        [Parameter(Position = 3, ParameterSetName = 'Group')]
+        [Parameter(Position = 2, ParameterSetName = 'Title')]
+        [Parameter(Position = 1, Mandatory, ParameterSetName = 'UserName')]
         [ValidateNotNullOrEmpty()]
         [String] $UserName
     )
-    begin
-    {
-        ## Check if database is open.
-        if(-not $KeePassConnection.IsOpen)
-        {
-            Write-Warning -Message '[BEGIN] The KeePass Connection Sepcified is not open or does not exist.'
-            Throw 'The KeePass Connection Sepcified is not open or does not exist.'
-        }
-    }
     process
     {
-        ## Get Entries and Filter
-        $KeePassItems = $KeePassConnection.RootGroup.GetEntries($true)
-
-        if($PSCmdlet.ParameterSetName -eq 'UUID')
+        if(Test-KPConnection $KeePassConnection)
         {
-            $KeePassItems  | Where-Object { $KeePassUuid.CompareTo($_.Uuid) -eq 0 }
-        }
-        else
-        {
-            ## This a lame way of filtering.
-            if ($KeePassGroup)
-            {
-                $KeePassItems = foreach($_keepassItem in $KeePassItems)
-                {
-                    if($KeePassGroup.Contains($_keepassItem.ParentGroup))
-                    {
-                        $_keepassItem
-                    }
-                }
-            }
-            if ($Title)
-            {
-                $KeePassItems = foreach($_keepassItem in $KeePassItems)
-                {
-                    if($_keepassItem.Strings.ReadSafe('Title').ToLower().Equals($Title.ToLower()))
-                    {
-                        $_keepassItem
-                    }
-                }
-            }
-            if ($UserName)
-            {
-                $KeePassItems = foreach($_keepassItem in $KeePassItems)
-                {
-                    if($_keepassItem.Strings.ReadSafe('UserName').ToLower().Equals($UserName.ToLower()))
-                    {
-                        $_keepassItem
-                    }
-                }
-            }
+            ## Get Entries and Filter
+            $KeePassItems = $KeePassConnection.RootGroup.GetEntries($true)
 
-            ## Return results
-            $KeePassItems
-        }
+            if($PSCmdlet.ParameterSetName -eq 'UUID')
+            {
+                $KeePassItems  | Where-Object { $KeePassUuid.CompareTo($_.Uuid) -eq 0 }
+            }
+            else
+            {
+                ## This a lame way of filtering.
+                if ($KeePassGroup)
+                {
+                    $KeePassItems = foreach($_keepassItem in $KeePassItems)
+                    {
+                        if($KeePassGroup.Contains($_keepassItem.ParentGroup))
+                        {
+                            $_keepassItem
+                        }
+                    }
+                }
+                if ($Title)
+                {
+                    $KeePassItems = foreach($_keepassItem in $KeePassItems)
+                    {
+                        if($_keepassItem.Strings.ReadSafe('Title').ToLower().Equals($Title.ToLower()))
+                        {
+                            $_keepassItem
+                        }
+                    }
+                }
+                if ($UserName)
+                {
+                    $KeePassItems = foreach($_keepassItem in $KeePassItems)
+                    {
+                        if($_keepassItem.Strings.ReadSafe('UserName').ToLower().Equals($UserName.ToLower()))
+                        {
+                            $_keepassItem
+                        }
+                    }
+                }
 
+                ## Return results
+                $KeePassItems
+            }
+        }
     }
 }

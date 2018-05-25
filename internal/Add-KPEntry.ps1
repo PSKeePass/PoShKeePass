@@ -33,136 +33,113 @@ function Add-KPEntry
     [CmdletBinding()]
     param
     (
-        [Parameter(Position = 0, Mandatory = $true)]
+        [Parameter(Position = 0, Mandatory)]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwDatabase] $KeePassConnection,
 
-        [Parameter(Position = 1, Mandatory = $true)]
+        [Parameter(Position = 1, Mandatory)]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwGroup] $KeePassGroup,
 
-        [Parameter(Position = 2, Mandatory = $false)]
+        [Parameter(Position = 2)]
         [String] $Title,
 
-        [Parameter(Position = 3, Mandatory = $false)]
+        [Parameter(Position = 3)]
         [String] $UserName,
 
-        [Parameter(Position = 4, Mandatory = $false)]
+        [Parameter(Position = 4)]
         [PSObject] $KeePassPassword,
 
-        [Parameter(Position = 5, Mandatory = $false)]
+        [Parameter(Position = 5)]
         [String] $Notes,
 
-        [Parameter(Position = 6, Mandatory = $false)]
+        [Parameter(Position = 6)]
         [String] $URL,
 
-        [Parameter(Position = 7, Mandatory = $false)]
+        [Parameter(Position = 7)]
         [KeePassLib.PwIcon] $IconName,
 
-        [Parameter(Position = 8, Mandatory = $false)]
+        [Parameter(Position = 8)]
         [Switch] $PassThru
     )
     begin
     {
-
-        ## Check if database is open.
-        if(-not $KeePassConnection.IsOpen)
-        {
-            Write-Warning -Message '[BEGIN] The KeePass Connection Sepcified is not open or does not exist.'
-            break
-        }
-
         try
         {
-            $KeePassEntry = New-Object KeePassLib.PwEntry($true, $true) -ErrorAction Stop -ErrorVariable ErrorNewPwEntryObject
+            [KeePassLib.PwEntry] $KeePassEntry = New-Object KeePassLib.PwEntry($true, $true) -ea Stop
         }
         catch
         {
-            Write-Warning -Message '[BEGIN] An error occured in the Add-KpEntry Cmdlet.'
-            if($ErrorNewPwGroupObject)
-            {
-                Write-Warning -Message '[BEGIN] An error occured while creating a new KeePassLib.PwEntry Object.'
-                Write-Warning -Message ('[BEGIN] {0}' -f $ErrorNewPwEntryObject.ErrorRecord.Message)
-                Throw $_
-            }
-            else
-            {
-                Write-Warning -Message '[BEGIN] An unhandled exception occured.'
-                Write-Warning -Message '[BEGIN] Verify your KeePass Database Connection is Open.'
-                Throw $_
-            }
+            Write-Warning -Message '[BEGIN] An error occured while creating a new KeePassLib.PwEntry Object.'
+            Write-Error -ErrorRecord $_ -ea Stop
         }
     }
     process
     {
-        if(-not (Test-KPPasswordValue $KeePassPassword))
+        if((Test-KPPasswordValue $KeePassPassword) -and (Test-KPConnection $KeePassConnection))
         {
-            Write-Warning -Message '[PROCESS] Please provide a KeePassPassword Of Type SecureString or KeePassLib.Security.ProtectedString.'
-            Write-Warning -Message ('[PROCESS] The Value supplied ({0}) is of Type {1}.' -f $KeePassPassword, $KeePassPassword.GetType().Name)
-            Throw 'Please provide a KeePassPassword Of Type SecureString or KeePassLib.Security.ProtectedString.'
-        }
-
-        if($Title)
-        {
-            $SecureTitle = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectTitle, $Title)
-            $KeePassEntry.Strings.Set('Title', $SecureTitle)
-        }
-
-        if($UserName)
-        {
-            $SecureUser = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectUserName, $UserName)
-            $KeePassEntry.Strings.Set('UserName', $SecureUser)
-        }
-
-        if($KeePassPassword)
-        {
-            if($KeePassPassword.GetType().Name -eq 'SecureString')
+            if($Title)
             {
-                $KeePassSecurePasswordString = New-Object KeePassLib.Security.ProtectedString
-                $KeePassSecurePasswordString = $KeePassSecurePasswordString.Insert(0, [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($KeePassPassword))).WithProtection($true)
+                [KeePassLib.Security.ProtectedString] $SecureTitle = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectTitle, $Title)
+                $KeePassEntry.Strings.Set('Title', $SecureTitle)
             }
-            elseif($KeePassPassword.GetType().Name -eq 'ProtectedString')
+
+            if($UserName)
             {
-                $KeePassSecurePasswordString = $KeePassPassword
+                [KeePassLib.Security.ProtectedString] $SecureUser = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectUserName, $UserName)
+                $KeePassEntry.Strings.Set('UserName', $SecureUser)
             }
-            $KeePassEntry.Strings.Set('Password', $KeePassSecurePasswordString)
-        }
-        else
-        {
-            ## get password based on default pattern
-            $KeePassSecurePasswordString = New-KeePassPassword
-            $KeePassEntry.Strings.Set('Password', $KeePassSecurePasswordString)
-        }
 
-        if($Notes)
-        {
-            $SecureNotes = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectNotes, $Notes)
-            $KeePassEntry.Strings.Set('Notes', $SecureNotes)
-        }
-
-        if($URL)
-        {
-            $SecureURL = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectUrl, $URL)
-            $KeePassEntry.Strings.Set('URL', $SecureURL)
-        }
-
-        if($IconName)
-        {
-            if($IconName -ne $KeePassEntry.IconId)
+            if($KeePassPassword)
             {
-                $KeePassEntry.IconId = $IconName
+                if($KeePassPassword.GetType().Name -eq 'SecureString')
+                {
+                    [KeePassLib.Security.ProtectedString] $KeePassSecurePasswordString = New-Object KeePassLib.Security.ProtectedString
+                    $KeePassSecurePasswordString = $KeePassSecurePasswordString.Insert(0, [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($KeePassPassword))).WithProtection($true)
+                }
+                elseif($KeePassPassword.GetType().Name -eq 'ProtectedString')
+                {
+                    $KeePassSecurePasswordString = $KeePassPassword
+                }
+                $KeePassEntry.Strings.Set('Password', $KeePassSecurePasswordString)
             }
-        }
+            else
+            {
+                ## get password based on default pattern
+                $KeePassSecurePasswordString = New-KeePassPassword
+                $KeePassEntry.Strings.Set('Password', $KeePassSecurePasswordString)
+            }
 
-        #Add to Group
-        $KeePassGroup.AddEntry($KeePassEntry, $true)
+            if($Notes)
+            {
+                [KeePassLib.Security.ProtectedString] $SecureNotes = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectNotes, $Notes)
+                $KeePassEntry.Strings.Set('Notes', $SecureNotes)
+            }
 
-        #save database
-        $KeePassConnection.Save($null)
+            if($URL)
+            {
+                [KeePassLib.Security.ProtectedString] $SecureURL = New-Object KeePassLib.Security.ProtectedString($KeePassConnection.MemoryProtection.ProtectUrl, $URL)
+                $KeePassEntry.Strings.Set('URL', $SecureURL)
+            }
 
-        if($PassThru)
-        {
-            $KeePassEntry
+            if($IconName)
+            {
+                if($IconName -ne $KeePassEntry.IconId)
+                {
+                    $KeePassEntry.IconId = $IconName
+                }
+            }
+
+            #Add to Group
+            $KeePassGroup.AddEntry($KeePassEntry, $true)
+
+            #save database
+            $KeePassConnection.Save($null)
+
+            if($PassThru)
+            {
+                $KeePassEntry
+            }
         }
     }
 }

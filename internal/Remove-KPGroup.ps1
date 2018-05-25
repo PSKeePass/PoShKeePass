@@ -26,32 +26,25 @@ function Remove-KPGroup
         .OUTPUTS
             $null
     #>
-    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     param
     (
-        [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [Parameter(Position = 0, Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
         [ValidateNotNull()]
         [KeePassLib.PwDatabase] $KeePassConnection,
 
-        [Parameter(Position = 1, Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [Parameter(Position = 1, Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwGroup] $KeePassGroup,
 
-        [Parameter(Position = 2, Mandatory = $false)]
+        [Parameter(Position = 2)]
         [Switch] $NoRecycle,
 
-        [Parameter(Position = 3, Mandatory = $false)]
+        [Parameter(Position = 3)]
         [Switch] $Force
     )
     begin
     {
-        ## Check if database is open.
-        if(-not $KeePassConnection.IsOpen)
-        {
-            Write-Warning -Message '[BEGIN] The KeePass Connection Sepcified is not open or does not exist.'
-            Throw 'The KeePass Connection Sepcified is not open or does not exist.'
-        }
-
         if($KeePassConnection.RecycleBinEnabled)
         {
             $RecycleBin = $KeePassConnection.RootGroup.FindGroup($KeePassConnection.RecycleBinUuid, $true)
@@ -69,36 +62,39 @@ function Remove-KPGroup
     }
     process
     {
-        if($Force -or $PSCmdlet.ShouldProcess($($KeePassGroup.GetFullPath('/', $true))))
+        if(Test-KPConnection $KeePassConnection)
         {
-            if($RecycleBin -and -not $NoRecycle)
+            if($Force -or $PSCmdlet.ShouldProcess($($KeePassGroup.GetFullPath('/', $true))))
             {
-                ## Make Copy of the group to be recycled.
-                $DeletedKeePassGroup = $KeePassGroup.CloneDeep()
-                ## Generate a new Uuid and update the copy fo the group
-                $DeletedKeePassGroup.Uuid = (New-Object KeePassLib.PwUuid($true))
-                ## Add the copy to the recycle bin, with take ownership set to true
-                $RecycleBin.AddGroup($DeletedKeePassGroup, $true, $true)
-                $KeePassConnection.Save($null)
-                $KeePassGroup.ParentGroup.Groups.Remove($KeePassGroup) > $null
-                $KeePassConnection.Save($null)
-                Write-Verbose -Message '[PROCESS] Group has been Recycled.'
-            }
-            else
-            {
-                if($Force -or $PSCmdlet.ShouldContinue('Recycle Bin Does Not Exist or the -NoRecycle Option Has been Specified.', "Do you want to continue to Permanently Delete this Group: ($($KeePassGroup.GetFullPath('/', $true)))?"))
+                if($RecycleBin -and -not $NoRecycle)
                 {
-                    ## Deletes the specified group
-                    $IsRemoved = $KeePassGroup.ParentGroup.Groups.Remove($KeePassGroup)
-                    if(-not $IsRemoved)
+                    ## Make Copy of the group to be recycled.
+                    $DeletedKeePassGroup = $KeePassGroup.CloneDeep()
+                    ## Generate a new Uuid and update the copy fo the group
+                    $DeletedKeePassGroup.Uuid = (New-Object KeePassLib.PwUuid($true))
+                    ## Add the copy to the recycle bin, with take ownership set to true
+                    $RecycleBin.AddGroup($DeletedKeePassGroup, $true, $true)
+                    $KeePassConnection.Save($null)
+                    $KeePassGroup.ParentGroup.Groups.Remove($KeePassGroup) > $null
+                    $KeePassConnection.Save($null)
+                    Write-Verbose -Message '[PROCESS] Group has been Recycled.'
+                }
+                else
+                {
+                    if($Force -or $PSCmdlet.ShouldContinue('Recycle Bin Does Not Exist or the -NoRecycle Option Has been Specified.', "Do you want to continue to Permanently Delete this Group: ($($KeePassGroup.GetFullPath('/', $true)))?"))
                     {
-                        Write-Warning -Message ('[PROCESS] Unknown Error has occured. Failed to Remove Group ({0})' -f $KeePassGroup.GetFullPath('/', $true))
-                        Throw 'Failed to Remove Group ({0})' -f $KeePassGroup.GetFullPath('/', $true)
-                    }
-                    else
-                    {
-                        Write-Verbose -Message ('[PROCESS] Group ({0}) has been Removed.' -f $KeePassGroup.GetFullPath('/', $true))
-                        $KeePassConnection.Save($null)
+                        ## Deletes the specified group
+                        $IsRemoved = $KeePassGroup.ParentGroup.Groups.Remove($KeePassGroup)
+                        if(-not $IsRemoved)
+                        {
+                            Write-Warning -Message ('[PROCESS] Unknown Error has occured. Failed to Remove Group ({0})' -f $KeePassGroup.GetFullPath('/', $true))
+                            Throw 'Failed to Remove Group ({0})' -f $KeePassGroup.GetFullPath('/', $true)
+                        }
+                        else
+                        {
+                            Write-Verbose -Message ('[PROCESS] Group ({0}) has been Removed.' -f $KeePassGroup.GetFullPath('/', $true))
+                            $KeePassConnection.Save($null)
+                        }
                     }
                 }
             }

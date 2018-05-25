@@ -28,29 +28,22 @@ function Get-KPGroup
     [OutputType('KeePassLib.PwGroup')]
     param
     (
-        [Parameter(Position = 0, Mandatory = $true, ParameterSetName = 'Full')]
-        [Parameter(Position = 0, Mandatory = $true, ParameterSetName = 'Partial')]
-        [Parameter(Position = 0, Mandatory = $true, ParameterSetName = 'None')]
+        [Parameter(Position = 0, Mandatory, ParameterSetName = 'Full')]
+        [Parameter(Position = 0, Mandatory, ParameterSetName = 'Partial')]
+        [Parameter(Position = 0, Mandatory, ParameterSetName = 'None')]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwDatabase] $KeePassConnection,
 
-        [Parameter(Position = 1, Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Full')]
+        [Parameter(Position = 1, Mandatory, ValueFromPipelineByPropertyName, ParameterSetName = 'Full')]
         [ValidateNotNullOrEmpty()]
         [String] $FullPath,
 
-        [Parameter(Position = 1, Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Partial')]
+        [Parameter(Position = 1, Mandatory, ValueFromPipelineByPropertyName, ParameterSetName = 'Partial')]
         [ValidateNotNullOrEmpty()]
         [String] $GroupName
     )
     begin
     {
-        ## Check if database is open.
-        if(-not $KeePassConnection.IsOpen)
-        {
-            Write-Warning -Message '[BEGIN] The KeePass Connection Sepcified is not open or does not exist.'
-            Throw 'The KeePass Connection Sepcified is not open or does not exist.'
-        }
-
         try
         {
             [KeePassLib.PwGroup[]] $KeePassOutGroups = $null
@@ -76,29 +69,32 @@ function Get-KPGroup
     }
     process
     {
-        if ($PSCmdlet.ParameterSetName -eq 'Full')
+        if(Test-KPConnection $KeePassConnection)
         {
-            foreach($_keepassGroup in $KeePassGroups)
+            if ($PSCmdlet.ParameterSetName -eq 'Full')
             {
-                if($_keepassGroup.GetFullPath('/', $true).ToLower().Equals($FullPath.ToLower()))
+                foreach($_keepassGroup in $KeePassGroups)
                 {
-                    $_keepassGroup
+                    if($_keepassGroup.GetFullPath('/', $true).ToLower().Equals($FullPath.ToLower()))
+                    {
+                        $_keepassGroup
+                    }
                 }
             }
-        }
-        elseif ($PSCmdlet.ParameterSetName -eq 'Partial')
-        {
-            foreach($_keepassGroup in $KeePassGroups)
+            elseif ($PSCmdlet.ParameterSetName -eq 'Partial')
             {
-                if($_keepassGroup.Name.ToLower().Equals($GroupName.ToLower()))
+                foreach($_keepassGroup in $KeePassGroups)
                 {
-                    $_keepassGroup
+                    if($_keepassGroup.Name.ToLower().Equals($GroupName.ToLower()))
+                    {
+                        $_keepassGroup
+                    }
                 }
             }
-        }
-        elseif ($PSCmdlet.ParameterSetName -eq 'None')
-        {
-            $KeePassGroups
+            elseif ($PSCmdlet.ParameterSetName -eq 'None')
+            {
+                $KeePassGroups
+            }
         }
     }
 }

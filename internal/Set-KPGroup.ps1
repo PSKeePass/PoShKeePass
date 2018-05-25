@@ -26,74 +26,68 @@ function Set-KPGroup
         .NOTES
             This Cmdlet Does AutoSave on exit.
     #>
-    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     param
     (
-        [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [Parameter(Position = 0, Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
         [ValidateNotNull()]
         [KeePassLib.PwDatabase] $KeePassConnection,
 
-        [Parameter(Position = 1, Mandatory = $true)]
+        [Parameter(Position = 1, Mandatory)]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwGroup] $KeePassGroup,
 
-        [Parameter(Position = 2, Mandatory = $false)]
+        [Parameter(Position = 2)]
         [String] $GroupName,
 
-        [Parameter(Position = 3, Mandatory = $false)]
+        [Parameter(Position = 3)]
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwGroup] $KeePassParentGroup,
 
-        [Parameter(Position = 4, Mandatory = $false)]
+        [Parameter(Position = 4)]
         [KeePassLib.PwIcon] $IconName,
 
-        [Parameter(Position = 5, Mandatory = $false)]
+        [Parameter(Position = 5)]
         [Switch] $PassThru,
 
-        [Parameter(Position = 6, Mandatory = $false)]
+        [Parameter(Position = 6)]
         [Switch] $Force
     )
-    begin
-    {
-        ## Check if database is open.
-        if(-not $KeePassConnection.IsOpen)
-        {
-            Write-Warning -Message '[BEGIN] The KeePass Connection Sepcified is not open or does not exist.'
-            Throw 'The KeePass Connection Sepcified is not open or does not exist.'
-        }
-    }
     process
     {
-        if($Force -or $PSCmdlet.ShouldProcess($($KeePassGroup.GetFullPath('/', $true))))
+        if(Test-KPConnection $KeePassConnection)
         {
-            if($GroupName)
+            if($Force -or $PSCmdlet.ShouldProcess($($KeePassGroup.GetFullPath('/', $true))))
             {
-                $KeePassGroup.Name = $GroupName
-            }
-
-            if($IconName -ne $KeePassGroup.IconId)
-            {
-                $KeePassGroup.IconId = $IconName
-            }
-
-            if($KeePassParentGroup)
-            {
-                if($KeePassGroup.ParentGroup.Uuid.CompareTo($KeePassParentGroup.Uuid) -ne 0 )
+                if($GroupName)
                 {
-                    $UpdatedKeePassGroup = $KeePassGroup.CloneDeep()
-                    $UpdatedKeePassGroup.Uuid = New-Object KeePassLib.PwUuid($true)
-                    $KeePassParentGroup.AddGroup($UpdatedKeePassGroup, $true, $true)
-                    $KeePassConnection.Save($null)
-                    $KeePassGroup.ParentGroup.Groups.Remove($KeePassGroup) > $null
-                    $KeePassConnection.Save($null)
-                    $KeePassGroup = $UpdatedKeePassGroup
+                    $KeePassGroup.Name = $GroupName
                 }
-            }
-            $KeePassConnection.Save($null)
 
-            if($PassThru)
-            {
-                $KeePassGroup
+                if($IconName -ne $KeePassGroup.IconId)
+                {
+                    $KeePassGroup.IconId = $IconName
+                }
+
+                if($KeePassParentGroup)
+                {
+                    if($KeePassGroup.ParentGroup.Uuid.CompareTo($KeePassParentGroup.Uuid) -ne 0 )
+                    {
+                        $UpdatedKeePassGroup = $KeePassGroup.CloneDeep()
+                        $UpdatedKeePassGroup.Uuid = New-Object KeePassLib.PwUuid($true)
+                        $KeePassParentGroup.AddGroup($UpdatedKeePassGroup, $true, $true)
+                        $KeePassConnection.Save($null)
+                        $KeePassGroup.ParentGroup.Groups.Remove($KeePassGroup) > $null
+                        $KeePassConnection.Save($null)
+                        $KeePassGroup = $UpdatedKeePassGroup
+                    }
+                }
+                $KeePassConnection.Save($null)
+
+                if($PassThru)
+                {
+                    $KeePassGroup
+                }
             }
         }
     }
