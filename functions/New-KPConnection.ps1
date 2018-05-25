@@ -19,20 +19,20 @@ function New-KPConnection
     [CmdletBinding(DefaultParameterSetName = 'Profile')]
     param
     (
-        [Parameter(Position = 0, Mandatory = $true, ParameterSetName = 'Profile')]
+        [Parameter(Position = 0, Mandatory, ParameterSetName = 'Profile')]
         [ValidateNotNullOrEmpty()]
         [String] $DatabaseProfileName,
 
-        [Parameter(Position = 0, Mandatory = $true, ParameterSetName = 'CompositeKey')]
+        [Parameter(Position = 0, Mandatory, ParameterSetName = 'CompositeKey')]
         [ValidateNotNullOrEmpty()]
         [String] $Database,
 
-        [Parameter(Position = 2, Mandatory = $false, ParameterSetName = 'CompositeKey')]
-        [Parameter(Position = 1, Mandatory = $false, ParameterSetName = 'Profile')]
+        [Parameter(Position = 2, ParameterSetName = 'CompositeKey')]
+        [Parameter(Position = 1, ParameterSetName = 'Profile')]
         [AllowNull()]
         [PSObject] $MasterKey,
 
-        [Parameter(Position = 1, Mandatory = $false, ParameterSetName = 'CompositeKey')]
+        [Parameter(Position = 1, ParameterSetName = 'CompositeKey')]
         [ValidateNotNullOrEmpty()]
         [String] $KeyPath,
 
@@ -48,8 +48,7 @@ function New-KPConnection
         }
         catch
         {
-            Import-KPLibrary
-            $DatabaseObject = New-Object -TypeName KeepassLib.PWDatabase -ErrorAction Stop
+            Write-Error -Message 'Unable to Create KeepassLib.PWDatabase to open a connection.' -Exception $_.Exception -ea Stop
         }
 
         ## Create KP CompositeKey Object
@@ -79,7 +78,7 @@ function New-KPConnection
             ## Prompt for MasterKey if specified in the profile and was not provided.
             if($UseMasterKey -and -not $MasterKey)
             {
-                $MasterKey = $Host.ui.PromptForCredential('KeePassCredential', 'Please enter your KeePass password.', 'KeePass', 'KeePass')
+                $MasterKey = Read-Host -Prompt 'KeePass Password' -AsSecureString
             }
         }
         ## Added this separation for easier future Management.
