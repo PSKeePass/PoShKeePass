@@ -84,6 +84,7 @@ function ConvertTo-KPPSObject
                         'IconId'               = $_keepassItem.IconId;
                         'Credential'           = $Credential;
                         'DatabaseProfileName'  = $DatabaseProfileName;
+                        'KPEntry'              = $_keepassItem;
                     })
 
                 ## Custom Object Formatting and Type
@@ -121,6 +122,7 @@ function ConvertTo-KPPSObject
                         'EntryCount'           = $_keepassItem.Entries.Count;
                         'IconId'               = $_keepassItem.IconId;
                         'DatabaseProfileName'  = $DatabaseProfileName;
+                        'KPGroup'              = $_keepassItem;
                     })
 
                 $KeePassPsObject.PSObject.TypeNames.Insert(0, 'PSKeePass.Group')
