@@ -31,7 +31,16 @@ function ConvertTo-KPPSObject
 
         [Parameter(Position = 0, Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName, ParameterSetName = 'Group')]
         [ValidateNotNullOrEmpty()]
-        [KeePassLib.PwGroup[]] $KeePassGroup
+        [KeePassLib.PwGroup[]] $KeePassGroup,
+
+        [Parameter(Position = 1)]
+        [switch] $WithCredential,
+
+        [Parameter(Position = 2)]
+        [switch] $AsPlainText,
+
+        [Parameter(Position = 3, ValueFromPipelineByPropertyName)]
+        [string] $DatabaseProfileName
     )
     process
     {
@@ -39,6 +48,20 @@ function ConvertTo-KPPSObject
         {
             foreach ($_keepassItem in $KeePassEntry)
             {
+                if($WithCredential)
+                {
+                    try
+                    {
+                        $Credential = New-Object -TypeName PSCredential -ArgumentList @($_keepassItem.Strings.ReadSafe('UserName'), ($_keepassItem.Strings.ReadSafe('Password') | ConvertTo-SecureString -AsPlainText -Force -ea SilentlyContinue))
+                    }
+                    catch{}
+                }
+
+                if($AsPlainText)
+                { $Password = $_keepassItem.Strings.ReadSafe('Password') }
+                else
+                { $Password = $_keepassItem.Strings.ReadSafe('Password') | ConvertTo-SecureString -AsPlainText -Force -ea SilentlyContinue }
+
                 ## Build Object
                 $KeePassPsObject = New-Object -TypeName PSObject -Property ([ordered]@{
                         'Uuid'                 = $_keepassItem.Uuid;
@@ -55,10 +78,12 @@ function ConvertTo-KPPSObject
                         'FullPath'             = $_keepassItem.ParentGroup.GetFullPath('/', $true);
                         'Title'                = $_keepassItem.Strings.ReadSafe('Title');
                         'UserName'             = $_keepassItem.Strings.ReadSafe('UserName');
-                        'Password'             = $_keepassItem.Strings.ReadSafe('Password');
+                        'Password'             = $Password
                         'URL'                  = $_keepassItem.Strings.ReadSafe('URL');
                         'Notes'                = $_keepassItem.Strings.ReadSafe('Notes');
                         'IconId'               = $_keepassItem.IconId;
+                        'Credential'           = $Credential;
+                        'DatabaseProfileName'  = $DatabaseProfileName;
                     })
 
                 ## Custom Object Formatting and Type
@@ -66,6 +91,8 @@ function ConvertTo-KPPSObject
 
                 ## Return Object
                 $KeePassPsObject
+
+                if($Password){ Remove-Variable -Name 'Password' }
             }
         }
         elseif($PSCmdlet.ParameterSetName -eq 'Group')
@@ -97,6 +124,7 @@ function ConvertTo-KPPSObject
                         'Groups'               = $_keepassItem.Groups;
                         'EntryCount'           = $_keepassItem.Entries.Count;
                         'IconId'               = $_keepassItem.IconId;
+                        'DatabaseProfileName'  = $DatabaseProfileName;
                     })
 
                 $KeePassPsObject.PSObject.TypeNames.Insert(0, 'PSKeePass.Group')
@@ -109,5 +137,9 @@ function ConvertTo-KPPSObject
                 $KeePassPsObject
             }
         }
+    }
+    end
+    {
+        if($Credential){ Remove-Variable -Name 'Credential' }
     }
 }

@@ -38,25 +38,22 @@ function Get-KeePassEntry
         .OUTPUTS
             PSObject
     #>
-    [CmdletBinding(DefaultParameterSetName = 'None')]
+    [CmdletBinding()]
     param
     (
-        [Parameter(Position = 0, Mandatory = $false, ParameterSetName = 'None')]
-        [Parameter(Position = 0, Mandatory = $false, ParameterSetName = 'AsPlainText')]
-        [Parameter(Position = 0, Mandatory = $false, ParameterSetName = 'AsPSCredential')]
+        [Parameter(Position = 0)]
         [ValidateNotNullOrEmpty()]
         [String] $KeePassEntryGroupPath,
 
-        [Parameter(Position = 1, Mandatory = $false, ParameterSetName = 'None')]
-        [Parameter(Position = 1, Mandatory = $true, ParameterSetName = 'AsPSCredential')]
-        [Parameter(Position = 1, Mandatory = $false, ParameterSetName = 'AsPlainText')]
+        [Parameter(Position = 1)]
         [String] $Title,
 
-        [Parameter(Position = 2, Mandatory = $false, ParameterSetName = 'AsPlainText')]
+        [Parameter(Position = 2)]
         [Switch] $AsPlainText,
 
-        [Parameter(Position = 3, Mandatory = $false, ParameterSetName = 'AsPSCredential')]
-        [Switch] $AsPSCredential
+        [Parameter(Position = 3)]
+        [Alias('AsPSCredential')]
+        [Switch] $WithCredential
     )
     dynamicparam
     {
@@ -94,6 +91,7 @@ function Get-KeePassEntry
                 Write-Warning -Message ('[PROCESS] The Specified KeePass Entry Group Path ({0}) does not exist.' -f $KeePassEntryGroupPath)
                 Throw 'The Specified KeePass Entry Group Path ({0}) does not exist.' -f $KeePassEntryGroupPath
             }
+
             if($Title)
             {
                 $ResultEntries = Get-KpEntry -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroup -Title $Title
@@ -115,33 +113,8 @@ function Get-KeePassEntry
                 $ResultEntries = Get-KPEntry -KeePassConnection $KeePassConnectionObject
             }
         }
-        Write-Verbose $PSCmdlet.ParameterSetName
-        switch ($PSCmdlet.ParameterSetName)
-        {
-            "AsPlainText"
-            {
-                $ResultEntries | ConvertTo-KpPsObject
-            }
-            "AsPSCredential"
-            {
-                if ($ResultEntries.count -gt 1)
-                {
-                    Write-Warning "Multiple entries found, will only return first entry as PSCredential"
-                }
-                $secureString = ConvertTo-SecureString -String ($ResultEntries[0].Strings.ReadSafe('Password')) -AsPlainText -Force
-                [string] $username = $ResultEntries[0].Strings.ReadSafe('UserName')
-                if ($username.Length -eq 0)
-                {
-                    $Errorcode = 'ERROR: Cannot create credential, username is blank'
-                    throw
-                }
-                New-Object System.Management.Automation.PSCredential($username, $secureString)
-            }
-            default
-            {
-                $ResultEntries
-            }
-        }
+
+        $ResultEntries | Add-Member -MemberType NoteProperty -Name 'DatabaseProfileName' -Value $DatabaseProfileName -PassThru | ConvertTo-KpPsObject -AsPlainText:$AsPlainText -WithCredential:$WithCredential
     }
     end
     {
