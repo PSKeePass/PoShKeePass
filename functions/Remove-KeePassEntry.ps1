@@ -43,24 +43,7 @@ function Remove-KeePassEntry
     }
     begin
     {
-        ## Get a list of all database profiles saved to the config xml.
-        $DatabaseProfileList = (Get-KeePassDatabaseConfiguration).Name
-        ## If no profiles exists do not return the parameter.
-        if($DatabaseProfileList)
-        {
-            $DatabaseProfileName = $PSBoundParameters['DatabaseProfileName']
-            $MasterKey = $PSBoundParameters['MasterKey']
-            ## Open the database
-            $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
-            ## remove any sensitive data
-            if($MasterKey){Remove-Variable -Name MasterKey}
-        }
-        else
-        {
-            Write-Warning -Message '[BEGIN] There are Currently No Database Configuration Profiles.'
-            Write-Warning -Message '[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function.'
-            Throw 'There are Currently No Database Configuration Profiles.'
-        }
+        Invoke-StandardBeginBlock -TestDBProfile -CreateKeePassConnection
     }
     process
     {

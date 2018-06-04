@@ -55,45 +55,43 @@ function Update-KeePassEntry
         .OUTPUTS
             $null
     #>
-    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     param
     (
-        [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true)]
+        [Parameter(Position = 0, Mandatory, ValueFromPipeline)]
         [ValidateNotNullOrEmpty()]
         [PSObject] $KeePassEntry,
 
-        [Parameter(Position = 1, Mandatory = $true)]
+        [Parameter(Position = 1, Mandatory)]
         [ValidateNotNullOrEmpty()]
         [String] $KeePassEntryGroupPath,
 
-        [Parameter(Position = 2, Mandatory = $false)]
+        [Parameter(Position = 2)]
         [ValidateNotNullOrEmpty()]
         [String] $Title,
 
-        [Parameter(Position = 3, Mandatory = $false)]
+        [Parameter(Position = 3)]
         [ValidateNotNullOrEmpty()]
         [String] $UserName,
 
-        [Parameter(Position = 4, Mandatory = $false)]
+        [Parameter(Position = 4)]
         [ValidateNotNullOrEmpty()]
         [ValidateScript({$_.GetType().Name -eq 'ProtectedString' -or $_.GetType().Name -eq 'SecureString'})]
         [PSObject] $KeePassPassword,
 
-        [Parameter(Position = 5, Mandatory = $false)]
+        [Parameter(Position = 5)]
         [ValidateNotNullOrEmpty()]
         [String] $Notes,
 
-        [Parameter(Position = 6, Mandatory = $false)]
+        [Parameter(Position = 6)]
         [ValidateNotNullOrEmpty()]
         [String] $URL,
 
-        [Parameter(Position = 7, Mandatory = $false)]
+        [Parameter(Position = 7)]
         [Switch] $PassThru,
 
-        [Parameter(Position = 8, Mandatory = $false)]
+        [Parameter(Position = 8)]
         [Switch] $Force
-
-        ## Dynamic Param Position = 9
     )
     dynamicparam
     {
@@ -101,25 +99,7 @@ function Update-KeePassEntry
     }
     begin
     {
-        ## Get a list of all database profiles saved to the config xml.
-        $DatabaseProfileList = (Get-KeePassDatabaseConfiguration).Name
-        ## If no profiles exists do not return the parameter.
-        if($DatabaseProfileList)
-        {
-            $DatabaseProfileName = $PSBoundParameters['DatabaseProfileName']
-            $MasterKey = $PSBoundParameters['MasterKey']
-            $IconName = $PSBoundParameters['IconName']
-            ## Open the database
-            $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
-            ## remove any sensitive data
-            if($MasterKey){Remove-Variable -Name MasterKey}
-        }
-        else
-        {
-            Write-Warning -Message '[BEGIN] There are Currently No Database Configuration Profiles.'
-            Write-Warning -Message '[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function.'
-            Throw 'There are Currently No Database Configuration Profiles.'
-        }
+        Invoke-StandardBeginBlock -TestDBProfile -CreateKeePassConnection
     }
     process
     {
