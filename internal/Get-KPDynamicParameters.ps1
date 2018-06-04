@@ -71,7 +71,7 @@ function Get-KPDynamicParameters
 
 
             ## Create,Define, and Return DynamicParam
-            $MasterKeyRuntimeParameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter($MasterKeyParameterName, [SecureString], $MasterKeyAttributeCollection)
+            $MasterKeyRuntimeParameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter($MasterKeyParameterName, [PSObject], $MasterKeyAttributeCollection)
             $MasterKeyRuntimeParameter.Value = $null
             $DBProfileRuntimeParameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter($DBProfileParameterName, [String], $DBProfileAttributeCollection)
 
