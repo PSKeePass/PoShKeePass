@@ -49,9 +49,12 @@ function Get-KeePassEntry
         [String] $Title,
 
         [Parameter(Position = 2)]
-        [Switch] $AsPlainText,
+        [string] $UserName,
 
         [Parameter(Position = 3)]
+        [Switch] $AsPlainText,
+
+        [Parameter(Position = 4)]
         [Alias('AsPSCredential')]
         [Switch] $WithCredential
     )
@@ -98,10 +101,8 @@ function Get-KeePassEntry
 
             $params.KeePassGroup = $KeePassGroup
         }
-
-        ## Get all entries in all groups.
-        if($Title)
-        { $params.Title = $Title }
+        elseif($Title){ $params.Title = $Title }
+        elseif($UserName){ $params.UserName = $UserName }
 
         Get-KPEntry @params | ConvertTo-KpPsObject -AsPlainText:$AsPlainText -WithCredential:$WithCredential -DatabaseProfileName $DatabaseProfileName
     }
