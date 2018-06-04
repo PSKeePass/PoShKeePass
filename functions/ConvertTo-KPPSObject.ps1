@@ -62,7 +62,6 @@ function ConvertTo-KPPSObject
                 else
                 { $Password = $_keepassItem.Strings.ReadSafe('Password') | ConvertTo-SecureString -AsPlainText -Force -ea SilentlyContinue }
 
-                ## Build Object
                 $KeePassPsObject = New-Object -TypeName PSObject -Property ([ordered]@{
                         'Uuid'                 = $_keepassItem.Uuid;
                         'CreationTime'         = $_keepassItem.CreationTime;
@@ -90,7 +89,6 @@ function ConvertTo-KPPSObject
                 ## Custom Object Formatting and Type
                 $KeePassPsObject.PSObject.TypeNames.Insert(0, 'PSKeePass.Entry')
 
-                ## Return Object
                 $KeePassPsObject
 
                 if($Password){ Remove-Variable -Name 'Password' }
@@ -125,6 +123,7 @@ function ConvertTo-KPPSObject
                         'KPGroup'              = $_keepassItem;
                     })
 
+                ## Custom Object Formatting and Type
                 $KeePassPsObject.PSObject.TypeNames.Insert(0, 'PSKeePass.Group')
                 $PSKeePassGroupDisplaySet = 'Name', 'EntryCount', 'FullPath', 'IconId'
                 $PSKeePassGroupDefaultPropertySet = New-Object -TypeName System.Management.Automation.PSPropertySet('DefaultDisplayPropertySet', [String[]] $PSKeePassGroupDisplaySet)
