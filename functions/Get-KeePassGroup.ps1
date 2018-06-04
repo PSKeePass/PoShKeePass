@@ -35,11 +35,11 @@ function Get-KeePassGroup
     [CmdletBinding()]
     param
     (
-        [Parameter(Position = 0, Mandatory = $false)]
+        [Parameter(Position = 0)]
         [ValidateNotNullOrEmpty()]
         [String] $KeePassGroupPath,
 
-        [Parameter(Position = 1, Mandatory = $false)]
+        [Parameter(Position = 1)]
         [Switch] $AsPlainText
     )
     dynamicparam
@@ -66,33 +66,27 @@ function Get-KeePassGroup
             Write-Warning -Message '[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function.'
             Throw 'There are Currently No Database Configuration Profiles.'
         }
+
+        if($AsPlainText)
+        {
+            Write-Warning -Message 'The -AsPlainText switch parameter is deprecated and will be removed by end of year 2018!'
+        }
     }
     process
     {
         if($KeePassGroupPath)
         {
-            ## Get All entries in the specified group
             $ResultEntries = Get-KPGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroupPath
         }
         else
         {
-            ## Get all entries in all groups.
             $ResultEntries = Get-KPGroup -KeePassConnection $KeePassConnectionObject
         }
 
-        ## return results in plain text or not.
-        if($AsPlainText)
-        {
-            $ResultEntries | ConvertTo-KpPsObject
-        }
-        else
-        {
-            $ResultEntries
-        }
+        $ResultEntries | ConvertTo-KpPsObject -DatabaseProfileName $DatabaseProfileName
     }
     end
     {
-        ## Clean up database connection
         Remove-KPConnection -KeePassConnection $KeePassConnectionObject
     }
 }
