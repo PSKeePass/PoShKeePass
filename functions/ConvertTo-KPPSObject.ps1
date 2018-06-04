@@ -33,10 +33,10 @@ function ConvertTo-KPPSObject
         [ValidateNotNullOrEmpty()]
         [KeePassLib.PwGroup[]] $KeePassGroup,
 
-        [Parameter(Position = 1)]
+        [Parameter(Position = 1, ParameterSetName = 'Entry')]
         [switch] $WithCredential,
 
-        [Parameter(Position = 2)]
+        [Parameter(Position = 2, ParameterSetName = 'Entry')]
         [switch] $AsPlainText,
 
         [Parameter(Position = 3, ValueFromPipelineByPropertyName)]
@@ -100,13 +100,9 @@ function ConvertTo-KPPSObject
             foreach ($_keepassItem in $KeePassGroup)
             {
                 if($_keepassItem.ParentGroup.Name)
-                {
-                    $FullPath = $_keepassItem.ParentGroup.GetFullPath('/', $true)
-                }
+                { $FullPath = $_keepassItem.ParentGroup.GetFullPath('/', $true) }
                 else
-                {
-                    $FullPath = ''
-                }
+                { $FullPath = '' }
 
                 $KeePassPsObject = New-Object -TypeName PSObject -Property ([ordered]@{
                         'Uuid'                 = $_keepassItem.Uuid;
