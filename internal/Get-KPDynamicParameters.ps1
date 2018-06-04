@@ -69,13 +69,10 @@ function Get-KPDynamicParameters
                 $IconEnumRuntimeParameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter($IconEnumParameterName, [KeePassLib.PwIcon], $IconEnumAttributeCollection)
             }
 
-
             ## Create,Define, and Return DynamicParam
             $MasterKeyRuntimeParameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter($MasterKeyParameterName, [PSObject], $MasterKeyAttributeCollection)
             $MasterKeyRuntimeParameter.Value = $null
             $DBProfileRuntimeParameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter($DBProfileParameterName, [String], $DBProfileAttributeCollection)
-
-
 
             $RuntimeParameterDictionary = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameterDictionary
             $RuntimeParameterDictionary.Add($DBProfileParameterName, $DBProfileRuntimeParameter)
