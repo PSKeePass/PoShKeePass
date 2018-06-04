@@ -82,6 +82,10 @@ function Get-KeePassEntry
     }
     process
     {
+        [hashtable] $params = @{
+            'KeePassConnection' = $KeePassConnectionObject;
+        }
+
         if($KeePassEntryGroupPath)
         {
             ## Get All entries in the specified group
@@ -92,29 +96,14 @@ function Get-KeePassEntry
                 Throw 'The Specified KeePass Entry Group Path ({0}) does not exist.' -f $KeePassEntryGroupPath
             }
 
-            if($Title)
-            {
-                $ResultEntries = Get-KpEntry -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroup -Title $Title
-            }
-            else
-            {
-                $ResultEntries = Get-KpEntry -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroup
-            }
-        }
-        else
-        {
-            ## Get all entries in all groups.
-            if($Title)
-            {
-                $ResultEntries = Get-KPEntry -KeePassConnection $KeePassConnectionObject -Title $Title
-            }
-            else
-            {
-                $ResultEntries = Get-KPEntry -KeePassConnection $KeePassConnectionObject
-            }
+            $params.KeePassGroup = $KeePassGroup
         }
 
-        $ResultEntries | ConvertTo-KpPsObject -AsPlainText:$AsPlainText -WithCredential:$WithCredential -DatabaseProfileName $DatabaseProfileName
+        ## Get all entries in all groups.
+        if($Title)
+        { $params.Title = $Title }
+
+        Get-KPEntry @params | ConvertTo-KpPsObject -AsPlainText:$AsPlainText -WithCredential:$WithCredential -DatabaseProfileName $DatabaseProfileName
     }
     end
     {
