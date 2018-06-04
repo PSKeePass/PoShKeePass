@@ -24,17 +24,17 @@ function Remove-KeePassEntry
 
             This example removed the specified kee pass entry.
     #>
-    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     param
     (
-        [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true)]
+        [Parameter(Position = 0, Mandatory, ValueFromPipeline)]
         [ValidateNotNullOrEmpty()]
         [PSObject] $KeePassEntry,
 
-        [Parameter(Position = 1, Mandatory = $false)]
+        [Parameter(Position = 1)]
         [Switch] $NoRecycle,
 
-        [Parameter(Position = 2, Mandatory = $false)]
+        [Parameter(Position = 2)]
         [Switch] $Force
     )
     dynamicparam
@@ -70,20 +70,19 @@ function Remove-KeePassEntry
             Write-Warning -Message '[PROCESS] The Specified KeePass Entry does not exist or cannot be found.'
             Throw 'The Specified KeePass Entry does not exist or cannot be found.'
         }
+
         $EntryDisplayName = '{0}/{1}' -f $KPEntry.ParentGroup.GetFullPath('/', $true), $KPEntry.Strings.ReadSafe('Title')
         if($Force -or $PSCmdlet.ShouldProcess($EntryDisplayName))
         {
-            if($NoRecycle)
-            {
-                if($Force -or $PSCmdlet.ShouldContinue('Recycle Bin Does Not Exist or the -NoRecycle Option Has been Specified.', "Do you want to continue to Permanently Delete this Entry: $EntryDisplayName)?"))
-                {
-                    Remove-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassEntry $KPEntry -NoRecycle -Confirm:$false -Force
-                }
+            [hashtable] $params = @{
+                'KeePassConnection' = $KeePassConnectionObject;
+                'KeePassEntry'      = $KPEntry;
+                'Confirm'           = $false;
+                'Force'             = $Force;
             }
-            else
-            {
-                Remove-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassEntry $KPEntry -Confirm:$false -Force
-            }
+
+            if($NoRecycle){ $params.NoRecycle = $NoRecycle }
+            Remove-KPEntry @params
         }
     }
     end
