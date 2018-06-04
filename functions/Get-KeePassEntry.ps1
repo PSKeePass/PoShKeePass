@@ -114,7 +114,7 @@ function Get-KeePassEntry
             }
         }
 
-        $ResultEntries | Add-Member -MemberType NoteProperty -Name 'DatabaseProfileName' -Value $DatabaseProfileName -PassThru | ConvertTo-KpPsObject -AsPlainText:$AsPlainText -WithCredential:$WithCredential
+        $ResultEntries | ConvertTo-KpPsObject -AsPlainText:$AsPlainText -WithCredential:$WithCredential -DatabaseProfileName $DatabaseProfileName
     }
     end
     {
