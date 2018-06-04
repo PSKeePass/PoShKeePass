@@ -30,7 +30,7 @@ function Get-KeePassDatabaseConfiguration
     )
     process
     {
-        if (Test-Path -Path $Global:KeePassConfigurationFile)
+        if(Test-Path -Path $Global:KeePassConfigurationFile)
         {
             [Xml] $XML = New-Object -TypeName System.Xml.XmlDocument
             $XML.Load($Global:KeePassConfigurationFile)
