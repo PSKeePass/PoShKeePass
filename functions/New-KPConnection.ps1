@@ -71,7 +71,7 @@ function New-KPConnection
             }
 
             $Database = $KeepassConfigurationObject.DatabasePath
-            if($KeepassConfigurationObject.KeyPath -ne '' ){ $KeyPath = $KeepassConfigurationObject.KeyPath }
+            if(-not [string]::IsNullOrEmpty($KeepassConfigurationObject.KeyPath)){ $KeyPath = $KeepassConfigurationObject.KeyPath }
             [Switch] $UseWindowsAccount = $KeepassConfigurationObject.UseNetworkAccount
             [Switch] $UseMasterKey = $KeepassConfigurationObject.UseMasterKey
 
