@@ -108,8 +108,9 @@ function New-KeePassEntry
             {
                 $IconName = 'Key'
             }
+
             ## Add the KeePass Entry
-            Add-KpEntry -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroup -Title $Title -UserName $UserName -KeePassPassword $KeePassPassword -Notes $Notes -URL $URL -IconName $IconName -PassThru:$PassThru
+            Add-KpEntry -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroup -Title $Title -UserName $UserName -KeePassPassword $KeePassPassword -Notes $Notes -URL $URL -IconName $IconName -PassThru:$PassThru | ConvertTo-KPPSObject -DatabaseProfileName $DatabaseProfileName
         }
         catch
         {

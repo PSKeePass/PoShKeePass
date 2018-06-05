@@ -464,12 +464,12 @@ InModuleScope "PoShKeePass" {
 
                 $PassThruResult = New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'testPassThru' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' -PassThru
 
-                $PassThruResult | Should BeOfType KeePassLib.PwEntry
-                $PassThruResult.ParentGroup.Name | Should BeLike 'PSKeePassTestDatabase'
-                $PassThruResult.Strings.ReadSafe('Title') | Should Be 'testPassThru'
-                $PassThruResult.Strings.ReadSafe('UserName') | Should Be 'testuser'
-                $PassThruResult.Strings.ReadSafe('Notes') | Should Be 'testnotes'
-                $PassThruResult.Strings.ReadSafe('URL') | Should be 'http://url.test.com'
+                $PassThruResult.KPEntry | Should BeOfType KeePassLib.PwEntry
+                $PassThruResult.KPEntry.ParentGroup.Name | Should BeLike 'PSKeePassTestDatabase'
+                $PassThruResult.KPEntry.Strings.ReadSafe('Title') | Should Be 'testPassThru'
+                $PassThruResult.KPEntry.Strings.ReadSafe('UserName') | Should Be 'testuser'
+                $PassThruResult.KPEntry.Strings.ReadSafe('Notes') | Should Be 'testnotes'
+                $PassThruResult.KPEntry.Strings.ReadSafe('URL') | Should be 'http://url.test.com'
             }
 
             It "Example 1.4: Creates a New KeePass Entry - Invalid - Group Path does not Exist" {
@@ -490,13 +490,13 @@ InModuleScope "PoShKeePass" {
 
                 $PassThruResult = New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'testPassThruIcon' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' -IconName Apple -PassThru
 
-                $PassThruResult | Should BeOfType KeePassLib.PwEntry
-                $PassThruResult.ParentGroup.Name | Should BeLike 'PSKeePassTestDatabase'
-                $PassThruResult.Strings.ReadSafe('Title') | Should Be 'testPassThruIcon'
-                $PassThruResult.Strings.ReadSafe('UserName') | Should Be 'testuser'
-                $PassThruResult.Strings.ReadSafe('Notes') | Should Be 'testnotes'
-                $PassThruResult.Strings.ReadSafe('URL') | Should Be 'http://url.test.com'
-                $PassThruResult.IconId | Should Be 'Apple'
+                $PassThruResult.KPEntry | Should BeOfType KeePassLib.PwEntry
+                $PassThruResult.KPEntry.ParentGroup.Name | Should BeLike 'PSKeePassTestDatabase'
+                $PassThruResult.KPEntry.Strings.ReadSafe('Title') | Should Be 'testPassThruIcon'
+                $PassThruResult.KPEntry.Strings.ReadSafe('UserName') | Should Be 'testuser'
+                $PassThruResult.KPEntry.Strings.ReadSafe('Notes') | Should Be 'testnotes'
+                $PassThruResult.KPEntry.Strings.ReadSafe('URL') | Should Be 'http://url.test.com'
+                $PassThruResult.KPEntry.IconId | Should Be 'Apple'
             }
         }
 
