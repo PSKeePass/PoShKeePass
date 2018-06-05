@@ -674,7 +674,7 @@ InModuleScope "PoShKeePass" {
 
             It "Example 1.5: Removes a KeePass Entry - Valid - Pipeline - PWEntry" {
                 New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'test4' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' | Should Be $null
-                $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Strings.ReadSafe('Title') -eq 'test4' }
+                $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -DatabaseProfileName 'SampleProfile' | Where-Object { $_.KPEntry.Strings.ReadSafe('Title') -eq 'test4' }
                 $KeePassEntry | Remove-KeePassEntry -DatabaseProfileName 'SampleProfile' -Force | Should Be $null
             }
         }
