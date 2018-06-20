@@ -24,3 +24,9 @@ if (-not(Test-Path -Path $Global:KeePassConfigurationFile))
         New-KPConfigurationFile
     }
 }
+else
+{
+    New-Variable -Name 'KeePassProfileNames' -Value @((Get-KeePassDatabaseConfiguration).Name) -Scope 'Script' #-Option Constant
+}
+
+Export-ModuleMember *
