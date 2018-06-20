@@ -52,11 +52,11 @@ function New-KeePassGroup
     }
     begin
     {
-        if(-not $IconName){ $IconName = 'Folder' }
     }
     process
     {
         Invoke-StandardBeginBlock -TestDBProfile -CreateKeePassConnection
+        if(-not $IconName){ $IconName = 'Folder' }
 
         $KeePassParentGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroupParentPath -Stop
 
