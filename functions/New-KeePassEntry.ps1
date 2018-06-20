@@ -54,8 +54,9 @@ function New-KeePassEntry
     [CmdletBinding()]
     param
     (
-        [Parameter(Position = 0, Mandatory)]
+        [Parameter(Position = 0, Mandatory, ValueFromPipelineByPropertyName)]
         [ValidateNotNullOrEmpty()]
+        [Alias('FullPath')]
         [String] $KeePassEntryGroupPath,
 
         [Parameter(Position = 1)]
@@ -113,9 +114,7 @@ function New-KeePassEntry
             Add-KpEntry @addKpEntrySplat | ConvertTo-KPPSObject -DatabaseProfileName $DatabaseProfileName
         }
         catch
-        {
-            Throw $_
-        }
+        { Throw $_ }
     }
     end
     {

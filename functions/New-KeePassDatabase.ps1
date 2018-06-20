@@ -59,7 +59,6 @@ function New-KeePassDatabase
             $DatabaseObject = New-Object -TypeName KeepassLib.PWDatabase -ErrorAction Stop
         }
 
-        ## Create KP CompositeKey Object
         $CompositeKey = New-Object -TypeName KeepassLib.Keys.CompositeKey
 
         if($MasterKey)
@@ -68,7 +67,6 @@ function New-KeePassDatabase
             $CompositeKey.AddUserKey($KcpPassword)
         }
 
-        ## if masterkey is specified, it should
         if($UseNetworkAccount)
         {
             $CompositeKey.AddUserKey((New-Object KeepassLib.Keys.KcpUserAccount))

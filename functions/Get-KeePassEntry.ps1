@@ -41,8 +41,9 @@ function Get-KeePassEntry
     [CmdletBinding()]
     param
     (
-        [Parameter(Position = 0)]
+        [Parameter(Position = 0, ValueFromPipelineByPropertyName)]
         [ValidateNotNullOrEmpty()]
+        [Alias('FullPath')]
         [String] $KeePassEntryGroupPath,
 
         [Parameter(Position = 1)]
@@ -75,7 +76,6 @@ function Get-KeePassEntry
 
         if($KeePassEntryGroupPath)
         {
-            ## Get All entries in the specified group
             $KeePassGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassEntryGroupPath -Stop
 
             $params.KeePassGroup = $KeePassGroup
@@ -89,7 +89,6 @@ function Get-KeePassEntry
     }
     end
     {
-        ## Clean up database connection
         Remove-KPConnection -KeePassConnection $KeePassConnectionObject
     }
 }

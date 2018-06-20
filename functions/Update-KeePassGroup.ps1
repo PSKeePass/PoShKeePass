@@ -52,8 +52,9 @@ function Update-KeePassGroup
         [ValidateNotNullOrEmpty()]
         [PSObject] $KeePassGroup,
 
-        [Parameter(Position = 1)]
+        [Parameter(Position = 1, ValueFromPipelineByPropertyName)]
         [ValidateNotNullOrEmpty()]
+        [Alias('FullPath')]
         [String] $KeePassParentGroupPath,
 
         [Parameter(Position = 2)]
@@ -87,18 +88,9 @@ function Update-KeePassGroup
             }
         }
 
-        if($KeePassGroup.GetType().Name -eq 'PwGroup')
+        if($Force -or $PSCmdlet.ShouldProcess($KeePassGroup.FullPath))
         {
-            $KeePassGroupFullPath = '{0}' -f $KeePassGroup.GetFullPath('/', $true)
-        }
-        else
-        {
-            $KeePassGroupFullPath = '{0}/{1}' -f $KeePassGroup.FullPath, $KeePassGroup.Name
-        }
-        ## Confirm
-        if($Force -or $PSCmdlet.ShouldProcess($KeePassGroupFullPath))
-        {
-            $KeePassGroupObject = Get-KPGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroupFullPath | Where-Object { $_.CreationTime -eq $KeePassGroup.CreationTime}
+            $KeePassGroupObject = Get-KPGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroup.FullPath | Where-Object { $_.CreationTime -eq $KeePassGroup.CreationTime}
 
             if($KeePassGroupObject.Count -gt 1)
             {
@@ -107,7 +99,6 @@ function Update-KeePassGroup
                 Throw 'Found more than one group with the same path, name and creation time.'
             }
 
-            ## Set Default Icon if not specified.
             if(-not $IconName)
             {
                 $IconName = $KeePassGroupObject.IconId
@@ -115,7 +106,6 @@ function Update-KeePassGroup
 
             if($KeePassParentGroup)
             {
-
                 Set-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroupObject -KeePassParentGroup $KeePassParentGroup -GroupName $GroupName -IconName $IconName -PassThru:$PassThru -Confirm:$false -Force
             }
             else

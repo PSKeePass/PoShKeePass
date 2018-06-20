@@ -35,8 +35,9 @@ function Get-KeePassGroup
     [CmdletBinding()]
     param
     (
-        [Parameter(Position = 0)]
+        [Parameter(Position = 0, ValueFromPipelineByPropertyName)]
         [ValidateNotNullOrEmpty()]
+        [Alias('FullPath')]
         [String] $KeePassGroupPath,
 
         [Parameter(Position = 1)]
@@ -55,16 +56,14 @@ function Get-KeePassGroup
     {
         Invoke-StandardBeginBlock -TestDBProfile -CreateKeePassConnection
 
-        if($KeePassGroupPath)
-        {
-            $ResultEntries = Get-KPGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroupPath
-        }
-        else
-        {
-            $ResultEntries = Get-KPGroup -KeePassConnection $KeePassConnectionObject
+        [hashtable] $getKpGroupSplat = @{
+            'KeePassConnection' = $KeePassConnectionObject
         }
 
-        $ResultEntries | ConvertTo-KpPsObject -DatabaseProfileName $DatabaseProfileName
+        if($KeePassGroupPath)
+        { $getKpGroupSplat.FullPath = $KeePassGroupPath }
+
+        Get-KPGroup @getKpGroupSplat | ConvertTo-KpPsObject -DatabaseProfileName $DatabaseProfileName
     }
     end
     {

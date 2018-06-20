@@ -24,17 +24,17 @@ function Remove-KeePassGroup
 
             This example removed the specified keepass Group.
     #>
-    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     param
     (
-        [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true)]
+        [Parameter(Position = 0, Mandatory, ValueFromPipeline)]
         [ValidateNotNullOrEmpty()]
         [PSObject] $KeePassGroup,
 
-        [Parameter(Position = 1, Mandatory = $false)]
+        [Parameter(Position = 1)]
         [Switch] $NoRecycle,
 
-        [Parameter(Position = 2, Mandatory = $false)]
+        [Parameter(Position = 2)]
         [Switch] $Force
     )
     dynamicparam
@@ -48,16 +48,7 @@ function Remove-KeePassGroup
     {
         Invoke-StandardBeginBlock -TestDBProfile -CreateKeePassConnection
 
-        if($KeePassGroup.GetType().Name -eq 'PwGroup')
-        {
-            $KeePassGroupFullPath = '{0}' -f $KeePassGroup.GetFullPath('/', $true)
-        }
-        else
-        {
-            $KeePassGroupFullPath = '{0}/{1}' -f $KeePassGroup.FullPath, $KeePassGroup.Name
-        }
-
-        $KeePassGroupObject = Get-KPGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroupFullPath -Stop | Where-Object { $_.CreationTime -eq $KeePassGroup.CreationTime}
+        $KeePassGroupObject = Get-KPGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroup.FullPath -Stop | Where-Object { $_.CreationTime -eq $KeePassGroup.CreationTime}
 
         if($KeePassGroupObject.Count -gt 1)
         {
@@ -66,7 +57,7 @@ function Remove-KeePassGroup
             Throw 'Found more than one group with the same path, name and creation time. Stoping Removal.'
         }
 
-        if($Force -or $PSCmdlet.ShouldProcess($KeePassGroupFullPath))
+        if($Force -or $PSCmdlet.ShouldProcess($KeePassGroup.FullPath))
         {
             if(-not $NoRecycle)
             {
@@ -74,7 +65,7 @@ function Remove-KeePassGroup
             }
             else
             {
-                if($Force -or $PSCmdlet.ShouldContinue('Recycle Bin Does Not Exist or the -NoRecycle Option Has been Specified.', "Remove this Group permanetly: $KeePassGroupFullPath?"))
+                if($Force -or $PSCmdlet.ShouldContinue('Recycle Bin Does Not Exist or the -NoRecycle Option Has been Specified.', "Remove this Group permanetly: $KeePassGroup.FullPath?"))
                 {
                     Remove-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroupObject -NoRecycle:$NoRecycle -Confirm:$false -Force
                 }

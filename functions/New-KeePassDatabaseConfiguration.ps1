@@ -137,7 +137,7 @@ function New-KeePassDatabaseConfiguration
                     Get-KeePassDatabaseConfiguration -DatabaseProfileName $DatabaseProfileName
                 }
             }
-            catch [Exception]
+            catch
             {
                 Write-Warning -Message ('[PROCESS] An Exception Occured while trying to add a new KeePass database configuration ({0}) to the configuration file.' -f $DatabaseProfileName)
                 Write-Warning -Message ('[PROCESS] {0}' -f $_.Exception.Message)

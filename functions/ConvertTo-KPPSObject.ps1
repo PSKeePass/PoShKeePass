@@ -115,7 +115,7 @@ function ConvertTo-KPPSObject
                         'Touched'              = $_keepassItem.Touched;
                         'UsageCount'           = $_keepassItem.UsageCount;
                         'ParentGroup'          = $_keepassItem.ParentGroup.Name;
-                        'FullPath'             = $FullPath;
+                        'FullPath'             = $_keepassItem.GetFullPath('/', $true);
                         'Groups'               = $_keepassItem.Groups;
                         'EntryCount'           = $_keepassItem.Entries.Count;
                         'IconId'               = $_keepassItem.IconId;

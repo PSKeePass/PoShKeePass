@@ -35,8 +35,9 @@ function New-KeePassGroup
     [CmdletBinding()]
     param
     (
-        [Parameter(Position = 0, Mandatory)]
+        [Parameter(Position = 0, Mandatory, ValueFromPipelineByPropertyName)]
         [ValidateNotNullOrEmpty()]
+        [Alias('FullPath')]
         [String] $KeePassGroupParentPath,
 
         [Parameter(Position = 1, Mandatory)]
