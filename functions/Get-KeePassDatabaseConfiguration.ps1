@@ -34,6 +34,7 @@ function Get-KeePassDatabaseConfiguration
         {
             [Xml] $XML = New-Object -TypeName System.Xml.XmlDocument
             $XML.Load($Global:KeePassConfigurationFile)
+
             if($DatabaseProfileName)
             {
                 $ProfileResults = $XML.Settings.DatabaseProfiles.Profile | Where-Object { $_.Name -ilike $DatabaseProfileName }
@@ -48,14 +49,16 @@ function Get-KeePassDatabaseConfiguration
                 $UseNetworkAccount = if($ProfileResult.UseNetworkAccount -eq 'True'){$true}else{$false}
                 $UseMasterKey = if($ProfileResult.UseMasterKey -eq 'True'){$true}else{$false}
 
-                $ProfileObject = New-Object -TypeName PSObject
-                $ProfileObject | Add-Member -MemberType NoteProperty -Name 'Name' -Value $ProfileResult.Name
-                $ProfileObject | Add-Member -MemberType NoteProperty -Name 'DatabasePath' -Value $ProfileResult.DatabasePath
-                $ProfileObject | Add-Member -MemberType NoteProperty -Name 'KeyPath' -Value $ProfileResult.KeyPath
-                $ProfileObject | Add-Member -MemberType NoteProperty -Name 'UseMasterKey' -Value $UseMasterKey
-                $ProfileObject | Add-Member -MemberType NoteProperty -Name 'UseNetworkAccount' -Value $UseNetworkAccount
-                $ProfileObject | Add-Member -MemberType NoteProperty -Name 'AuthenticationType' -Value $ProfileResult.AuthenticationType
-                $ProfileObject
+                [hashtable] $ProfileObject = [ordered]@{
+                    'Name'               = $ProfileResult.Name;
+                    'DatabasePath'       = $ProfileResult.DatabasePath;
+                    'KeyPath'            = $ProfileResult.KeyPath;
+                    'UseMasterKey'       = $UseMasterKey;
+                    'UseNetworkAccount'  = $UseNetworkAccount;
+                    'AuthenticationType' = $ProfileResult.AuthenticationType;
+                }
+
+                New-Object -TypeName PSObject -Property $ProfileObject
             }
         }
         else
