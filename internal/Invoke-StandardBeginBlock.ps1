@@ -10,15 +10,7 @@ function Invoke-StandardBeginBlock
     begin
     {
         if($TestDBProfile)
-        {
-            $DatabaseProfileList = (Get-KeePassDatabaseConfiguration).Name
-            if(-not $DatabaseProfileList)
-            {
-                Write-Warning -Message '[BEGIN] There are Currently No Database Configuration Profiles.'
-                Write-Warning -Message '[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function.'
-                Throw 'There are Currently No Database Configuration Profiles.'
-            }
-        }
+        { $null = Get-KeePassDatabaseConfiguration -Stop }
     }
     process
     {

@@ -26,7 +26,10 @@ function Get-KeePassDatabaseConfiguration
     (
         [Parameter(Position = 0)]
         [ValidateNotNullOrEmpty()]
-        [String] $DatabaseProfileName
+        [String] $DatabaseProfileName,
+
+        [Parameter(Position = 1)]
+        [Switch] $Stop
     )
     process
     {
@@ -42,6 +45,11 @@ function Get-KeePassDatabaseConfiguration
             else
             {
                 $ProfileResults = $XML.Settings.DatabaseProfiles.Profile
+            }
+
+            if(-not $ProfileResults -and $Stop)
+            {
+                throw 'InvalidKeePassConfiguration : No KeePass Configuration has been created.'
             }
 
             foreach($ProfileResult in $ProfileResults)

@@ -88,17 +88,29 @@ function New-KeePassEntry
     }
     begin
     {
-        if(-not $IconName){ $IconName = 'Key' }
     }
     process
     {
         Invoke-StandardBeginBlock -TestDBProfile -CreateKeePassConnection
+        if(-not $IconName){ $IconName = 'Key' }
 
         try
         {
             $KeePassGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassEntryGroupPath -Stop
 
-            Add-KpEntry -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroup -Title $Title -UserName $UserName -KeePassPassword $KeePassPassword -Notes $Notes -URL $URL -IconName $IconName -PassThru:$PassThru | ConvertTo-KPPSObject -DatabaseProfileName $DatabaseProfileName
+            $addKpEntrySplat = @{
+                URL               = $URL
+                UserName          = $UserName
+                IconName          = $IconName
+                KeePassGroup      = $KeePassGroup
+                KeePassPassword   = $KeePassPassword
+                PassThru          = $PassThru
+                Title             = $Title
+                KeePassConnection = $KeePassConnectionObject
+                Notes             = $Notes
+            }
+
+            Add-KpEntry @addKpEntrySplat | ConvertTo-KPPSObject -DatabaseProfileName $DatabaseProfileName
         }
         catch
         {

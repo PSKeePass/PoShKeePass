@@ -264,7 +264,7 @@ InModuleScope "PoShKeePass" {
             #>
             It "Example 1.2: Remove Database Configuration Profile - Invalid - No Profiles Exist." {
 
-                {Remove-KeePassDatabaseConfiguration -confirm:$false } | Should Throw "There are Currently No Database Configuration Profiles."
+                {Remove-KeePassDatabaseConfiguration -confirm:$false } | Should Throw "Cannot retrieve the dynamic parameters for the cmdlet. InvalidKeePassConfiguration : No KeePass Configuration has been created."
 
                 Get-KeePassDatabaseConfiguration | Should Be $null
             }
@@ -446,7 +446,7 @@ InModuleScope "PoShKeePass" {
 
             It "Example 1.1: Creates a New KeePass Entry - Invalid - No Profile" {
                 # New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount | Should Be $null
-                { New-KeePassEntry -KeePassEntryGroupPath 'database' -Title 'test' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' }| Should Throw 'There are Currently No Database Configuration Profiles.'
+                { New-KeePassEntry -KeePassEntryGroupPath 'database' -Title 'test' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' } | Should Throw 'InvalidKeePassConfiguration : No KeePass Configuration has been created.'
             }
 
             ## Create Profile
@@ -511,7 +511,7 @@ InModuleScope "PoShKeePass" {
 
             It "Example 1.1: Gets All KeePass Entries - Invalid - No Database Configuration Profiles." {
 
-                { Get-KeePassEntry -AsPlainText -KeePassEntryGroupPath 'PSKeePassTestDatabase/BadPath' } | Should Throw 'There are Currently No Database Configuration Profiles.'
+                { Get-KeePassEntry -AsPlainText -KeePassEntryGroupPath 'PSKeePassTestDatabase/BadPath' } | Should Throw 'InvalidKeePassConfiguration : No KeePass Configuration has been created.'
             }
 
             ## Create Profile
@@ -564,7 +564,7 @@ InModuleScope "PoShKeePass" {
             New-KPConfigurationFile -Force
 
             It "Example 1.1: Creates a New KeePass Entry - Invalid - No Profile" {
-                { Update-KeePassEntry -KeePassEntry $( New-Object KeePassLib.PwEntry($true, $true))  -KeePassEntryGroupPath 'database' -Title 'test' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' }| Should Throw 'There are Currently No Database Configuration Profiles.'
+                { Update-KeePassEntry -KeePassEntry $( New-Object KeePassLib.PwEntry($true, $true))  -KeePassEntryGroupPath 'database' -Title 'test' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' }| Should Throw 'InvalidKeePassConfiguration : No KeePass Configuration has been created.'
             }
 
             ## Create Profile
@@ -643,7 +643,7 @@ InModuleScope "PoShKeePass" {
         Context "Example 1: Remove a KeePass Entry" {
 
             It "Example 1.1: Removes a KeePass Entry - Invalid - No Profile" {
-                { Remove-KeePassEntry -KeePassEntry $( New-Object KeePassLib.PwEntry($true, $true)) }| Should Throw 'There are Currently No Database Configuration Profiles.'
+                { Remove-KeePassEntry -KeePassEntry $( New-Object KeePassLib.PwEntry($true, $true)) }| Should Throw 'InvalidKeePassConfiguration : No KeePass Configuration has been created.'
             }
 
             ## Create Profile
@@ -689,7 +689,7 @@ InModuleScope "PoShKeePass" {
             New-KPConfigurationFile -Force
 
             It "Example 1.1: Creates a New KeePass Group - Invalid - No Profile" {
-                { New-KeePassGroup -KeePassGroupParentPath 'database' -KeePassGroupName 'test' } | Should Throw 'There are Currently No Database Configuration Profiles.'
+                { New-KeePassGroup -KeePassGroupParentPath 'database' -KeePassGroupName 'test' } | Should Throw 'InvalidKeePassConfiguration : No KeePass Configuration has been created.'
             }
 
             ## Create Profile
@@ -737,7 +737,7 @@ InModuleScope "PoShKeePass" {
 
             It "Example 1.1: Gets All KeePass Groups - Invalid - No Database Configuration Profiles." {
 
-                { Get-KeePassGroup -AsPlainText -KeePassGroupPath 'PSKeePassTestDatabase/BadPath' } | Should Throw 'There are Currently No Database Configuration Profiles.'
+                { Get-KeePassGroup -AsPlainText -KeePassGroupPath 'PSKeePassTestDatabase/BadPath' } | Should Throw 'InvalidKeePassConfiguration : No KeePass Configuration has been created.'
             }
 
             ## Create Profile
@@ -781,7 +781,7 @@ InModuleScope "PoShKeePass" {
             New-KPConfigurationFile -Force
 
             It "Example 1.1: Updates a KeePass Group - Invalid - No Profile" {
-                { Update-KeePassGroup -KeePassGroup $( New-Object KeePassLib.PwGroup($true, $true)) -Force }| Should Throw 'There are Currently No Database Configuration Profiles.'
+                { Update-KeePassGroup -KeePassGroup $( New-Object KeePassLib.PwGroup($true, $true)) -Force }| Should Throw 'InvalidKeePassConfiguration : No KeePass Configuration has been created.'
             }
 
             ## Create Profile
@@ -852,7 +852,7 @@ InModuleScope "PoShKeePass" {
         Context "Example 1: Remove a KeePass Group" {
 
             It "Example 1.1: Removes a KeePass Group - Invalid - No Profile" {
-                { Remove-KeePassGroup -KeePassGroup $( New-Object KeePassLib.PwGroup($true, $true)) }| Should Throw 'There are Currently No Database Configuration Profiles.'
+                { Remove-KeePassGroup -KeePassGroup $( New-Object KeePassLib.PwGroup($true, $true)) }| Should Throw 'InvalidKeePassConfiguration : No KeePass Configuration has been created.'
             }
 
             ## Create Profile

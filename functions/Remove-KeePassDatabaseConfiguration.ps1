@@ -21,11 +21,12 @@ function Remove-KeePassDatabaseConfiguration
     param()
     dynamicparam
     {
-        $DatabaseProfileList = (Get-KeePassDatabaseConfiguration).Name
+        $DatabaseProfileList = (Get-KeePassDatabaseConfiguration -Stop).Name
         if($DatabaseProfileList)
         {
             $ParameterName = 'DatabaseProfileName'
             $AttributeCollection = New-Object -TypeName System.Collections.ObjectModel.Collection[System.Attribute]
+
             $ParameterAttribute = New-Object -TypeName System.Management.Automation.ParameterAttribute
             $ParameterAttribute.Mandatory = $true
             $ParameterAttribute.Position = 0
@@ -46,51 +47,25 @@ function Remove-KeePassDatabaseConfiguration
     begin
     {
         if($DatabaseProfileList)
-        {
-            $DatabaseProfileName = $PSBoundParameters[$ParameterName]
-        }
-        else
-        {
-            Write-Warning -Message '[BEGIN] There are Currently No Database Configuration Profiles.'
-            Throw 'There are Currently No Database Configuration Profiles.'
-        }
+        { $DatabaseProfileName = $PSBoundParameters[$ParameterName] }
     }
     process
     {
-        if (-not (Test-Path -Path $Global:KeePassConfigurationFile))
+        if($PSCmdlet.ShouldProcess($DatabaseProfileName))
         {
-            Write-Verbose -Message '[PROCESS] A KeePass Configuration File does not exist.'
-            Throw 'A KeePass Configuration File does not exist.'
-        }
-        else
-        {
-            $CheckIfProfileExists = Get-KeePassDatabaseConfiguration -DatabaseProfileName $DatabaseProfileName
-
-            if($CheckIfProfileExists)
+            try
             {
-                if($PSCmdlet.ShouldProcess($DatabaseProfileName))
-                {
-                    try
-                    {
-                        [Xml] $XML = New-Object -TypeName System.Xml.XmlDocument
-                        $XML.Load($Global:KeePassConfigurationFile)
-                        $XML.Settings.DatabaseProfiles.Profile  | Where-Object { $_.Name -eq $DatabaseProfileName } | ForEach-Object { $xml.Settings.DatabaseProfiles.RemoveChild($_) } | Out-Null
-                        $XML.Save($Global:KeePassConfigurationFile)
-                    }
-                    catch [exception]
-                    {
-                        Write-Warning -Message ('[PROCESS] An exception occured while attempting to remove a KeePass Database Configuration Profile ({0}).' -f $DatabaseProfileName)
-                        Write-Warning -Message ('[PROCESS] {0}' -f $_.Exception.Message)
-                        Throw $_
-                    }
-                }
+                [Xml] $XML = New-Object -TypeName System.Xml.XmlDocument
+                $XML.Load($Global:KeePassConfigurationFile)
+                $XML.Settings.DatabaseProfiles.Profile | Where-Object { $_.Name -eq $DatabaseProfileName } | ForEach-Object { $xml.Settings.DatabaseProfiles.RemoveChild($_) } | Out-Null
+                $XML.Save($Global:KeePassConfigurationFile)
             }
-            else
+            catch
             {
-                Write-Warning -Message ('[PROCESS] A KeePass Database Configuration Profile does not exists with the specified name: {0}.' -f $DatabaseProfileName)
-                Throw '[PROCESS] A KeePass Database Configuration Profile does not exists with the specified name: {0}.' -f $DatabaseProfileName
+                Write-Warning -Message ('[PROCESS] An exception occured while attempting to remove a KeePass Database Configuration Profile ({0}).' -f $DatabaseProfileName)
+                Write-Warning -Message ('[PROCESS] {0}' -f $_.Exception.Message)
+                Throw $_
             }
         }
-
     }
 }

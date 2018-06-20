@@ -59,12 +59,7 @@ function New-KPConnection
 
         if($PSCmdlet.ParameterSetName -eq 'Profile')
         {
-            $KeepassConfigurationObject = Get-KeePassDatabaseConfiguration -DatabaseProfileName $DatabaseProfileName
-
-            if(-not $KeepassConfigurationObject)
-            {
-                throw 'InvalidKeePassConfiguration : No KeePass Configuration has been created.'
-            }
+            $KeepassConfigurationObject = Get-KeePassDatabaseConfiguration -DatabaseProfileName $DatabaseProfileName -Stop
 
             $Database = $KeepassConfigurationObject.DatabasePath
             if(-not [string]::IsNullOrEmpty($KeepassConfigurationObject.KeyPath)){ $KeyPath = $KeepassConfigurationObject.KeyPath }
