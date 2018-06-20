@@ -52,10 +52,11 @@ function New-KeePassGroup
     }
     begin
     {
-        Invoke-StandardBeginBlock -TestDBProfile -CreateKeePassConnection
     }
     process
     {
+        Invoke-StandardBeginBlock -TestDBProfile -CreateKeePassConnection
+
         ## Get the keepass group
         $KeePassParentGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroupParentPath -Stop
 

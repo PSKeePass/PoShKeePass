@@ -48,7 +48,6 @@ function Get-KeePassGroup
     }
     begin
     {
-        Invoke-StandardBeginBlock -TestDBProfile -CreateKeePassConnection
 
         if($AsPlainText)
         {
@@ -57,6 +56,8 @@ function Get-KeePassGroup
     }
     process
     {
+        Invoke-StandardBeginBlock -TestDBProfile -CreateKeePassConnection
+
         if($KeePassGroupPath)
         {
             $ResultEntries = Get-KPGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroupPath

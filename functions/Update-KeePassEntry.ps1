@@ -62,8 +62,9 @@ function Update-KeePassEntry
         [ValidateNotNullOrEmpty()]
         [PSObject] $KeePassEntry,
 
-        [Parameter(Position = 1, Mandatory)]
+        [Parameter(Position = 1, Mandatory, ValueFromPipelineByPropertyName)]
         [ValidateNotNullOrEmpty()]
+        [Alias('FullPath')]
         [String] $KeePassEntryGroupPath,
 
         [Parameter(Position = 2)]
@@ -99,10 +100,11 @@ function Update-KeePassEntry
     }
     begin
     {
-        Invoke-StandardBeginBlock -TestDBProfile -CreateKeePassConnection
     }
     process
     {
+        Invoke-StandardBeginBlock -TestDBProfile -CreateKeePassConnection
+
         $KPEntry = Get-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassUuid $KeePassEntry.Uuid
         if(-not $KPEntry)
         {

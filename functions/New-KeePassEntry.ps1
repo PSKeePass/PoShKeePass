@@ -88,10 +88,11 @@ function New-KeePassEntry
     }
     begin
     {
-        Invoke-StandardBeginBlock -TestDBProfile -CreateKeePassConnection
     }
     process
     {
+        Invoke-StandardBeginBlock -TestDBProfile -CreateKeePassConnection
+
         try
         {
             ## Get the keepass group

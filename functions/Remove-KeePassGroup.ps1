@@ -43,10 +43,11 @@ function Remove-KeePassGroup
     }
     begin
     {
-        Invoke-StandardBeginBlock -TestDBProfile -CreateKeePassConnection
     }
     process
     {
+        Invoke-StandardBeginBlock -TestDBProfile -CreateKeePassConnection
+
         if($KeePassGroup.GetType().Name -eq 'PwGroup')
         {
             $KeePassGroupFullPath = '{0}' -f $KeePassGroup.GetFullPath('/', $true)

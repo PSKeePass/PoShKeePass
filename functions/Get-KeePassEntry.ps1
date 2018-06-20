@@ -60,14 +60,14 @@ function Get-KeePassEntry
     )
     dynamicparam
     {
-        Get-KPDynamicParameters -DBProfilePosition 4 -MasterKeyPosition 5
+        Get-KPDynamicParameters -DBProfilePosition 5 -MasterKeyPosition 6
     }
     begin
     {
-        Invoke-StandardBeginBlock -TestDBProfile -CreateKeePassConnection
     }
     process
     {
+        Invoke-StandardBeginBlock -TestDBProfile -CreateKeePassConnection
         [hashtable] $params = @{
             'KeePassConnection' = $KeePassConnectionObject;
         }

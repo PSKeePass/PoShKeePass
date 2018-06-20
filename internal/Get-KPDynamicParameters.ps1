@@ -27,6 +27,7 @@ function Get-KPDynamicParameters
             $DBProfileParameterAttribute = New-Object -TypeName System.Management.Automation.ParameterAttribute
             $DBProfileParameterAttribute.Mandatory = $true
             $DBProfileParameterAttribute.Position = $DBProfilePosition
+            $DBProfileParameterAttribute.ValueFromPipelineByPropertyName = $true
 
             $DBProfileAttributeCollection.Add($DBProfileParameterAttribute)
 
