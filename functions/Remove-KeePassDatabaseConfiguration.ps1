@@ -17,7 +17,7 @@ function Remove-KeePassDatabaseConfiguration
         .OUTPUTS
             $null
     #>
-    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     param()
     dynamicparam
     {

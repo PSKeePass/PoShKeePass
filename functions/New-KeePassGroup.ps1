@@ -35,15 +35,15 @@ function New-KeePassGroup
     [CmdletBinding()]
     param
     (
-        [Parameter(Position = 0, Mandatory = $true)]
+        [Parameter(Position = 0, Mandatory)]
         [ValidateNotNullOrEmpty()]
         [String] $KeePassGroupParentPath,
 
-        [Parameter(Position = 1, Mandatory = $true)]
+        [Parameter(Position = 1, Mandatory)]
         [ValidateNotNullOrEmpty()]
         [String] $KeePassGroupName,
 
-        [Parameter(Position = 2, Mandatory = $false)]
+        [Parameter(Position = 2)]
         [Switch] $PassThru
     )
     dynamicparam

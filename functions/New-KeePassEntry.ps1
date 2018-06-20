@@ -54,32 +54,32 @@ function New-KeePassEntry
     [CmdletBinding()]
     param
     (
-        [Parameter(Position = 0, Mandatory = $true)]
+        [Parameter(Position = 0, Mandatory)]
         [ValidateNotNullOrEmpty()]
         [String] $KeePassEntryGroupPath,
 
-        [Parameter(Position = 1, Mandatory = $false)]
+        [Parameter(Position = 1)]
         [ValidateNotNullOrEmpty()]
         [String] $Title,
 
-        [Parameter(Position = 2, Mandatory = $false)]
+        [Parameter(Position = 2)]
         [ValidateNotNullOrEmpty()]
         [String] $UserName,
 
-        [Parameter(Position = 3, Mandatory = $false)]
+        [Parameter(Position = 3)]
         [ValidateNotNullOrEmpty()]
         [ValidateScript({$_.GetType().Name -eq 'ProtectedString' -or $_.GetType().Name -eq 'SecureString'})]
         [PSObject] $KeePassPassword,
 
-        [Parameter(Position = 4, Mandatory = $false)]
+        [Parameter(Position = 4)]
         [ValidateNotNullOrEmpty()]
         [String] $Notes,
 
-        [Parameter(Position = 5, Mandatory = $false)]
+        [Parameter(Position = 5)]
         [ValidateNotNullOrEmpty()]
         [String] $URL,
 
-        [Parameter(Position = 6, Mandatory = $false)]
+        [Parameter(Position = 6)]
         [Switch] $PassThru
     )
     dynamicparam

@@ -45,25 +45,25 @@ function Update-KeePassGroup
         .OUTPUTS
             $null
     #>
-    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     param
     (
         [Parameter(Position = 0, Mandatory, ValueFromPipeline)]
         [ValidateNotNullOrEmpty()]
         [PSObject] $KeePassGroup,
 
-        [Parameter(Position = 1, Mandatory = $false)]
+        [Parameter(Position = 1)]
         [ValidateNotNullOrEmpty()]
         [String] $KeePassParentGroupPath,
 
-        [Parameter(Position = 2, Mandatory = $false)]
+        [Parameter(Position = 2)]
         [ValidateNotNullOrEmpty()]
         [String] $GroupName,
 
-        [Parameter(Position = 3, Mandatory = $false)]
+        [Parameter(Position = 3)]
         [Switch] $PassThru,
 
-        [Parameter(Position = 4, Mandatory = $false)]
+        [Parameter(Position = 4)]
         [Switch] $Force
     )
     dynamicparam

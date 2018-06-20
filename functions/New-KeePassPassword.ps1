@@ -79,43 +79,43 @@ function New-KeePassPassword
     [CmdletBinding(DefaultParameterSetName = 'NoProfile')]
     param
     (
-        [Parameter(Position = 0, Mandatory = $false, ParameterSetName = 'NoProfile')]
+        [Parameter(Position = 0, ParameterSetName = 'NoProfile')]
         [ValidateNotNull()]
         [Switch] $UpperCase,
-        [Parameter(Position = 1, Mandatory = $false, ParameterSetName = 'NoProfile')]
+        [Parameter(Position = 1, ParameterSetName = 'NoProfile')]
         [ValidateNotNull()]
         [Switch] $LowerCase,
-        [Parameter(Position = 2, Mandatory = $false, ParameterSetName = 'NoProfile')]
+        [Parameter(Position = 2, ParameterSetName = 'NoProfile')]
         [ValidateNotNull()]
         [Switch] $Digits,
-        [Parameter(Position = 3, Mandatory = $false, ParameterSetName = 'NoProfile')]
+        [Parameter(Position = 3, ParameterSetName = 'NoProfile')]
         [ValidateNotNull()]
         [Switch] $SpecialCharacters,
-        [Parameter(Position = 4, Mandatory = $false, ParameterSetName = 'NoProfile')]
+        [Parameter(Position = 4, ParameterSetName = 'NoProfile')]
         [ValidateNotNull()]
         [Switch] $Minus,
-        [Parameter(Position = 5, Mandatory = $false, ParameterSetName = 'NoProfile')]
+        [Parameter(Position = 5, ParameterSetName = 'NoProfile')]
         [ValidateNotNull()]
         [Switch] $UnderScore,
-        [Parameter(Position = 6, Mandatory = $false, ParameterSetName = 'NoProfile')]
+        [Parameter(Position = 6, ParameterSetName = 'NoProfile')]
         [ValidateNotNull()]
         [Switch] $Space,
-        [Parameter(Position = 7, Mandatory = $false, ParameterSetName = 'NoProfile')]
+        [Parameter(Position = 7, ParameterSetName = 'NoProfile')]
         [ValidateNotNull()]
         [Switch] $Brackets,
-        [Parameter(Position = 8, Mandatory = $false, ParameterSetName = 'NoProfile')]
+        [Parameter(Position = 8, ParameterSetName = 'NoProfile')]
         [ValidateNotNull()]
         [Switch] $ExcludeLookALike,
-        [Parameter(Position = 9, Mandatory = $false, ParameterSetName = 'NoProfile')]
+        [Parameter(Position = 9, ParameterSetName = 'NoProfile')]
         [ValidateNotNull()]
         [Switch] $NoRepeatingCharacters,
-        [Parameter(Position = 10, Mandatory = $false, ParameterSetName = 'NoProfile')]
+        [Parameter(Position = 10, ParameterSetName = 'NoProfile')]
         [ValidateNotNullOrEmpty()]
         [String] $ExcludeCharacters,
-        [Parameter(Position = 11, Mandatory = $false, ParameterSetName = 'NoProfile')]
+        [Parameter(Position = 11, ParameterSetName = 'NoProfile')]
         [ValidateNotNullOrEmpty()]
         [Int] $Length,
-        [Parameter(Position = 12, Mandatory = $false, ParameterSetName = 'NoProfile')]
+        [Parameter(Position = 12, ParameterSetName = 'NoProfile')]
         [ValidateNotNullOrEmpty()]
         [String] $SaveAs
     )
