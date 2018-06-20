@@ -68,6 +68,8 @@ function Get-KPDynamicParameters
                 $IconEnumAliasAttribute = New-Object -TypeName System.Management.Automation.AliasAttribute('Icon')
                 $IconEnumAttributeCollection.Add($IconEnumAliasAttribute)
                 $IconEnumRuntimeParameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter($IconEnumParameterName, [KeePassLib.PwIcon], $IconEnumAttributeCollection)
+                ## TODO: Need to figure out how to make default work
+                # $IconEnumRuntimeParameter.Value = 'Key'
             }
 
             ## Create,Define, and Return DynamicParam

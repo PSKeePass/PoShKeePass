@@ -56,13 +56,8 @@ function Remove-KeePassGroup
         {
             $KeePassGroupFullPath = '{0}/{1}' -f $KeePassGroup.FullPath, $KeePassGroup.Name
         }
-        $KeePassGroupObject = Get-KPGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroupFullPath | Where-Object { $_.CreationTime -eq $KeePassGroup.CreationTime}
 
-        if(-not $KeePassGroupObject)
-        {
-            Write-Warning -Message '[PROCESS] The Specified KeePass Group does not exist.'
-            Throw 'The Specified KeePass Group does not exist.'
-        }
+        $KeePassGroupObject = Get-KPGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroupFullPath -Stop | Where-Object { $_.CreationTime -eq $KeePassGroup.CreationTime}
 
         if($KeePassGroupObject.Count -gt 1)
         {

@@ -48,11 +48,8 @@ function Get-KeePassGroup
     }
     begin
     {
-
         if($AsPlainText)
-        {
-            Write-Warning -Message 'The -AsPlainText switch parameter is deprecated and will be removed by end of year 2018!'
-        }
+        { Write-Warning -Message 'The -AsPlainText switch parameter is deprecated and will be removed by end of year 2018!' }
     }
     process
     {

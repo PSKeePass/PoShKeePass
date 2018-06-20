@@ -52,6 +52,8 @@ function New-KeePassGroup
     }
     begin
     {
+        ## Set Default Icon
+        if(-not $IconName){ $IconName = 'Folder' }
     }
     process
     {
@@ -60,11 +62,6 @@ function New-KeePassGroup
         ## Get the keepass group
         $KeePassParentGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroupParentPath -Stop
 
-        ## Set Default Icon if not specified.
-        if(-not $IconName)
-        {
-            $IconName = 'Folder'
-        }
         ## Add the KeePass Group
         Add-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassParentGroup $KeePassParentGroup -GroupName $KeePassGroupName -IconName $IconName -PassThru:$PassThru
     }

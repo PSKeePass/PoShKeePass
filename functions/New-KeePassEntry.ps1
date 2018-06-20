@@ -88,6 +88,8 @@ function New-KeePassEntry
     }
     begin
     {
+        ## Set Default Icon
+        if(-not $IconName){ $IconName = 'Key' }
     }
     process
     {
@@ -96,19 +98,7 @@ function New-KeePassEntry
         try
         {
             ## Get the keepass group
-            $KeePassGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassEntryGroupPath
-
-            if(-not $KeePassGroup)
-            {
-                Write-Warning -Message ('[PROCESS] The Specified KeePass Entry Group Path ({0}) does not exist.' -f $KeePassEntryGroupPath)
-                Throw 'The Specified KeePass Entry Group Path ({0}) does not exist.' - $KeePassEntryGroupPath
-            }
-
-            ## Set Default Icon if not specified.
-            if(-not $IconName)
-            {
-                $IconName = 'Key'
-            }
+            $KeePassGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassEntryGroupPath -Stop
 
             ## Add the KeePass Entry
             Add-KpEntry -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroup -Title $Title -UserName $UserName -KeePassPassword $KeePassPassword -Notes $Notes -URL $URL -IconName $IconName -PassThru:$PassThru | ConvertTo-KPPSObject -DatabaseProfileName $DatabaseProfileName

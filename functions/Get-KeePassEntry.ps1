@@ -68,6 +68,7 @@ function Get-KeePassEntry
     process
     {
         Invoke-StandardBeginBlock -TestDBProfile -CreateKeePassConnection
+
         [hashtable] $params = @{
             'KeePassConnection' = $KeePassConnectionObject;
         }
