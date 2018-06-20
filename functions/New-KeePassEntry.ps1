@@ -88,7 +88,6 @@ function New-KeePassEntry
     }
     begin
     {
-        ## Set Default Icon
         if(-not $IconName){ $IconName = 'Key' }
     }
     process
@@ -97,10 +96,8 @@ function New-KeePassEntry
 
         try
         {
-            ## Get the keepass group
             $KeePassGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassEntryGroupPath -Stop
 
-            ## Add the KeePass Entry
             Add-KpEntry -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroup -Title $Title -UserName $UserName -KeePassPassword $KeePassPassword -Notes $Notes -URL $URL -IconName $IconName -PassThru:$PassThru | ConvertTo-KPPSObject -DatabaseProfileName $DatabaseProfileName
         }
         catch
@@ -110,7 +107,6 @@ function New-KeePassEntry
     }
     end
     {
-        ## Clean up keepass database connection
         Remove-KPConnection -KeePassConnection $KeePassConnectionObject
     }
 }

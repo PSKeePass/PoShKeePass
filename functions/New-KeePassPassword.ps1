@@ -121,13 +121,12 @@ function New-KeePassPassword
     )
     dynamicparam
     {
-        ##Create and Define Validate Set Attribute
+        ## Create and Define Validate Set Attribute
         $PasswordProfileList = (Get-KPPasswordProfile).Name
         if($PasswordProfileList)
         {
             $ParameterName = 'PasswordProfileName'
             $AttributeCollection = New-Object -TypeName System.Collections.ObjectModel.Collection[System.Attribute]
-            ###ParameterSet Host
             $ParameterAttribute = New-Object -TypeName System.Management.Automation.ParameterAttribute
             $ParameterAttribute.Mandatory = $true
             $ParameterAttribute.Position = 0
@@ -137,11 +136,9 @@ function New-KeePassPassword
             $ValidateSetAttribute = New-Object -TypeName System.Management.Automation.ValidateSetAttribute($PasswordProfileList)
             $AttributeCollection.Add($ValidateSetAttribute)
 
-            ##Create and Define Allias Attribute
             $AliasAttribute = New-Object -TypeName System.Management.Automation.AliasAttribute('Name')
             $AttributeCollection.Add($AliasAttribute)
 
-            ##Create,Define, and Return DynamicParam
             $RuntimeParameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter($ParameterName, [string], $AttributeCollection)
             $RuntimeParameterDictionary = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameterDictionary
             $RuntimeParameterDictionary.Add($ParameterName, $RuntimeParameter)
@@ -151,9 +148,7 @@ function New-KeePassPassword
     begin
     {
         if($PasswordProfileList)
-        {
-            $PasswordProfileName = $PSBoundParameters[$ParameterName]
-        }
+        { $PasswordProfileName = $PSBoundParameters[$ParameterName] }
     }
     process
     {
@@ -166,7 +161,7 @@ function New-KeePassPassword
             if($PSBoundParameters.Count -gt 0)
             {
                 $PassProfile.CharSet = New-Object KeePassLib.Cryptography.PasswordGenerator.PwCharSet
-                ## Build Profile With Options.
+
                 if($UpperCase)
                 {
                     $NewProfileObject.CharacterSet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -292,6 +287,7 @@ function New-KeePassPassword
                 New-KPPasswordProfile -KeePassPasswordObject $NewProfileObject
             }
         }
+
         try
         {
             $PSOut
@@ -305,7 +301,6 @@ function New-KeePassPassword
     }
     end
     {
-        ## Clean up out varaible
         if($PSOut){Remove-Variable -Name PSOUT}
     }
 }

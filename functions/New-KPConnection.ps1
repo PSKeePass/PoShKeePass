@@ -41,7 +41,6 @@ function New-KPConnection
     )
     process
     {
-        ## Create KP Database Object
         try
         {
             $DatabaseObject = New-Object -TypeName KeepassLib.PWDatabase -ErrorAction Stop
@@ -51,16 +50,13 @@ function New-KPConnection
             Write-Error -Message 'Unable to Create KeepassLib.PWDatabase to open a connection.' -Exception $_.Exception -ea Stop
         }
 
-        ## Create KP CompositeKey Object
         $CompositeKey = New-Object -TypeName KeepassLib.Keys.CompositeKey
 
-        ## Validate MasterKey Type
         if(($MasterKey -isnot [PSCredential]) -and ($MasterKey -isnot [SecureString]) -and $MasterKey)
         {
             Write-Error -Message ('[PROCESS] The MasterKey of type: ({0}). Is not Supported Please supply a MasterKey of Types (SecureString or PSCredential).' -f $($MasterKey.GetType().Name)) -Category InvalidType -TargetObject $MasterKey -RecommendedAction 'Provide a MasterKey of Type PSCredential or SecureString'
         }
 
-        ## Get Profile Values
         if($PSCmdlet.ParameterSetName -eq 'Profile')
         {
             $KeepassConfigurationObject = Get-KeePassDatabaseConfiguration -DatabaseProfileName $DatabaseProfileName
@@ -75,25 +71,21 @@ function New-KPConnection
             [Switch] $UseWindowsAccount = $KeepassConfigurationObject.UseNetworkAccount
             [Switch] $UseMasterKey = $KeepassConfigurationObject.UseMasterKey
 
-            ## Prompt for MasterKey if specified in the profile and was not provided.
             if($UseMasterKey -and -not $MasterKey)
             {
                 $MasterKey = Read-Host -Prompt 'KeePass Password' -AsSecureString
             }
         }
-        ## Added this separation for easier future Management.
         elseif($PSCmdlet.ParameterSetName -eq 'CompositeKey')
         {
             $UseMasterKey = if($MasterKey){ $true }
         }
 
-        ## Handle if the master key is a PSCredential
         if($MasterKey -is [PSCredential])
         {
             [SecureString] $MasterKey = $MasterKey.Password
         }
 
-        ##Exception : I will want to handle this error in a more user friendly error, as is the style of the rest of this module.
         $DatabaseItem = Get-Item -Path $Database -ErrorAction Stop
 
         ## Start Building CompositeKey
@@ -107,13 +99,11 @@ function New-KPConnection
         {
             try
             {
-                ##Exception : I will want to handle this error in a more user friendly error, as is the style of the rest of this module.
                 $KeyPathItem = Get-Item $KeyPath -ErrorAction Stop
                 $CompositeKey.AddUserKey((New-Object KeepassLib.Keys.KcpKeyfile($KeyPathItem.FullName)))
             }
             catch
             {
-                ##Exception : I will want to handle this error in a more user friendly error, as is the style of the rest of this module.
                 Write-Warning ('Could not read the specfied Key file [{0}].' -f $KeyPathItem.FullName)
             }
         }
@@ -123,18 +113,16 @@ function New-KPConnection
             $CompositeKey.AddUserKey((New-Object KeepassLib.Keys.KcpUserAccount))
         }
 
-        ## Create IOConnection Object
+        ## Build and Open Connection
         $IOInfo = New-Object KeepassLib.Serialization.IOConnectionInfo
         $IOInfo.Path = $DatabaseItem.FullName
 
         ## We currently are not using a status logger hence the null.
         $IStatusLogger = New-Object KeePassLib.Interfaces.NullStatusLogger
 
-        ## Connect, Open and Return Database Object
-        $DatabaseObject.Open($IOInfo, $CompositeKey, $IStatusLogger) | Out-Null
+        $null = $DatabaseObject.Open($IOInfo, $CompositeKey, $IStatusLogger)
         $DatabaseObject
 
-        ##Exception : I will want to handle this error in a more user friendly error, as is the style of the rest of this module.
         if(-not $DatabaseObject.IsOpen)
         {
             Throw 'InvalidDatabaseConnectionException : The database is not open.'

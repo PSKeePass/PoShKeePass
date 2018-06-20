@@ -68,7 +68,7 @@ function New-KeePassDatabase
             $CompositeKey.AddUserKey($KcpPassword)
         }
 
-        #if masterkey is specified, it should
+        ## if masterkey is specified, it should
         if($UseNetworkAccount)
         {
             $CompositeKey.AddUserKey((New-Object KeepassLib.Keys.KcpUserAccount))

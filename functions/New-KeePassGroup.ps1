@@ -52,22 +52,18 @@ function New-KeePassGroup
     }
     begin
     {
-        ## Set Default Icon
         if(-not $IconName){ $IconName = 'Folder' }
     }
     process
     {
         Invoke-StandardBeginBlock -TestDBProfile -CreateKeePassConnection
 
-        ## Get the keepass group
         $KeePassParentGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroupParentPath -Stop
 
-        ## Add the KeePass Group
         Add-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassParentGroup $KeePassParentGroup -GroupName $KeePassGroupName -IconName $IconName -PassThru:$PassThru
     }
     end
     {
-        ## Clean up keepass database connection
         Remove-KPConnection -KeePassConnection $KeePassConnectionObject
     }
 }
