@@ -40,7 +40,10 @@ function Get-KPGroup
 
         [Parameter(Position = 1, Mandatory, ValueFromPipelineByPropertyName, ParameterSetName = 'Partial')]
         [ValidateNotNullOrEmpty()]
-        [String] $GroupName
+        [String] $GroupName,
+
+        [Parameter(Position = 2)]
+        [Switch] $Stop
     )
     begin
     {
@@ -60,30 +63,41 @@ function Get-KPGroup
     {
         if(Test-KPConnection $KeePassConnection)
         {
-            if ($PSCmdlet.ParameterSetName -eq 'Full')
+            [int] $foundCount = 0
+
+            if($PSCmdlet.ParameterSetName -eq 'Full')
             {
                 foreach($_keepassGroup in $KeePassGroups)
                 {
                     if($_keepassGroup.GetFullPath('/', $true).ToLower().Equals($FullPath.ToLower()))
                     {
                         $_keepassGroup
+                        $foundCount += 1
                     }
                 }
             }
-            elseif ($PSCmdlet.ParameterSetName -eq 'Partial')
+            elseif($PSCmdlet.ParameterSetName -eq 'Partial')
             {
                 foreach($_keepassGroup in $KeePassGroups)
                 {
                     if($_keepassGroup.Name.ToLower().Equals($GroupName.ToLower()))
                     {
                         $_keepassGroup
+                        $foundCount += 1
                     }
                 }
             }
-            elseif ($PSCmdlet.ParameterSetName -eq 'None')
+            elseif($PSCmdlet.ParameterSetName -eq 'None')
             {
                 $KeePassGroups
+                $foundCount = $KeePassGroups.Count
             }
+        }
+
+        if($Stop -and $foundCount -eq 0)
+        {
+            Write-Warning -Message ('[PROCESS] The Specified KeePass Entry Group Path ({0}) does not exist.' -f $KeePassGroupParentPath)
+            Throw 'The Specified KeePass Entry Group Path ({0}) does not exist.' -f $KeePassGroupParentPath
         }
     }
 }

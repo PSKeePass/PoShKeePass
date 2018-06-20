@@ -57,12 +57,7 @@ function New-KeePassGroup
     process
     {
         ## Get the keepass group
-        $KeePassParentGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroupParentPath
-        if(-not $KeePassParentGroup)
-        {
-            Write-Warning -Message ('[PROCESS] The Specified KeePass Entry Group Path ({0}) does not exist.' -f $KeePassGroupParentPath)
-            Throw 'The Specified KeePass Entry Group Path ({0}) does not exist.' -f $KeePassGroupParentPath
-        }
+        $KeePassParentGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroupParentPath -Stop
 
         ## Set Default Icon if not specified.
         if(-not $IconName)

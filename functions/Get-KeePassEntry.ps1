@@ -75,17 +75,14 @@ function Get-KeePassEntry
         if($KeePassEntryGroupPath)
         {
             ## Get All entries in the specified group
-            $KeePassGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassEntryGroupPath
-            if(-not $KeePassGroup)
-            {
-                Write-Warning -Message ('[PROCESS] The Specified KeePass Entry Group Path ({0}) does not exist.' -f $KeePassEntryGroupPath)
-                Throw 'The Specified KeePass Entry Group Path ({0}) does not exist.' -f $KeePassEntryGroupPath
-            }
+            $KeePassGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassEntryGroupPath -Stop
 
             $params.KeePassGroup = $KeePassGroup
         }
-        elseif($Title){ $params.Title = $Title }
-        elseif($UserName){ $params.UserName = $UserName }
+
+        if($Title){ $params.Title = $Title }
+
+        if($UserName){ $params.UserName = $UserName }
 
         Get-KPEntry @params | ConvertTo-KpPsObject -AsPlainText:$AsPlainText -WithCredential:$WithCredential -DatabaseProfileName $DatabaseProfileName
     }
