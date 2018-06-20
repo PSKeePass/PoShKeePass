@@ -582,8 +582,8 @@ InModuleScope "PoShKeePass" {
 
             It "Example 1.3: Updates a KeePass Entry - Valid  - Properties - Via Pipeline" {
                 New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'test2' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' | Should Be $null
-                Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -AsPlainText -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Title -eq 'test2'} |
-                    Update-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -title 'UpdateTest2' -UserName 'UpdateTestUser' -Notes 'UpdateTestNotes' -URL 'http://UpdateURL.Test.com' -DatabaseProfileName 'SampleProfile' -Force | Should Be $null
+                Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -AsPlainText -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Title -eq 'test2' } |
+                    Update-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -title 'UpdateTest2' -UserName 'UpdateTestUser' -Notes 'UpdateTestNotes' -URL 'http://UpdateURL.Test.com' -Force | Should Be $null
             }
 
             It "Example 1.4: Update a KeePass Entry - Valid - Properties - PassThru" {
@@ -592,11 +592,11 @@ InModuleScope "PoShKeePass" {
                 $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -AsPlainText -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Title -eq 'test3' }
                 $UpdatePassThruResult = Update-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -KeePassEntry $KeePassEntry -title 'UpdateTest3' -UserName 'UpdateTestUser' -Notes 'UpdateTestNotes' -URL 'http://UpdateURL.Test.com' -DatabaseProfileName 'SampleProfile' -PassThru -Force
 
-                $UpdatePassThruResult | Should BeOfType KeePassLib.PwEntry
-                $UpdatePassThruResult.Strings.ReadSafe('Title') | Should Be 'UpdateTest3'
-                $UpdatePassThruResult.Strings.ReadSafe('UserName') | Should Be 'UpdateTestUser'
-                $UpdatePassThruResult.Strings.ReadSafe('Notes') | Should Be 'UpdateTestNotes'
-                $UpdatePassThruResult.Strings.ReadSafe('URL') | Should Be 'http://UpdateURL.Test.com'
+                $UpdatePassThruResult.KPEntry | Should BeOfType KeePassLib.PwEntry
+                $UpdatePassThruResult.KPEntry.Strings.ReadSafe('Title') | Should Be 'UpdateTest3'
+                $UpdatePassThruResult.KPEntry.Strings.ReadSafe('UserName') | Should Be 'UpdateTestUser'
+                $UpdatePassThruResult.KPEntry.Strings.ReadSafe('Notes') | Should Be 'UpdateTestNotes'
+                $UpdatePassThruResult.KPEntry.Strings.ReadSafe('URL') | Should Be 'http://UpdateURL.Test.com'
             }
 
             It "Example 1.5: Update a KeePass Entry - Valid - Group & Properties - PassThru" {
@@ -605,12 +605,12 @@ InModuleScope "PoShKeePass" {
                 $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -AsPlainText -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Title -eq 'test4' }
                 $UpdatePassThruResult = Update-KeePassEntry -KeePassEntry $KeePassEntry -title 'UpdateTest4' -UserName 'UpdateTestUser' -Notes 'UpdateTestNotes' -URL 'http://UpdateURL.Test.com' -KeePassEntryGroupPath 'PSKeePassTestDatabase/General' -DatabaseProfileName 'SampleProfile' -PassThru -Force
 
-                $UpdatePassThruResult | Should BeOfType KeePassLib.PwEntry
-                $UpdatePassThruResult.ParentGroup.Name | Should Be 'General'
-                $UpdatePassThruResult.Strings.ReadSafe('Title') | Should Be 'UpdateTest4'
-                $UpdatePassThruResult.Strings.ReadSafe('UserName') | Should Be 'UpdateTestUser'
-                $UpdatePassThruResult.Strings.ReadSafe('Notes') | Should Be 'UpdateTestNotes'
-                $UpdatePassThruResult.Strings.ReadSafe('URL') | Should Be 'http://UpdateURL.Test.com'
+                $UpdatePassThruResult.KPEntry | Should BeOfType KeePassLib.PwEntry
+                $UpdatePassThruResult.KPEntry.ParentGroup.Name | Should Be 'General'
+                $UpdatePassThruResult.KPEntry.Strings.ReadSafe('Title') | Should Be 'UpdateTest4'
+                $UpdatePassThruResult.KPEntry.Strings.ReadSafe('UserName') | Should Be 'UpdateTestUser'
+                $UpdatePassThruResult.KPEntry.Strings.ReadSafe('Notes') | Should Be 'UpdateTestNotes'
+                $UpdatePassThruResult.KPEntry.Strings.ReadSafe('URL') | Should Be 'http://UpdateURL.Test.com'
             }
 
             It "Example 1.6: Update a KeePass Entry - Invalid - Group & Properties - PassThru - BadPath" {
@@ -626,11 +626,11 @@ InModuleScope "PoShKeePass" {
                 $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -AsPlainText -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Title -eq 'test6' }
                 $UpdatePassThruResult = Update-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -KeePassEntry $KeePassEntry -title 'UpdateTest6' -UserName 'UpdateTestUser' -Notes 'UpdateTestNotes' -URL 'http://UpdateURL.Test.com' -DatabaseProfileName 'SampleProfile' -IconName Apple -PassThru -Force
 
-                $UpdatePassThruResult | Should BeOfType KeePassLib.PwEntry
-                $UpdatePassThruResult.Strings.ReadSafe('Title') | Should Be 'UpdateTest6'
-                $UpdatePassThruResult.Strings.ReadSafe('UserName') | Should Be 'UpdateTestUser'
-                $UpdatePassThruResult.Strings.ReadSafe('Notes') | Should Be 'UpdateTestNotes'
-                $UpdatePassThruResult.Strings.ReadSafe('URL') | Should Be 'http://UpdateURL.Test.com'
+                $UpdatePassThruResult.KPEntry | Should BeOfType KeePassLib.PwEntry
+                $UpdatePassThruResult.KPEntry.Strings.ReadSafe('Title') | Should Be 'UpdateTest6'
+                $UpdatePassThruResult.KPEntry.Strings.ReadSafe('UserName') | Should Be 'UpdateTestUser'
+                $UpdatePassThruResult.KPEntry.Strings.ReadSafe('Notes') | Should Be 'UpdateTestNotes'
+                $UpdatePassThruResult.KPEntry.Strings.ReadSafe('URL') | Should Be 'http://UpdateURL.Test.com'
                 $UpdatePassThruResult.IconId | Should Be 'Apple'
             }
         }
