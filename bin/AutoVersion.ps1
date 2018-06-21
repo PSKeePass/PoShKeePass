@@ -3,7 +3,7 @@ param()
 
 ## Get psd1 file
 $RawPSD = Get-Content -Path "$($PSScriptRoot)\..\PoShKeePass.psd1"
-$ModuleVersion = ($RawPSD | ? { $_ -match "^\s+ModuleVersion.+$" }) -replace '.+(\d\.\d\.\d\.\d).$', '$1'
+$ModuleVersion = ($RawPSD | Where-Object { $_ -match "^\s+ModuleVersion.+$" }) -replace '.+(\d\.\d\.\d\.\d).$', '$1'
 
 Write-Verbose -Message ('ModuleVersion Found: ' + $ModuleVersion)
 [Int[]] $VerArr = $ModuleVersion -split '\.'
