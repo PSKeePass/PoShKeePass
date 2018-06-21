@@ -48,4 +48,12 @@ Register-ArgumentCompleter -ParameterName 'IconName' -ScriptBlock {
     }
 }
 
+Register-ArgumentCompleter -ParameterName 'PasswordProfileName' -ScriptBlock {
+    param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
+
+    (Get-KPPasswordProfile).Name | Where-Object { $_ -ilike "${wordToComplete}*" } | ForEach-Object {
+        New-Object System.Management.Automation.CompletionResult ( $_, $_, 'ParameterValue', $_)
+    }
+}
+
 ## add one for paths

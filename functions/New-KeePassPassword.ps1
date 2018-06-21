@@ -76,78 +76,67 @@ function New-KeePassPassword
             KeePassLib.Security.ProtectedString
     #>
     [CmdletBinding(DefaultParameterSetName = 'NoProfile')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingPlainTextForPassword", "PasswordProfileName")]
     param
     (
+        [Parameter(Position = 0, Mandatory, ParameterSetName = 'Profile')]
+        [ValidateNotNullOrEmpty()]
+        [String] $PasswordProfileName,
+
         [Parameter(Position = 0, ParameterSetName = 'NoProfile')]
         [ValidateNotNull()]
         [Switch] $UpperCase,
+
         [Parameter(Position = 1, ParameterSetName = 'NoProfile')]
         [ValidateNotNull()]
         [Switch] $LowerCase,
+
         [Parameter(Position = 2, ParameterSetName = 'NoProfile')]
         [ValidateNotNull()]
         [Switch] $Digits,
+
         [Parameter(Position = 3, ParameterSetName = 'NoProfile')]
         [ValidateNotNull()]
         [Switch] $SpecialCharacters,
+
         [Parameter(Position = 4, ParameterSetName = 'NoProfile')]
         [ValidateNotNull()]
         [Switch] $Minus,
+
         [Parameter(Position = 5, ParameterSetName = 'NoProfile')]
         [ValidateNotNull()]
         [Switch] $UnderScore,
+
         [Parameter(Position = 6, ParameterSetName = 'NoProfile')]
         [ValidateNotNull()]
         [Switch] $Space,
+
         [Parameter(Position = 7, ParameterSetName = 'NoProfile')]
         [ValidateNotNull()]
         [Switch] $Brackets,
+
         [Parameter(Position = 8, ParameterSetName = 'NoProfile')]
         [ValidateNotNull()]
         [Switch] $ExcludeLookALike,
+
         [Parameter(Position = 9, ParameterSetName = 'NoProfile')]
         [ValidateNotNull()]
         [Switch] $NoRepeatingCharacters,
+
         [Parameter(Position = 10, ParameterSetName = 'NoProfile')]
         [ValidateNotNullOrEmpty()]
         [String] $ExcludeCharacters,
+
         [Parameter(Position = 11, ParameterSetName = 'NoProfile')]
         [ValidateNotNullOrEmpty()]
         [Int] $Length,
+
         [Parameter(Position = 12, ParameterSetName = 'NoProfile')]
         [ValidateNotNullOrEmpty()]
         [String] $SaveAs
     )
-    dynamicparam
-    {
-        ## Create and Define Validate Set Attribute
-        $PasswordProfileList = (Get-KPPasswordProfile).Name
-        if($PasswordProfileList)
-        {
-            $ParameterName = 'PasswordProfileName'
-            $AttributeCollection = New-Object -TypeName System.Collections.ObjectModel.Collection[System.Attribute]
-            $ParameterAttribute = New-Object -TypeName System.Management.Automation.ParameterAttribute
-            $ParameterAttribute.Mandatory = $true
-            $ParameterAttribute.Position = 0
-            $ParameterAttribute.ParameterSetName = 'Profile'
-            $AttributeCollection.Add($ParameterAttribute)
-
-            $ValidateSetAttribute = New-Object -TypeName System.Management.Automation.ValidateSetAttribute($PasswordProfileList)
-            $AttributeCollection.Add($ValidateSetAttribute)
-
-            $AliasAttribute = New-Object -TypeName System.Management.Automation.AliasAttribute('Name')
-            $AttributeCollection.Add($AliasAttribute)
-
-            $RuntimeParameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter($ParameterName, [string], $AttributeCollection)
-            $RuntimeParameterDictionary = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameterDictionary
-            $RuntimeParameterDictionary.Add($ParameterName, $RuntimeParameter)
-            return $RuntimeParameterDictionary
-        }
-    }
     begin
     {
-        if($PasswordProfileList)
-        { $PasswordProfileName = $PSBoundParameters[$ParameterName] }
     }
     process
     {
@@ -247,6 +236,12 @@ function New-KeePassPassword
         elseif($PSCmdlet.ParameterSetName -eq 'Profile')
         {
             $PasswordProfileObject = Get-KPPasswordProfile -PasswordProfileName $PasswordProfileName
+
+            if(-not $PasswordProfileObject)
+            {
+                Write-Error -Message ('No KPPasswordProfile could be found with the specified Name: ' + $PasswordProfileName) -TargetObject $PasswordProfileName -Category ObjectNotFound -ErrorAction Stop
+            }
+
             $PassProfile.CharSet.Add($PasswordProfileObject.CharacterSet)
             $PassProfile.ExcludeLookAlike = if($PasswordProfileObject.ExlcudeLookAlike -eq 'True'){$true}else{$false}
             $PassProfile.NoRepeatingCharacters = if($PasswordProfileObject.NoRepeatingCharacters -eq 'True'){$true}else{$false}

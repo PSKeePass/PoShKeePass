@@ -18,47 +18,16 @@ function Remove-KPPasswordProfile
         .OUTPUTS
             $null
     #>
-    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
-    param()
-    dynamicparam
-    {
-        ## Create and Define Validate Set Attribute
-        $PasswordProfileList = (Get-KPPasswordProfile).Name
-        if($PasswordProfileList)
-        {
-            $ParameterName = 'PasswordProfileName'
-            $AttributeCollection = New-Object -TypeName System.Collections.ObjectModel.Collection[System.Attribute]
-            $ParameterAttribute = New-Object -TypeName System.Management.Automation.ParameterAttribute
-            $ParameterAttribute.Mandatory = $true
-            $ParameterAttribute.Position = 0
-            $ParameterAttribute.ValueFromPipelineByPropertyName = $true
-            $AttributeCollection.Add($ParameterAttribute)
-
-            $ValidateSetAttribute = New-Object -TypeName System.Management.Automation.ValidateSetAttribute($PasswordProfileList)
-            $AttributeCollection.Add($ValidateSetAttribute)
-
-            ## Create and Define Allias Attribute
-            $AliasAttribute = New-Object -TypeName System.Management.Automation.AliasAttribute('Name')
-            $AttributeCollection.Add($AliasAttribute)
-
-            ## Create,Define, and Return DynamicParam
-            $RuntimeParameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter($ParameterName, [string], $AttributeCollection)
-            $RuntimeParameterDictionary = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameterDictionary
-            $RuntimeParameterDictionary.Add($ParameterName, $RuntimeParameter)
-            return $RuntimeParameterDictionary
-        }
-    }
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingPlainTextForPassword", "PasswordProfileName")]
+    param
+    (
+        [Parameter(Position = 0, Mandatory, ValueFromPipelineByPropertyName)]
+        [ValidateNotNullOrEmpty()]
+        [String] $PasswordProfileName
+    )
     begin
     {
-        if($PasswordProfileList)
-        {
-            $PasswordProfileName = $PSBoundParameters[$ParameterName]
-        }
-        else
-        {
-            Write-Warning -Message '[BEGIN] There are Currently No Password Profiles.'
-            Throw 'There are Currently No Password Profiles.'
-        }
     }
     process
     {
