@@ -46,7 +46,7 @@ function Get-KeePassEntry
         [Alias('FullPath')]
         [String] $KeePassEntryGroupPath,
 
-        [Parameter(Position = 1)]
+        [Parameter(Position = 1, ValueFromPipelineByPropertyName)]
         [String] $Title,
 
         [Parameter(Position = 2)]
