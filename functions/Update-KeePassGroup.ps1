@@ -78,19 +78,14 @@ function Update-KeePassGroup
     {
         Invoke-StandardBeginBlock -TestDBProfile -CreateKeePassConnection
 
-        if($KeePassParentGroupPath)
+        if($KeePassParentGroupPath -and $KeePassParentGroupPath -ne $KeePassGroup.FullPath)
         {
-            $KeePassParentGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassParentGroupPath
-            if(-not $KeePassParentGroup)
-            {
-                Write-Warning -Message ('[PROCESS] The Specified KeePass Parent Group Path ({0}) does not exist.' -f $KeePassGroupParentPath)
-                Throw 'The Specified KeePass Parent Group Path ({0}) does not exist.' -f $KeePassGroupParentPath
-            }
+            $KeePassParentGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassParentGroupPath -Stop
         }
 
         if($Force -or $PSCmdlet.ShouldProcess($KeePassGroup.FullPath))
         {
-            $KeePassGroupObject = Get-KPGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroup.FullPath | Where-Object { $_.CreationTime -eq $KeePassGroup.CreationTime}
+            $KeePassGroupObject = Get-KPGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroup.FullPath | Where-Object { $_.CreationTime -eq $KeePassGroup.CreationTime }
 
             if($KeePassGroupObject.Count -gt 1)
             {
@@ -99,10 +94,7 @@ function Update-KeePassGroup
                 Throw 'Found more than one group with the same path, name and creation time.'
             }
 
-            if(-not $IconName)
-            {
-                $IconName = $KeePassGroupObject.IconId
-            }
+            if(-not $IconName){ $IconName = $KeePassGroupObject.IconId }
 
             if($KeePassParentGroup)
             {
