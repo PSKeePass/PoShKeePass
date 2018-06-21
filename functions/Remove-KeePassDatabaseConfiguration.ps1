@@ -18,36 +18,14 @@ function Remove-KeePassDatabaseConfiguration
             $null
     #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
-    param()
-    dynamicparam
-    {
-        $DatabaseProfileList = (Get-KeePassDatabaseConfiguration -Stop).Name
-        if($DatabaseProfileList)
-        {
-            $ParameterName = 'DatabaseProfileName'
-            $AttributeCollection = New-Object -TypeName System.Collections.ObjectModel.Collection[System.Attribute]
-
-            $ParameterAttribute = New-Object -TypeName System.Management.Automation.ParameterAttribute
-            $ParameterAttribute.Mandatory = $true
-            $ParameterAttribute.Position = 0
-            $AttributeCollection.Add($ParameterAttribute)
-
-            $ValidateSetAttribute = New-Object -TypeName System.Management.Automation.ValidateSetAttribute($DatabaseProfileList)
-            $AttributeCollection.Add($ValidateSetAttribute)
-
-            $AliasAttribute = New-Object -TypeName System.Management.Automation.AliasAttribute('Name')
-            $AttributeCollection.Add($AliasAttribute)
-
-            $RuntimeParameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter($ParameterName, [string], $AttributeCollection)
-            $RuntimeParameterDictionary = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameterDictionary
-            $RuntimeParameterDictionary.Add($ParameterName, $RuntimeParameter)
-            return $RuntimeParameterDictionary
-        }
-    }
+    param
+    (
+        [Parameter(Position = 0, Mandatory, ValueFromPipelineByPropertyName)]
+        [ValidateNotNullOrEmpty()]
+        [string] $DatabaseProfileName
+    )
     begin
     {
-        if($DatabaseProfileList)
-        { $DatabaseProfileName = $PSBoundParameters[$ParameterName] }
     }
     process
     {

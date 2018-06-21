@@ -19,6 +19,7 @@ if (-not(Test-Path -Path $Global:KeePassConfigurationFile))
 {
     Write-Warning -Message '**IMPORTANT NOTE:** Please always keep an up-to-date backup of your keepass database files and key files if used.'
     Write-Warning -Message 'This message will not show again on next import.'
+
     if(-not $(Restore-KPConfigurationFile))
     {
         New-KPConfigurationFile
@@ -30,3 +31,21 @@ else
 }
 
 Export-ModuleMember *
+
+Register-ArgumentCompleter -ParameterName 'DatabaseProfileName' -ScriptBlock {
+    param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
+
+    Get-KeePassDatabaseConfiguration | Where-Object { $_.Name -ilike "${wordToComplete}*" } | ForEach-Object {
+        New-Object System.Management.Automation.CompletionResult ( $_.Name, $_.Name, 'ParameterValue', $_.Name)
+    }
+}
+
+Register-ArgumentCompleter -ParameterName 'IconName' -ScriptBlock {
+    param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
+
+    [KeePassLib.PwIcon].GetEnumValues() | Where-Object { $_ -ilike "${wordToComplete}*" } | ForEach-Object {
+        New-Object System.Management.Automation.CompletionResult ( $_, $_, 'ParameterValue', $_)
+    }
+}
+
+## add one for paths

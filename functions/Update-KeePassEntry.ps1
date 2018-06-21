@@ -92,18 +92,27 @@ function Update-KeePassEntry
         [Switch] $PassThru,
 
         [Parameter(Position = 8)]
-        [Switch] $Force
+        [Switch] $Force,
+
+        [Parameter(Position = 9, Mandatory, ValueFromPipelineByPropertyName)]
+        [ValidateNotNullOrEmpty()]
+        [string] $DatabaseProfileName,
+
+        [Parameter(Position = 10)]
+        [ValidateNotNullOrEmpty()]
+        [string] $IconName,
+
+        [Parameter(Position = 11)]
+        [ValidateNotNullOrEmpty()]
+        [PSobject] $MasterKey
     )
-    dynamicparam
-    {
-        Get-KPDynamicParameters -DBProfilePosition 9 -MasterKeyPosition 10 -PwIconPosition 11
-    }
     begin
     {
     }
     process
     {
-        Invoke-StandardBeginBlock -TestDBProfile -CreateKeePassConnection
+        $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
+        Remove-Variable -Name MasterKey -ea 0
 
         $KPEntry = Get-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassUuid $KeePassEntry.Uuid
         if(-not $KPEntry)

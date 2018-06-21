@@ -81,19 +81,27 @@ function New-KeePassEntry
         [String] $URL,
 
         [Parameter(Position = 6)]
-        [Switch] $PassThru
+        [Switch] $PassThru,
+
+        [Parameter(Position = 7, Mandatory, ValueFromPipelineByPropertyName)]
+        [ValidateNotNullOrEmpty()]
+        [string] $DatabaseProfileName,
+
+        [Parameter(Position = 8)]
+        [ValidateNotNullOrEmpty()]
+        [string] $IconName = 'Key',
+
+        [Parameter(Position = 9)]
+        [ValidateNotNullOrEmpty()]
+        [PSobject] $MasterKey
     )
-    dynamicparam
-    {
-        Get-KPDynamicParameters -DBProfilePosition 7 -MasterKeyPosition 8 -PwIconPosition 9
-    }
     begin
     {
     }
     process
     {
-        Invoke-StandardBeginBlock -TestDBProfile -CreateKeePassConnection
-        if(-not $IconName){ $IconName = 'Key' }
+        $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
+        Remove-Variable -Name MasterKey -ea 0
 
         try
         {

@@ -57,18 +57,23 @@ function Get-KeePassEntry
 
         [Parameter(Position = 4)]
         [Alias('AsPSCredential')]
-        [Switch] $WithCredential
+        [Switch] $WithCredential,
+
+        [Parameter(Position = 5, Mandatory, ValueFromPipelineByPropertyName)]
+        [ValidateNotNullOrEmpty()]
+        [string] $DatabaseProfileName,
+
+        [Parameter(Position = 6)]
+        [ValidateNotNullOrEmpty()]
+        [PSobject] $MasterKey
     )
-    dynamicparam
-    {
-        Get-KPDynamicParameters -DBProfilePosition 5 -MasterKeyPosition 6
-    }
     begin
     {
     }
     process
     {
-        Invoke-StandardBeginBlock -TestDBProfile -CreateKeePassConnection
+        $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
+        Remove-Variable -Name MasterKey -ea 0
 
         [hashtable] $params = @{
             'KeePassConnection' = $KeePassConnectionObject;

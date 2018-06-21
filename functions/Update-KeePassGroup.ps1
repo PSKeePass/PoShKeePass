@@ -65,18 +65,27 @@ function Update-KeePassGroup
         [Switch] $PassThru,
 
         [Parameter(Position = 4)]
-        [Switch] $Force
+        [Switch] $Force,
+
+        [Parameter(Position = 5, Mandatory, ValueFromPipelineByPropertyName)]
+        [ValidateNotNullOrEmpty()]
+        [string] $DatabaseProfileName,
+
+        [Parameter(Position = 6)]
+        [ValidateNotNullOrEmpty()]
+        [string] $IconName,
+
+        [Parameter(Position = 7)]
+        [ValidateNotNullOrEmpty()]
+        [PSobject] $MasterKey
     )
-    dynamicparam
-    {
-        Get-KPDynamicParameters -DBProfilePosition 5 -MasterKeyPosition 6 -PwIconPosition 7
-    }
     begin
     {
     }
     process
     {
-        Invoke-StandardBeginBlock -TestDBProfile -CreateKeePassConnection
+        $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
+        Remove-Variable -Name MasterKey -ea 0
 
         if($KeePassParentGroupPath -and $KeePassParentGroupPath -ne $KeePassGroup.FullPath)
         {

@@ -41,12 +41,16 @@ function Get-KeePassGroup
         [String] $KeePassGroupPath,
 
         [Parameter(Position = 1)]
-        [Switch] $AsPlainText
+        [Switch] $AsPlainText,
+
+        [Parameter(Position = 2, Mandatory, ValueFromPipelineByPropertyName)]
+        [ValidateNotNullOrEmpty()]
+        [string] $DatabaseProfileName,
+
+        [Parameter(Position = 3)]
+        [ValidateNotNullOrEmpty()]
+        [PSobject] $MasterKey
     )
-    dynamicparam
-    {
-        Get-KPDynamicParameters -DBProfilePosition 2 -MasterKeyPosition 3
-    }
     begin
     {
         if($AsPlainText)
@@ -54,7 +58,8 @@ function Get-KeePassGroup
     }
     process
     {
-        Invoke-StandardBeginBlock -TestDBProfile -CreateKeePassConnection
+        $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
+        Remove-Variable -Name MasterKey -ea 0
 
         [hashtable] $getKpGroupSplat = @{
             'KeePassConnection' = $KeePassConnectionObject
