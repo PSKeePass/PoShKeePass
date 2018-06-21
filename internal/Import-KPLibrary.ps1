@@ -4,7 +4,7 @@ function Import-KPLibrary
     param()
     process
     {
-        $Path = Resolve-Path ('{0}\..\bin\KeePassLib_2.34.dll' -f $PSScriptRoot)
+        $Path = Resolve-Path ('{0}\..\bin\KeePassLib_2.39.1.dll' -f $PSScriptRoot)
         Add-Type -Path $Path.Path
     }
 }

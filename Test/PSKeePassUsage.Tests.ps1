@@ -1,6 +1,12 @@
 Get-Module PoShKeePass | Remove-Module
 Import-Module "$PSScriptRoot\..\PoShKeePass.psm1" -force -ErrorAction Stop
 
+$Global:KPTestBackupDatabaseFile = "$($PSScriptRoot)\Includes\Backup\PSKeePassTestDatabase2.39.1.kdbx"
+$Global:KPTestDatabaseFile = "$($PSScriptRoot)\Includes\PSKeePassTestDatabase2.39.1.kdbx"
+$Global:KPTestKeyPath = "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.key"
+
+Copy-Item -Path $Global:KPTestBackupDatabaseFile -Destination $Global:KPTestDatabaseFile -Force
+
 InModuleScope "PoShKeePass" {
 
     Import-KPLibrary
@@ -440,11 +446,11 @@ InModuleScope "PoShKeePass" {
             # }
 
             ## Create Profile
-            New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -KeyPath "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.key"
+            New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath $Global:KPTestDatabaseFile -KeyPath $Global:KPTestKeyPath
 
             ## Reset Test DB
-            Remove-Item -Path "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -Force
-            Copy-Item -Path "$($PSScriptRoot)\Includes\Backup\PSKeePassTestDatabase.kdbx" -Destination "$($PSScriptRoot)\Includes\"
+            Remove-Item -Path $Global:KPTestDatabaseFile -Force
+            Copy-Item -Path $Global:KPTestBackupDatabaseFile -Destination "$($PSScriptRoot)\Includes\"
 
             It "Example 1.2: Creates a New KeePass Entry - Valid" {
                 New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'test' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' | Should Be $null
@@ -505,11 +511,11 @@ InModuleScope "PoShKeePass" {
             # }
 
             ## Create Profile
-            New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -KeyPath "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.key"
+            New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath $Global:KPTestDatabaseFile -KeyPath $Global:KPTestKeyPath
 
             ## Reset Test DB
-            Remove-Item -Path "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -Force
-            Copy-Item -Path "$($PSScriptRoot)\Includes\Backup\PSKeePassTestDatabase.kdbx" -Destination "$($PSScriptRoot)\Includes\"
+            Remove-Item -Path $Global:KPTestDatabaseFile -Force
+            Copy-Item -Path $Global:KPTestBackupDatabaseFile -Destination "$($PSScriptRoot)\Includes\"
 
             It "Example 1.2 Gets All KeePass Entries - Valid" {
                 $ResultEntries = Get-KeePassEntry -DatabaseProfileName SampleProfile
@@ -558,11 +564,11 @@ InModuleScope "PoShKeePass" {
             # }
 
             ## Create Profile
-            New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -KeyPath "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.key"
+            New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath $Global:KPTestDatabaseFile -KeyPath $Global:KPTestKeyPath
 
             ## Reset Test DB
-            Remove-Item -Path "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -Force
-            Copy-Item -Path "$($PSScriptRoot)\Includes\Backup\PSKeePassTestDatabase.kdbx" -Destination "$($PSScriptRoot)\Includes\"
+            Remove-Item -Path $Global:KPTestDatabaseFile -Force
+            Copy-Item -Path $Global:KPTestBackupDatabaseFile -Destination "$($PSScriptRoot)\Includes\"
 
             It "Example 1.2: Updates a KeePass Entry - Valid - Properties" {
                 New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'test1' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' | Should Be $null
@@ -637,11 +643,11 @@ InModuleScope "PoShKeePass" {
             # }
 
             ## Create Profile
-            New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -KeyPath "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.key"
+            New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath $Global:KPTestDatabaseFile -KeyPath $Global:KPTestKeyPath
 
             ## Reset Test DB
-            Remove-Item -Path "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -Force
-            Copy-Item -Path "$($PSScriptRoot)\Includes\Backup\PSKeePassTestDatabase.kdbx" -Destination "$($PSScriptRoot)\Includes\"
+            Remove-Item -Path $Global:KPTestDatabaseFile -Force
+            Copy-Item -Path $Global:KPTestBackupDatabaseFile -Destination "$($PSScriptRoot)\Includes\"
 
 
             It "Example 1.2: Removes a KeePass Entry - Valid " {
@@ -683,11 +689,11 @@ InModuleScope "PoShKeePass" {
             # }
 
             ## Create Profile
-            New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -KeyPath "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.key"
+            New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath $Global:KPTestDatabaseFile -KeyPath $Global:KPTestKeyPath
 
             ## Reset Test DB
-            Remove-Item -Path "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -Force
-            Copy-Item -Path "$($PSScriptRoot)\Includes\Backup\PSKeePassTestDatabase.kdbx" -Destination "$($PSScriptRoot)\Includes\"
+            Remove-Item -Path $Global:KPTestDatabaseFile -Force
+            Copy-Item -Path $Global:KPTestBackupDatabaseFile -Destination "$($PSScriptRoot)\Includes\"
 
             It "Example 1.2: Creates a New KeePass Group - Valid" {
                 New-KeePassGroup -KeePassGroupParentPath 'PSKeePassTestDatabase' -KeePassGroupName 'test1' -DatabaseProfileName 'SampleProfile' | Should Be $null
@@ -731,11 +737,11 @@ InModuleScope "PoShKeePass" {
             # }
 
             ## Create Profile
-            New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -KeyPath "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.key"
+            New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath $Global:KPTestDatabaseFile -KeyPath $Global:KPTestKeyPath
 
             ## Reset Test DB
-            Remove-Item -Path "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -Force
-            Copy-Item -Path "$($PSScriptRoot)\Includes\Backup\PSKeePassTestDatabase.kdbx" -Destination "$($PSScriptRoot)\Includes\"
+            Remove-Item -Path $Global:KPTestDatabaseFile -Force
+            Copy-Item -Path $Global:KPTestBackupDatabaseFile -Destination "$($PSScriptRoot)\Includes\"
 
             It "Example 1.2 Gets All KeePass Groups - Valid" {
                 $ResultGroups = Get-KeePassGroup -DatabaseProfileName SampleProfile
@@ -775,11 +781,11 @@ InModuleScope "PoShKeePass" {
             # }
 
             ## Create Profile
-            New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -KeyPath "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.key"
+            New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath $Global:KPTestDatabaseFile -KeyPath $Global:KPTestKeyPath
 
             ## Reset Test DB
-            Remove-Item -Path "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -Force
-            Copy-Item -Path "$($PSScriptRoot)\Includes\Backup\PSKeePassTestDatabase.kdbx" -Destination "$($PSScriptRoot)\Includes\"
+            Remove-Item -Path $Global:KPTestDatabaseFile -Force
+            Copy-Item -Path $Global:KPTestBackupDatabaseFile -Destination "$($PSScriptRoot)\Includes\"
 
             It "Example 1.2: Updates a KeePass Group - Valid - Name" {
                 New-KeePassGroup -KeePassGroupParentPath 'PSKeePassTestDatabase' -KeePassGroupName 'test1' -DatabaseProfileName 'SampleProfile' | Should Be $null
@@ -847,11 +853,11 @@ InModuleScope "PoShKeePass" {
             # }
 
             ## Create Profile
-            New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -KeyPath "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.key"
+            New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath $Global:KPTestDatabaseFile -KeyPath $Global:KPTestKeyPath
 
             ## Reset Test DB
-            Remove-Item -Path "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -Force
-            Copy-Item -Path "$($PSScriptRoot)\Includes\Backup\PSKeePassTestDatabase.kdbx" -Destination "$($PSScriptRoot)\Includes\"
+            Remove-Item -Path $Global:KPTestDatabaseFile -Force
+            Copy-Item -Path $Global:KPTestBackupDatabaseFile -Destination "$($PSScriptRoot)\Includes\"
 
 
             It "Example 1.2: Removes a KeePass Group - Valid " {
@@ -893,8 +899,8 @@ InModuleScope "PoShKeePass" {
     }
 
     ## Reset Test DB
-    Remove-Item -Path "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.kdbx" -Force
-    Copy-Item -Path "$($PSScriptRoot)\Includes\Backup\PSKeePassTestDatabase.kdbx" -Destination "$($PSScriptRoot)\Includes\"
+    Remove-Item -Path $Global:KPTestDatabaseFile -Force
+    Copy-Item -Path $Global:KPTestBackupDatabaseFile -Destination "$($PSScriptRoot)\Includes\"
 }
 
 $UpdateVersion = Read-Host -Prompt 'Update Version [Y\n]'
