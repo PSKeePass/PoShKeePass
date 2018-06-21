@@ -241,30 +241,20 @@ InModuleScope "PoShKeePass" {
                 Get-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' | Should Be $null
             }
 
-            <#
-                ## On Hold until can figure out pipe line for this
-                # It "Example 1.2: Remove Database Configuration Profile - Valid - By Name - Via Pipeline" {
-                #     New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount | Should Be $null
+            It "Example 1.2: Remove Database Configuration Profile - Valid - By Name - Via Pipeline" {
+                New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount | Should Be $null
 
-                #     Get-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' | Remove-KeePassDatabaseConfiguration -confirm:$false | Should Be $null
+                Get-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' | Remove-KeePassDatabaseConfiguration -confirm:$false | Should Be $null
 
-                #     Get-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' | Should Be $null
-                # }
+                Get-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' | Should Be $null
+            }
 
-                ## On Hold until can figure out pipe line for this
-                # It "Example 1.3: Remove Database Configuration Profile - Valid - Multiple - Via Pipeline" {
-                #     New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount | Should Be $null
+            It "Example 1.3: Remove Database Configuration Profile - Valid - Multiple - Via Pipeline" {
+                New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount | Should Be $null
 
-                #     New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile1' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount | Should Be $null
+                New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile1' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount | Should Be $null
 
-                #     Get-KeePassDatabaseConfiguration | Remove-KeePassDatabaseConfiguration -confirm:$false | Should Be $null
-
-                #     Get-KeePassDatabaseConfiguration | Should Be $null
-                # }
-            #>
-            It "Example 1.2: Remove Database Configuration Profile - Invalid - No Profiles Exist." {
-
-                # { Remove-KeePassDatabaseConfiguration -confirm:$false } | Should Throw "Cannot retrieve the dynamic parameters for the cmdlet. InvalidKeePassConfiguration : No KeePass Configuration has been created."
+                Get-KeePassDatabaseConfiguration | Remove-KeePassDatabaseConfiguration -confirm:$false | Should Be $null
 
                 Get-KeePassDatabaseConfiguration | Should Be $null
             }

@@ -21,6 +21,7 @@ function Remove-KeePassDatabaseConfiguration
     (
         [Parameter(Position = 0, Mandatory, ValueFromPipelineByPropertyName)]
         [ValidateNotNullOrEmpty()]
+        [Alias('Name')]
         [string] $DatabaseProfileName
     )
     begin
