@@ -56,4 +56,4 @@ Register-ArgumentCompleter -ParameterName 'PasswordProfileName' -ScriptBlock {
     }
 }
 
-## add one for paths
+## add one for paths - can't do this until connection management is implemented.

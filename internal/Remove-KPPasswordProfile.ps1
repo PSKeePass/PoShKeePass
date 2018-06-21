@@ -31,7 +31,7 @@ function Remove-KPPasswordProfile
     }
     process
     {
-        if (-not (Test-Path -Path $Global:KeePassConfigurationFile))
+        if(-not (Test-Path -Path $Global:KeePassConfigurationFile))
         {
             Write-Verbose -Message '[PROCESS] A KeePass Configuration File does not exist.'
         }
