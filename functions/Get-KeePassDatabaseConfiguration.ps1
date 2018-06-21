@@ -7,7 +7,6 @@ function Get-KeePassDatabaseConfiguration
             Function to Retrieve a or all KeePass Database Configuration Profiles saved to the KeePassConfiguration.xml file.
         .PARAMETER DatabaseProfileName
             Specify the name of the profile to lookup.
-            Note this is a Dynamic Parameter and will only be available if there are profiles in the KeePassConfiguration.xml.
         .EXAMPLE
             PS> Get-KeePassDatabaseConfiguration
 

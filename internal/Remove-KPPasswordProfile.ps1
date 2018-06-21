@@ -7,7 +7,6 @@ function Remove-KPPasswordProfile
             Removes a specified password profile from the KeePassConfiguration.xml file.
         .PARAMETER PasswordProfileName
             Specify the Password Profile to be delete from the config file.
-            Note this is a Dynamic Parameter.
         .EXAMPLE
             PS> Remove-KPPasswordProfile -PasswordProfileName 'Personal'
 

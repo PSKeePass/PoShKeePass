@@ -7,7 +7,6 @@ function Remove-KeePassDatabaseConfiguration
             This function allows a specified database configuration profile to be removed from the KeePassConfiguration.xml file.
         .PARAMETER DatabaseProfileName
             Specify the name of the profile to be deleted.
-            Note this is a Dynamic Parameter and will only be available if there are profiles to be removed.
         .EXAMPLE
             PS> Remove-KeePassDatabaseConfiguration -DatabaseProfileName 'Personal'
 

@@ -13,8 +13,6 @@ function Get-KeePassGroup
             Specify this parameter if you want the KeePass database entries to be returns in plain text objects.
         .PARAMETER DatabaseProfileName
             *This Parameter is required in order to access your KeePass database.
-            *This is a Dynamic Parameter that is populated from the KeePassConfiguration.xml.
-                *You can generated this file by running the New-KeePassDatabaseConfiguration function.
         .PARAMETER MasterKey
             Specify a SecureString MasterKey if necessary to authenticat a keepass databse.
             If not provided and the database requires one you will be prompted for it.

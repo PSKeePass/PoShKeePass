@@ -68,8 +68,7 @@ function New-KeePassPassword
         .PARAMETER PasswordProfileName
             *Specify this parameter to use a previously saved password profile to genreate a password.
             *Note:
-                *This supports Tab completion as it will get all saved profiles. (ie its a dynamic parameter.)
-                *Since it is a dynamic parameter it will only show up if there are already profiles to use.
+                *This supports Tab completion as it will get all saved profiles.
         .INPUTS
             String
             Switch

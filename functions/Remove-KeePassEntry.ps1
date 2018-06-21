@@ -9,8 +9,6 @@ function Remove-KeePassEntry
             The KeePass Entry to be removed. Use the Get-KeePassEntry function to get this object.
         .PARAMETER DatabaseProfileName
             *This Parameter is required in order to access your KeePass database.
-            *This is a Dynamic Parameter that is populated from the KeePassConfiguration.xml.
-                *You can generated this file by running the New-KeePassDatabaseConfiguration function.
         .PARAMETER NoRecycle
             Specify this option to Permanently delete the entry and not recycle it.
         .PARAMETER Force

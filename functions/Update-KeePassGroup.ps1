@@ -13,8 +13,6 @@ function Update-KeePassGroup
                 * Path Separator is the foward slash character '/'
         .PARAMETER DatabaseProfileName
             *This Parameter is required in order to access your KeePass database.
-            *This is a Dynamic Parameter that is populated from the KeePassConfiguration.xml.
-                *You can generated this file by running the New-KeePassDatabaseConfiguration function.
         .PARAMETER GroupName
             Specify the GroupName to change the specified group to.
         .PARAMETER PassThru
