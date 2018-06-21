@@ -8,7 +8,7 @@ if(-not $BuildPath)
 {
     Write-Verbose -Message 'Setting up Build Path'
     $RawPSD = Get-Content -Path "$($PSScriptRoot)\PoShKeePass.psd1"
-    $ModuleVersion = ($RawPSD | ? { $_ -match "^\s+ModuleVersion.+$" }) -replace '.+(\d\.\d\.\d\.\d).$', '$1'
+    $ModuleVersion = ($RawPSD | Where-Object { $_ -match "^\s+ModuleVersion.+$" }) -replace '.+(\d\.\d\.\d\.\d).$', '$1'
     $BuildPath = ('{0}\build\{1}\PoShKeePass' -f $PSScriptRoot, $ModuleVersion)
 
     if(Test-Path $BuildPath)
