@@ -121,17 +121,29 @@ function Update-KeePassEntry
             Throw 'The Specified KeePass Entry does not exist or cannot be found.'
         }
 
-        ## Set Default Icon if not specified.
-        if(-not $IconName)
-        {
-            $IconName = $KPEntry.IconId
-        }
-
         if($Force -or $PSCmdlet.ShouldProcess("Title: $($KPEntry.Strings.ReadSafe('Title')), `n`tUserName: $($KPEntry.Strings.ReadSafe('UserName')), `n`tGroupPath: $($KPEntry.ParentGroup.GetFullPath('/', $true))."))
         {
             $KeePassGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassEntryGroupPath -Stop
 
-            Set-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassEntry $KPEntry -Title $Title -UserName $UserName -KeePassPassword $KeePassPassword -Notes $Notes -URL $URL -KeePassGroup $KeePassGroup -IconName $IconName -PassThru:$PassThru -Force | ConvertTo-KPPSObject -DatabaseProfileName $DatabaseProfileName
+            $setKPEntrySplat = @{
+                URL               = $URL
+                KeePassEntry      = $KPEntry
+                UserName          = $UserName
+                Notes             = $Notes
+                KeePassPassword   = $KeePassPassword
+                KeePassGroup      = $KeePassGroup
+                PassThru          = $PassThru
+                Force             = $true
+                Title             = $Title
+                KeePassConnection = $KeePassConnectionObject
+            }
+
+            if($IconName)
+            {
+                $setKPEntrySplat.IconName = $IconName
+            }
+
+            Set-KPEntry @setKPEntrySplat | ConvertTo-KPPSObject -DatabaseProfileName $DatabaseProfileName
         }
     }
     end

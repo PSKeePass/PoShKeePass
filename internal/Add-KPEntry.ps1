@@ -122,12 +122,9 @@ function Add-KPEntry
                 $KeePassEntry.Strings.Set('URL', $SecureURL)
             }
 
-            if($IconName)
+            if($IconName -and $IconName -ne $KeePassEntry.IconId)
             {
-                if($IconName -ne $KeePassEntry.IconId)
-                {
-                    $KeePassEntry.IconId = $IconName
-                }
+                $KeePassEntry.IconId = $IconName
             }
 
             $KeePassGroup.AddEntry($KeePassEntry, $true)

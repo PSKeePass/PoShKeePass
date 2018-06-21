@@ -103,16 +103,19 @@ function Update-KeePassGroup
                 Throw 'Found more than one group with the same path, name and creation time.'
             }
 
-            if(-not $IconName){ $IconName = $KeePassGroupObject.IconId }
+            $setKPGroupSplat = @{
+                KeePassConnection = $KeePassConnectionObject
+                KeePassGroup      = $KeePassGroupObject
+                PassThru          = $PassThru
+                Force             = $true
+                GroupName         = $GroupName
+                Confirm           = $false
+            }
 
-            if($KeePassParentGroup)
-            {
-                Set-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroupObject -KeePassParentGroup $KeePassParentGroup -GroupName $GroupName -IconName $IconName -PassThru:$PassThru -Confirm:$false -Force
-            }
-            else
-            {
-                Set-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroupObject -GroupName $GroupName -IconName $IconName -PassThru:$PassThru -Confirm:$false -Force
-            }
+            if($IconName){ $setKPGroupSplat.IconName = $IconName }
+            if($KeePassParentGroup){ $setKPGroupSplat.KeePassParentGroup = $KeePassParentGroup }
+
+            Set-KPGroup @setKPGroupSplat
         }
     }
     end
