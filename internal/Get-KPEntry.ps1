@@ -76,7 +76,7 @@ function Get-KPEntry
             else
             {
                 ## This a lame way of filtering.
-                if ($KeePassGroup)
+                if($KeePassGroup)
                 {
                     $KeePassItems = foreach($_keepassItem in $KeePassItems)
                     {
@@ -87,7 +87,7 @@ function Get-KPEntry
                     }
                 }
 
-                if ($Title)
+                if($Title)
                 {
                     $KeePassItems = foreach($_keepassItem in $KeePassItems)
                     {
@@ -98,7 +98,7 @@ function Get-KPEntry
                     }
                 }
 
-                if ($UserName)
+                if($UserName)
                 {
                     $KeePassItems = foreach($_keepassItem in $KeePassItems)
                     {

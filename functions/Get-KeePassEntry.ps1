@@ -13,8 +13,6 @@ function Get-KeePassEntry
             Specify this parameter if you want the KeePass database entries to be returns in plain text objects.
         .PARAMETER DatabaseProfileName
             *This Parameter is required in order to access your KeePass database.
-            *This is a Dynamic Parameter that is populated from the KeePassConfiguration.xml.
-                *You can generated this file by running the New-KeePassDatabaseConfiguration function.
         .PARAMETER MasterKey
             Specify a SecureString MasterKey if necessary to authenticat a keepass databse.
             If not provided and the database requires one you will be prompted for it.
@@ -38,114 +36,62 @@ function Get-KeePassEntry
         .OUTPUTS
             PSObject
     #>
-    [CmdletBinding(DefaultParameterSetName = 'None')]
+    [CmdletBinding()]
     param
     (
-        [Parameter(Position = 0, Mandatory = $false, ParameterSetName = 'None')]
-        [Parameter(Position = 0, Mandatory = $false, ParameterSetName = 'AsPlainText')]
-        [Parameter(Position = 0, Mandatory = $false, ParameterSetName = 'AsPSCredential')]
+        [Parameter(Position = 0, ValueFromPipelineByPropertyName)]
         [ValidateNotNullOrEmpty()]
+        [Alias('FullPath')]
         [String] $KeePassEntryGroupPath,
 
-        [Parameter(Position = 1, Mandatory = $false, ParameterSetName = 'None')]
-        [Parameter(Position = 1, Mandatory = $true, ParameterSetName = 'AsPSCredential')]
-        [Parameter(Position = 1, Mandatory = $false, ParameterSetName = 'AsPlainText')]
+        [Parameter(Position = 1, ValueFromPipelineByPropertyName)]
         [String] $Title,
 
-        [Parameter(Position = 2, Mandatory = $false, ParameterSetName = 'AsPlainText')]
+        [Parameter(Position = 2)]
+        [string] $UserName,
+
+        [Parameter(Position = 3)]
         [Switch] $AsPlainText,
 
-        [Parameter(Position = 3, Mandatory = $false, ParameterSetName = 'AsPSCredential')]
-        [Switch] $AsPSCredential
+        [Parameter(Position = 4)]
+        [Alias('AsPSCredential')]
+        [Switch] $WithCredential,
+
+        [Parameter(Position = 5, Mandatory, ValueFromPipelineByPropertyName)]
+        [ValidateNotNullOrEmpty()]
+        [string] $DatabaseProfileName,
+
+        [Parameter(Position = 6)]
+        [ValidateNotNullOrEmpty()]
+        [PSobject] $MasterKey
     )
-    dynamicparam
-    {
-        Get-KPDynamicParameters -DBProfilePosition 4 -MasterKeyPosition 5
-    }
     begin
     {
-        ## Get a list of all database profiles saved to the config xml.
-        $DatabaseProfileList = (Get-KeePassDatabaseConfiguration).Name
-        ## If no profiles exists do not return the parameter.
-        if($DatabaseProfileList)
-        {
-            $DatabaseProfileName = $PSBoundParameters['DatabaseProfileName']
-            $MasterKey = $PSBoundParameters['MasterKey']
-            ## Open the database
-            $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
-            ## remove any sensitive data
-            if($MasterKey){Remove-Variable -Name MasterKey}
-        }
-        else
-        {
-            Write-Warning -Message '[BEGIN] There are Currently No Database Configuration Profiles.'
-            Write-Warning -Message '[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function.'
-            Throw 'There are Currently No Database Configuration Profiles.'
-        }
     }
     process
     {
+        $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
+        Remove-Variable -Name MasterKey -ea 0
+
+        [hashtable] $params = @{
+            'KeePassConnection' = $KeePassConnectionObject;
+        }
+
         if($KeePassEntryGroupPath)
         {
-            ## Get All entries in the specified group
-            $KeePassGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassEntryGroupPath
-            if(-not $KeePassGroup)
-            {
-                Write-Warning -Message ('[PROCESS] The Specified KeePass Entry Group Path ({0}) does not exist.' -f $KeePassEntryGroupPath)
-                Throw 'The Specified KeePass Entry Group Path ({0}) does not exist.' -f $KeePassEntryGroupPath
-            }
-            if($Title)
-            {
-                $ResultEntries = Get-KpEntry -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroup -Title $Title
-            }
-            else
-            {
-                $ResultEntries = Get-KpEntry -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroup
-            }
+            $KeePassGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassEntryGroupPath -Stop
+
+            $params.KeePassGroup = $KeePassGroup
         }
-        else
-        {
-            ## Get all entries in all groups.
-            if($Title)
-            {
-                $ResultEntries = Get-KPEntry -KeePassConnection $KeePassConnectionObject -Title $Title
-            }
-            else
-            {
-                $ResultEntries = Get-KPEntry -KeePassConnection $KeePassConnectionObject
-            }
-        }
-        Write-Verbose $PSCmdlet.ParameterSetName
-        switch ($PSCmdlet.ParameterSetName)
-        {
-            "AsPlainText"
-            {
-                $ResultEntries | ConvertTo-KpPsObject
-            }
-            "AsPSCredential"
-            {
-                if ($ResultEntries.count -gt 1)
-                {
-                    Write-Warning "Multiple entries found, will only return first entry as PSCredential"
-                }
-                $secureString = ConvertTo-SecureString -String ($ResultEntries[0].Strings.ReadSafe('Password')) -AsPlainText -Force
-                [string] $username = $ResultEntries[0].Strings.ReadSafe('UserName')
-                if ($username.Length -eq 0)
-                {
-                    $Errorcode = 'ERROR: Cannot create credential, username is blank'
-                    throw
-                }
-                New-Object System.Management.Automation.PSCredential($username, $secureString)
-            }
-            default
-            {
-                $ResultEntries
-            }
-        }
+
+        if($Title){ $params.Title = $Title }
+
+        if($UserName){ $params.UserName = $UserName }
+
+        Get-KPEntry @params | ConvertTo-KpPsObject -AsPlainText:$AsPlainText -WithCredential:$WithCredential -DatabaseProfileName $DatabaseProfileName
     }
     end
     {
-        ## Clean up database connection
         Remove-KPConnection -KeePassConnection $KeePassConnectionObject
     }
 }

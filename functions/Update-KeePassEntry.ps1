@@ -13,8 +13,6 @@ function Update-KeePassEntry
                 * Path Separator is the foward slash character '/'
         .PARAMETER DatabaseProfileName
             *This Parameter is required in order to access your KeePass database.
-            *This is a Dynamic Parameter that is populated from the KeePassConfiguration.xml.
-                *You can generated this file by running the New-KeePassDatabaseConfiguration function.
         .PARAMETER Title
             Specify the Title of the new KeePass Database Entry.
         .PARAMETER UserName
@@ -55,74 +53,65 @@ function Update-KeePassEntry
         .OUTPUTS
             $null
     #>
-    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     param
     (
-        [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true)]
+        [Parameter(Position = 0, Mandatory, ValueFromPipeline)]
         [ValidateNotNullOrEmpty()]
         [PSObject] $KeePassEntry,
 
-        [Parameter(Position = 1, Mandatory = $true)]
+        [Parameter(Position = 1, Mandatory, ValueFromPipelineByPropertyName)]
         [ValidateNotNullOrEmpty()]
+        [Alias('FullPath')]
         [String] $KeePassEntryGroupPath,
 
-        [Parameter(Position = 2, Mandatory = $false)]
+        [Parameter(Position = 2)]
         [ValidateNotNullOrEmpty()]
         [String] $Title,
 
-        [Parameter(Position = 3, Mandatory = $false)]
+        [Parameter(Position = 3)]
         [ValidateNotNullOrEmpty()]
         [String] $UserName,
 
-        [Parameter(Position = 4, Mandatory = $false)]
+        [Parameter(Position = 4)]
         [ValidateNotNullOrEmpty()]
         [ValidateScript({$_.GetType().Name -eq 'ProtectedString' -or $_.GetType().Name -eq 'SecureString'})]
         [PSObject] $KeePassPassword,
 
-        [Parameter(Position = 5, Mandatory = $false)]
+        [Parameter(Position = 5)]
         [ValidateNotNullOrEmpty()]
         [String] $Notes,
 
-        [Parameter(Position = 6, Mandatory = $false)]
+        [Parameter(Position = 6)]
         [ValidateNotNullOrEmpty()]
         [String] $URL,
 
-        [Parameter(Position = 7, Mandatory = $false)]
+        [Parameter(Position = 7)]
         [Switch] $PassThru,
 
-        [Parameter(Position = 8, Mandatory = $false)]
-        [Switch] $Force
+        [Parameter(Position = 8)]
+        [Switch] $Force,
 
-        ## Dynamic Param Position = 9
+        [Parameter(Position = 9, Mandatory, ValueFromPipelineByPropertyName)]
+        [ValidateNotNullOrEmpty()]
+        [string] $DatabaseProfileName,
+
+        [Parameter(Position = 10)]
+        [ValidateNotNullOrEmpty()]
+        [string] $IconName,
+
+        [Parameter(Position = 11)]
+        [ValidateNotNullOrEmpty()]
+        [PSobject] $MasterKey
     )
-    dynamicparam
-    {
-        Get-KPDynamicParameters -DBProfilePosition 9 -MasterKeyPosition 10 -PwIconPosition 11
-    }
     begin
     {
-        ## Get a list of all database profiles saved to the config xml.
-        $DatabaseProfileList = (Get-KeePassDatabaseConfiguration).Name
-        ## If no profiles exists do not return the parameter.
-        if($DatabaseProfileList)
-        {
-            $DatabaseProfileName = $PSBoundParameters['DatabaseProfileName']
-            $MasterKey = $PSBoundParameters['MasterKey']
-            $IconName = $PSBoundParameters['IconName']
-            ## Open the database
-            $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
-            ## remove any sensitive data
-            if($MasterKey){Remove-Variable -Name MasterKey}
-        }
-        else
-        {
-            Write-Warning -Message '[BEGIN] There are Currently No Database Configuration Profiles.'
-            Write-Warning -Message '[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function.'
-            Throw 'There are Currently No Database Configuration Profiles.'
-        }
     }
     process
     {
+        $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
+        Remove-Variable -Name MasterKey -ea 0
+
         $KPEntry = Get-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassUuid $KeePassEntry.Uuid
         if(-not $KPEntry)
         {
@@ -130,21 +119,29 @@ function Update-KeePassEntry
             Throw 'The Specified KeePass Entry does not exist or cannot be found.'
         }
 
-        ## Set Default Icon if not specified.
-        if(-not $IconName)
-        {
-            $IconName = $KPEntry.IconId
-        }
-
         if($Force -or $PSCmdlet.ShouldProcess("Title: $($KPEntry.Strings.ReadSafe('Title')), `n`tUserName: $($KPEntry.Strings.ReadSafe('UserName')), `n`tGroupPath: $($KPEntry.ParentGroup.GetFullPath('/', $true))."))
         {
-            $KeePassGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassEntryGroupPath
-            if(-not $KeePassGroup)
-            {
-                Write-Warning -Message ('[PROCESS] The Specified KeePass Entry Group Path ({0}) does not exist.' -f $KeePassEntryGroupPath)
-                Throw 'The Specified KeePass Entry Group Path ({0}) does not exist.' -f $KeePassEntryGroupPath
+            $KeePassGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassEntryGroupPath -Stop
+
+            $setKPEntrySplat = @{
+                URL               = $URL
+                KeePassEntry      = $KPEntry
+                UserName          = $UserName
+                Notes             = $Notes
+                KeePassPassword   = $KeePassPassword
+                KeePassGroup      = $KeePassGroup
+                PassThru          = $PassThru
+                Force             = $true
+                Title             = $Title
+                KeePassConnection = $KeePassConnectionObject
             }
-            Set-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassEntry $KPEntry -Title $Title -UserName $UserName -KeePassPassword $KeePassPassword -Notes $Notes -URL $URL -KeePassGroup $KeePassGroup -IconName $IconName -PassThru:$PassThru -Force
+
+            if($IconName)
+            {
+                $setKPEntrySplat.IconName = $IconName
+            }
+
+            Set-KPEntry @setKPEntrySplat | ConvertTo-KPPSObject -DatabaseProfileName $DatabaseProfileName
         }
     }
     end

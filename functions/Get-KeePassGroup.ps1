@@ -13,8 +13,6 @@ function Get-KeePassGroup
             Specify this parameter if you want the KeePass database entries to be returns in plain text objects.
         .PARAMETER DatabaseProfileName
             *This Parameter is required in order to access your KeePass database.
-            *This is a Dynamic Parameter that is populated from the KeePassConfiguration.xml.
-                *You can generated this file by running the New-KeePassDatabaseConfiguration function.
         .PARAMETER MasterKey
             Specify a SecureString MasterKey if necessary to authenticat a keepass databse.
             If not provided and the database requires one you will be prompted for it.
@@ -35,64 +33,43 @@ function Get-KeePassGroup
     [CmdletBinding()]
     param
     (
-        [Parameter(Position = 0, Mandatory = $false)]
+        [Parameter(Position = 0, ValueFromPipelineByPropertyName)]
         [ValidateNotNullOrEmpty()]
+        [Alias('FullPath')]
         [String] $KeePassGroupPath,
 
-        [Parameter(Position = 1, Mandatory = $false)]
-        [Switch] $AsPlainText
+        [Parameter(Position = 1)]
+        [Switch] $AsPlainText,
+
+        [Parameter(Position = 2, Mandatory, ValueFromPipelineByPropertyName)]
+        [ValidateNotNullOrEmpty()]
+        [string] $DatabaseProfileName,
+
+        [Parameter(Position = 3)]
+        [ValidateNotNullOrEmpty()]
+        [PSobject] $MasterKey
     )
-    dynamicparam
-    {
-        Get-KPDynamicParameters -DBProfilePosition 2 -MasterKeyPosition 3
-    }
     begin
     {
-        ## Get a list of all database profiles saved to the config xml.
-        $DatabaseProfileList = (Get-KeePassDatabaseConfiguration).Name
-        ## If no profiles exists do not return the parameter.
-        if($DatabaseProfileList)
-        {
-            $DatabaseProfileName = $PSBoundParameters['DatabaseProfileName']
-            $MasterKey = $PSBoundParameters['MasterKey']
-            ## Open the database
-            $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
-            ## remove any sensitive data
-            if($MasterKey){Remove-Variable -Name MasterKey}
-        }
-        else
-        {
-            Write-Warning -Message '[BEGIN] There are Currently No Database Configuration Profiles.'
-            Write-Warning -Message '[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function.'
-            Throw 'There are Currently No Database Configuration Profiles.'
-        }
+        if($AsPlainText)
+        { Write-Warning -Message 'The -AsPlainText switch parameter is deprecated and will be removed by end of year 2018!' }
     }
     process
     {
-        if($KeePassGroupPath)
-        {
-            ## Get All entries in the specified group
-            $ResultEntries = Get-KPGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroupPath
-        }
-        else
-        {
-            ## Get all entries in all groups.
-            $ResultEntries = Get-KPGroup -KeePassConnection $KeePassConnectionObject
+        $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
+        Remove-Variable -Name MasterKey -ea 0
+
+        [hashtable] $getKpGroupSplat = @{
+            'KeePassConnection' = $KeePassConnectionObject
         }
 
-        ## return results in plain text or not.
-        if($AsPlainText)
-        {
-            $ResultEntries | ConvertTo-KpPsObject
-        }
-        else
-        {
-            $ResultEntries
-        }
+        if($KeePassGroupPath)
+        { $getKpGroupSplat.FullPath = $KeePassGroupPath }
+
+        Get-KPGroup @getKpGroupSplat | ConvertTo-KpPsObject -DatabaseProfileName $DatabaseProfileName
     }
     end
     {
-        ## Clean up database connection
         Remove-KPConnection -KeePassConnection $KeePassConnectionObject
     }
 }

@@ -7,7 +7,6 @@ function Get-KeePassDatabaseConfiguration
             Function to Retrieve a or all KeePass Database Configuration Profiles saved to the KeePassConfiguration.xml file.
         .PARAMETER DatabaseProfileName
             Specify the name of the profile to lookup.
-            Note this is a Dynamic Parameter and will only be available if there are profiles in the KeePassConfiguration.xml.
         .EXAMPLE
             PS> Get-KeePassDatabaseConfiguration
 
@@ -24,16 +23,20 @@ function Get-KeePassDatabaseConfiguration
     [CmdletBinding()]
     param
     (
-        [Parameter(Position = 0, Mandatory = $false)]
+        [Parameter(Position = 0)]
         [ValidateNotNullOrEmpty()]
-        [String] $DatabaseProfileName
+        [String] $DatabaseProfileName,
+
+        [Parameter(Position = 1)]
+        [Switch] $Stop
     )
     process
     {
-        if (Test-Path -Path $Global:KeePassConfigurationFile)
+        if(Test-Path -Path $Global:KeePassConfigurationFile)
         {
             [Xml] $XML = New-Object -TypeName System.Xml.XmlDocument
             $XML.Load($Global:KeePassConfigurationFile)
+
             if($DatabaseProfileName)
             {
                 $ProfileResults = $XML.Settings.DatabaseProfiles.Profile | Where-Object { $_.Name -ilike $DatabaseProfileName }
@@ -43,19 +46,26 @@ function Get-KeePassDatabaseConfiguration
                 $ProfileResults = $XML.Settings.DatabaseProfiles.Profile
             }
 
+            if(-not $ProfileResults -and $Stop)
+            {
+                throw 'InvalidKeePassConfiguration : No KeePass Configuration has been created.'
+            }
+
             foreach($ProfileResult in $ProfileResults)
             {
                 $UseNetworkAccount = if($ProfileResult.UseNetworkAccount -eq 'True'){$true}else{$false}
                 $UseMasterKey = if($ProfileResult.UseMasterKey -eq 'True'){$true}else{$false}
 
-                $ProfileObject = New-Object -TypeName PSObject
-                $ProfileObject | Add-Member -MemberType NoteProperty -Name 'Name' -Value $ProfileResult.Name
-                $ProfileObject | Add-Member -MemberType NoteProperty -Name 'DatabasePath' -Value $ProfileResult.DatabasePath
-                $ProfileObject | Add-Member -MemberType NoteProperty -Name 'KeyPath' -Value $ProfileResult.KeyPath
-                $ProfileObject | Add-Member -MemberType NoteProperty -Name 'UseMasterKey' -Value $UseMasterKey
-                $ProfileObject | Add-Member -MemberType NoteProperty -Name 'UseNetworkAccount' -Value $UseNetworkAccount
-                $ProfileObject | Add-Member -MemberType NoteProperty -Name 'AuthenticationType' -Value $ProfileResult.AuthenticationType
-                $ProfileObject
+                [hashtable] $ProfileObject = [ordered]@{
+                    'Name'               = $ProfileResult.Name;
+                    'DatabasePath'       = $ProfileResult.DatabasePath;
+                    'KeyPath'            = $ProfileResult.KeyPath;
+                    'UseMasterKey'       = $UseMasterKey;
+                    'UseNetworkAccount'  = $UseNetworkAccount;
+                    'AuthenticationType' = $ProfileResult.AuthenticationType;
+                }
+
+                New-Object -TypeName PSObject -Property $ProfileObject
             }
         }
         else

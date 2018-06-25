@@ -9,8 +9,6 @@ function Remove-KeePassEntry
             The KeePass Entry to be removed. Use the Get-KeePassEntry function to get this object.
         .PARAMETER DatabaseProfileName
             *This Parameter is required in order to access your KeePass database.
-            *This is a Dynamic Parameter that is populated from the KeePassConfiguration.xml.
-                *You can generated this file by running the New-KeePassDatabaseConfiguration function.
         .PARAMETER NoRecycle
             Specify this option to Permanently delete the entry and not recycle it.
         .PARAMETER Force
@@ -24,66 +22,54 @@ function Remove-KeePassEntry
 
             This example removed the specified kee pass entry.
     #>
-    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     param
     (
-        [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true)]
+        [Parameter(Position = 0, Mandatory, ValueFromPipeline)]
         [ValidateNotNullOrEmpty()]
         [PSObject] $KeePassEntry,
 
-        [Parameter(Position = 1, Mandatory = $false)]
+        [Parameter(Position = 1)]
         [Switch] $NoRecycle,
 
-        [Parameter(Position = 2, Mandatory = $false)]
-        [Switch] $Force
+        [Parameter(Position = 2)]
+        [Switch] $Force,
+
+        [Parameter(Position = 3, Mandatory, ValueFromPipelineByPropertyName)]
+        [ValidateNotNullOrEmpty()]
+        [string] $DatabaseProfileName,
+
+        [Parameter(Position = 4)]
+        [ValidateNotNullOrEmpty()]
+        [PSobject] $MasterKey
     )
-    dynamicparam
-    {
-        Get-KPDynamicParameters -DBProfilePosition 3 -MasterKeyPosition 4
-    }
     begin
     {
-        ## Get a list of all database profiles saved to the config xml.
-        $DatabaseProfileList = (Get-KeePassDatabaseConfiguration).Name
-        ## If no profiles exists do not return the parameter.
-        if($DatabaseProfileList)
-        {
-            $DatabaseProfileName = $PSBoundParameters['DatabaseProfileName']
-            $MasterKey = $PSBoundParameters['MasterKey']
-            ## Open the database
-            $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
-            ## remove any sensitive data
-            if($MasterKey){Remove-Variable -Name MasterKey}
-        }
-        else
-        {
-            Write-Warning -Message '[BEGIN] There are Currently No Database Configuration Profiles.'
-            Write-Warning -Message '[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function.'
-            Throw 'There are Currently No Database Configuration Profiles.'
-        }
     }
     process
     {
+        $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
+        Remove-Variable -Name MasterKey -ea 0
+
         $KPEntry = Get-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassUuid $KeePassEntry.Uuid
         if(-not $KPEntry)
         {
             Write-Warning -Message '[PROCESS] The Specified KeePass Entry does not exist or cannot be found.'
             Throw 'The Specified KeePass Entry does not exist or cannot be found.'
         }
+
         $EntryDisplayName = '{0}/{1}' -f $KPEntry.ParentGroup.GetFullPath('/', $true), $KPEntry.Strings.ReadSafe('Title')
         if($Force -or $PSCmdlet.ShouldProcess($EntryDisplayName))
         {
-            if($NoRecycle)
-            {
-                if($Force -or $PSCmdlet.ShouldContinue('Recycle Bin Does Not Exist or the -NoRecycle Option Has been Specified.', "Do you want to continue to Permanently Delete this Entry: $EntryDisplayName)?"))
-                {
-                    Remove-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassEntry $KPEntry -NoRecycle -Confirm:$false -Force
-                }
+            [hashtable] $params = @{
+                'KeePassConnection' = $KeePassConnectionObject;
+                'KeePassEntry'      = $KPEntry;
+                'Confirm'           = $false;
+                'Force'             = $Force;
             }
-            else
-            {
-                Remove-KPEntry -KeePassConnection $KeePassConnectionObject -KeePassEntry $KPEntry -Confirm:$false -Force
-            }
+
+            if($NoRecycle){ $params.NoRecycle = $NoRecycle }
+            Remove-KPEntry @params
         }
     }
     end

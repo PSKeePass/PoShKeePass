@@ -9,8 +9,6 @@ function Remove-KeePassGroup
             The KeePass Group to be removed. Use the Get-KeePassEntry function to get this object.
         .PARAMETER DatabaseProfileName
             *This Parameter is required in order to access your KeePass database.
-            *This is a Dynamic Parameter that is populated from the KeePassConfiguration.xml.
-                *You can generated this file by running the New-KeePassDatabaseConfiguration function.
         .PARAMETER NoRecycle
             Specify this option to Permanently delete the Group and not recycle it.
         .PARAMETER Force
@@ -24,61 +22,36 @@ function Remove-KeePassGroup
 
             This example removed the specified keepass Group.
     #>
-    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     param
     (
-        [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true)]
+        [Parameter(Position = 0, Mandatory, ValueFromPipeline)]
         [ValidateNotNullOrEmpty()]
         [PSObject] $KeePassGroup,
 
-        [Parameter(Position = 1, Mandatory = $false)]
+        [Parameter(Position = 1)]
         [Switch] $NoRecycle,
 
-        [Parameter(Position = 2, Mandatory = $false)]
-        [Switch] $Force
+        [Parameter(Position = 2)]
+        [Switch] $Force,
+
+        [Parameter(Position = 3, Mandatory, ValueFromPipelineByPropertyName)]
+        [ValidateNotNullOrEmpty()]
+        [string] $DatabaseProfileName,
+
+        [Parameter(Position = 4)]
+        [ValidateNotNullOrEmpty()]
+        [PSobject] $MasterKey
     )
-    dynamicparam
-    {
-        Get-KPDynamicParameters -DBProfilePosition 3 -MasterKeyPosition 4
-    }
     begin
     {
-        ## Get a list of all database profiles saved to the config xml.
-        $DatabaseProfileList = (Get-KeePassDatabaseConfiguration).Name
-        ## If no profiles exists do not return the parameter.
-        if($DatabaseProfileList)
-        {
-            $DatabaseProfileName = $PSBoundParameters['DatabaseProfileName']
-            $MasterKey = $PSBoundParameters['MasterKey']
-            ## Open the database
-            $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
-            ## remove any sensitive data
-            if($MasterKey){Remove-Variable -Name MasterKey}
-        }
-        else
-        {
-            Write-Warning -Message '[BEGIN] There are Currently No Database Configuration Profiles.'
-            Write-Warning -Message '[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function.'
-            Throw 'There are Currently No Database Configuration Profiles.'
-        }
     }
     process
     {
-        if($KeePassGroup.GetType().Name -eq 'PwGroup')
-        {
-            $KeePassGroupFullPath = '{0}' -f $KeePassGroup.GetFullPath('/', $true)
-        }
-        else
-        {
-            $KeePassGroupFullPath = '{0}/{1}' -f $KeePassGroup.FullPath, $KeePassGroup.Name
-        }
-        $KeePassGroupObject = Get-KPGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroupFullPath | Where-Object { $_.CreationTime -eq $KeePassGroup.CreationTime}
+        $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
+        Remove-Variable -Name MasterKey -ea 0
 
-        if(-not $KeePassGroupObject)
-        {
-            Write-Warning -Message '[PROCESS] The Specified KeePass Group does not exist.'
-            Throw 'The Specified KeePass Group does not exist.'
-        }
+        $KeePassGroupObject = Get-KPGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroup.FullPath -Stop | Where-Object { $_.CreationTime -eq $KeePassGroup.CreationTime}
 
         if($KeePassGroupObject.Count -gt 1)
         {
@@ -87,7 +60,7 @@ function Remove-KeePassGroup
             Throw 'Found more than one group with the same path, name and creation time. Stoping Removal.'
         }
 
-        if($Force -or $PSCmdlet.ShouldProcess($KeePassGroupFullPath))
+        if($Force -or $PSCmdlet.ShouldProcess($KeePassGroup.FullPath))
         {
             if(-not $NoRecycle)
             {
@@ -95,7 +68,7 @@ function Remove-KeePassGroup
             }
             else
             {
-                if($Force -or $PSCmdlet.ShouldContinue('Recycle Bin Does Not Exist or the -NoRecycle Option Has been Specified.', "Remove this Group permanetly: $KeePassGroupFullPath?"))
+                if($Force -or $PSCmdlet.ShouldContinue('Recycle Bin Does Not Exist or the -NoRecycle Option Has been Specified.', "Remove this Group permanetly: $KeePassGroup.FullPath?"))
                 {
                     Remove-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroupObject -NoRecycle:$NoRecycle -Confirm:$false -Force
                 }

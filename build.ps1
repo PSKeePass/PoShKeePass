@@ -8,7 +8,7 @@ if(-not $BuildPath)
 {
     Write-Verbose -Message 'Setting up Build Path'
     $RawPSD = Get-Content -Path "$($PSScriptRoot)\PoShKeePass.psd1"
-    $ModuleVersion = ($RawPSD | ? { $_ -match "^\s+ModuleVersion.+$" }) -replace '.+(\d\.\d\.\d\.\d).$', '$1'
+    $ModuleVersion = ($RawPSD | Where-Object { $_ -match "^\s+ModuleVersion.+$" }) -replace '.+(\d\.\d\.\d\.\d).$', '$1'
     $BuildPath = ('{0}\build\{1}\PoShKeePass' -f $PSScriptRoot, $ModuleVersion)
 
     if(Test-Path $BuildPath)
@@ -29,7 +29,7 @@ New-Item -Path $BuildPath -Name 'bin' -ItemType Directory -Force
 [string] $LicenseFile = '{0}\license' -f $PSScriptRoot
 [string] $FormatFile = '{0}\PoShKeePass.format.ps1xml' -f $PSScriptRoot
 [string] $ReadMeFile = '{0}\readme.md' -f $PSScriptRoot
-[string] $Bin = '{0}\bin\KeePassLib.dll' -f $PSScriptRoot
+[string] $Bin = '{0}\bin\KeePassLib*.dll' -f $PSScriptRoot
 
 [string[]] $RootFilesToCopy = @($ManifestFile, $ChangeLogFile, $LicenseFile, $FormatFile, $ReadMeFile)
 
@@ -45,19 +45,62 @@ Get-ChildItem -Path $PSScriptRoot -Recurse -File -Filter '*.ps1' | ForEach-Objec
 Write-Verbose -Message 'Adding tail to module file.'
 @'
 
+[String] $Global:KeePassConfigurationFile = '{0}\KeePassConfiguration.xml' -f $PSScriptRoot
+[String] $Global:KeePassLibraryPath = '{0}\bin\KeePassLib_2.39.1.dll' -f $PSScriptRoot
+
 ## Source KpLib
 Import-KPLibrary
-
-[String] $Global:KeePassConfigurationFile = '{0}\KeePassConfiguration.xml' -f $PSScriptRoot
 
 ## Check fo config and init
 if (-not(Test-Path -Path $Global:KeePassConfigurationFile))
 {
     Write-Warning -Message '**IMPORTANT NOTE:** Please always keep an up-to-date backup of your keepass database files and key files if used.'
+
+    $CurrentVersion = ((Get-ChildItem "$PSScriptRoot\..").Name | Sort-Object -Descending | Select-Object -First 2)[0]
+
+    if($CurrentVersion -eq '2.1.1.8')
+    {
+        Write-Warning -Message ('**BREAKING CHANGES:** This new version of the module {0} contains BREAKING CHANGES, please review the changelog or readme for details!' -f $CurrentVersion)
+    }
+
     Write-Warning -Message 'This message will not show again on next import.'
+
     if(-not $(Restore-KPConfigurationFile))
     {
         New-KPConfigurationFile
+    }
+}
+else
+{
+    New-Variable -Name 'KeePassProfileNames' -Value @((Get-KeePassDatabaseConfiguration).Name) -Scope 'Script' #-Option Constant
+}
+
+Export-ModuleMember *
+
+if(Get-Command Register-ArgumentCompleter -ea 0)
+{
+    Register-ArgumentCompleter -ParameterName 'DatabaseProfileName' -ScriptBlock {
+        param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
+
+        Get-KeePassDatabaseConfiguration | Where-Object { $_.Name -ilike "${wordToComplete}*" } | ForEach-Object {
+            New-Object System.Management.Automation.CompletionResult ( $_.Name, $_.Name, 'ParameterValue', $_.Name)
+        }
+    }
+
+    Register-ArgumentCompleter -ParameterName 'IconName' -ScriptBlock {
+        param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
+
+        [KeePassLib.PwIcon].GetEnumValues() | Where-Object { $_ -ilike "${wordToComplete}*" } | ForEach-Object {
+            New-Object System.Management.Automation.CompletionResult ( $_, $_, 'ParameterValue', $_)
+        }
+    }
+
+    Register-ArgumentCompleter -ParameterName 'PasswordProfileName' -ScriptBlock {
+        param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
+
+        (Get-KPPasswordProfile).Name | Where-Object { $_ -ilike "${wordToComplete}*" } | ForEach-Object {
+            New-Object System.Management.Automation.CompletionResult ( $_, $_, 'ParameterValue', $_)
+        }
     }
 }
 

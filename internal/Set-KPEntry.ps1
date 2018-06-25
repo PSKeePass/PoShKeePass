@@ -120,12 +120,9 @@ function Set-KPEntry
                     $KeePassEntry.Strings.Set('URL', $SecureURL)
                 }
 
-                if($IconName)
+                if($IconName -and $IconName -ne $KeePassEntry.IconId)
                 {
-                    if($IconName -ne $KeePassEntry.IconId)
-                    {
-                        $KeePassEntry.IconId = $IconName
-                    }
+                    $KeePassEntry.IconId = $IconName
                 }
 
                 $KeePassEntry.History.Add($OldEntry)
@@ -140,8 +137,8 @@ function Set-KPEntry
                 }
 
                 ## Add History Entry
-                $KeePassEntry.LastModificationTime = Get-Date
-                $KeePassEntry.LastAccessTime = Get-Date
+                $KeePassEntry.LastModificationTime = [DateTime]::UtcNow
+                $KeePassEntry.LastAccessTime = [DateTime]::UtcNow
 
                 ## Save for safety
                 $KeePassConnection.Save($null)

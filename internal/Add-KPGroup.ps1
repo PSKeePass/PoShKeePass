@@ -63,7 +63,7 @@ function Add-KPGroup
         {
             $KeePassGroup.Name = $GroupName
 
-            if($IconName -ne $KeePassGroup.IconId)
+            if($IconName -and $IconName -ne $KeePassGroup.IconId)
             {
                 $KeePassGroup.IconId = $IconName
             }

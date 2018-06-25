@@ -22,32 +22,30 @@ function New-KeePassDatabase
     [CmdletBinding()]
     param
     (
-        [Parameter(Position = 0, Mandatory = $false)]
+        [Parameter(Position = 0)]
         [ValidateNotNullOrEmpty()]
         [String] $DatabasePath,
 
-        [Parameter(Position = 1, Mandatory = $true, ValueFromPipeline = $false, ParameterSetName = 'Key')]
-        [Parameter(Position = 1, Mandatory = $true, ValueFromPipeline = $false, ParameterSetName = 'KeyAndMaster')]
+        [Parameter(Position = 1, Mandatory = $true, ParameterSetName = 'Key')]
+        [Parameter(Position = 1, Mandatory = $true, ParameterSetName = 'KeyAndMaster')]
         [ValidateNotNullOrEmpty()]
         [ValidateScript({Test-Path $_})]
         [String] $KeyPath,
 
-        [Parameter(Position = 2, Mandatory = $false, ValueFromPipeline = $false, ParameterSetName = 'Key')]
-        [Parameter(Position = 2, Mandatory = $false, ValueFromPipeline = $false, ParameterSetName = 'Master')]
-        [Parameter(Position = 2, Mandatory = $true, ValueFromPipeline = $false, ParameterSetName = 'Network')]
+        [Parameter(Position = 2, ParameterSetName = 'Key')]
+        [Parameter(Position = 2, ParameterSetName = 'Master')]
+        [Parameter(Position = 2, Mandatory = $true, ParameterSetName = 'Network')]
         [Switch] $UseNetworkAccount,
 
-        [Parameter(Position = 3, Mandatory = $true, ValueFromPipeline = $false, ParameterSetName = 'Master')]
-        [Parameter(Position = 3, Mandatory = $true, ValueFromPipeline = $false, ParameterSetName = 'KeyAndMaster')]
+        [Parameter(Position = 3, Mandatory = $true, ParameterSetName = 'Master')]
+        [Parameter(Position = 3, Mandatory = $true, ParameterSetName = 'KeyAndMaster')]
         [PSCredential] $MasterKey
     )
 
     begin
     {
-        if ($KeyPath)
-        {
-            throw "KeyPath is not implemented yet"
-        }
+        if($KeyPath)
+        { throw "KeyPath is not implemented yet" }
     }
     process
     {
@@ -61,7 +59,6 @@ function New-KeePassDatabase
             $DatabaseObject = New-Object -TypeName KeepassLib.PWDatabase -ErrorAction Stop
         }
 
-        ## Create KP CompositeKey Object
         $CompositeKey = New-Object -TypeName KeepassLib.Keys.CompositeKey
 
         if($MasterKey)
@@ -70,7 +67,6 @@ function New-KeePassDatabase
             $CompositeKey.AddUserKey($KcpPassword)
         }
 
-        #if masterkey is specified, it should
         if($UseNetworkAccount)
         {
             $CompositeKey.AddUserKey((New-Object KeepassLib.Keys.KcpUserAccount))

@@ -19,6 +19,7 @@ function Get-KPPasswordProfile
             PSObject
     #>
     [CmdletBinding()]
+    [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingPlainTextForPassword", "PasswordProfileName")]
     param
     (
         [Parameter(Position = 0)]
@@ -31,9 +32,10 @@ function Get-KPPasswordProfile
         {
             [Xml] $XML = New-Object -TypeName System.Xml.XmlDocument
             $XML.Load($Global:KeePassConfigurationFile)
+
             if($PasswordProfileName)
             {
-                $XML.Settings.PasswordProfiles.Profile | Where-Object { $_.Name -ilike $PasswordProfileName}
+                $XML.Settings.PasswordProfiles.Profile | Where-Object { $_.Name -ilike $PasswordProfileName }
             }
             else
             {

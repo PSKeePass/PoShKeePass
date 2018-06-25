@@ -13,8 +13,6 @@ function Update-KeePassGroup
                 * Path Separator is the foward slash character '/'
         .PARAMETER DatabaseProfileName
             *This Parameter is required in order to access your KeePass database.
-            *This is a Dynamic Parameter that is populated from the KeePassConfiguration.xml.
-                *You can generated this file by running the New-KeePassDatabaseConfiguration function.
         .PARAMETER GroupName
             Specify the GroupName to change the specified group to.
         .PARAMETER PassThru
@@ -45,77 +43,56 @@ function Update-KeePassGroup
         .OUTPUTS
             $null
     #>
-    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     param
     (
-        [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true)]
+        [Parameter(Position = 0, Mandatory, ValueFromPipeline)]
         [ValidateNotNullOrEmpty()]
         [PSObject] $KeePassGroup,
 
-        [Parameter(Position = 1, Mandatory = $false)]
+        [Parameter(Position = 1, ValueFromPipelineByPropertyName)]
         [ValidateNotNullOrEmpty()]
+        [Alias('FullPath')]
         [String] $KeePassParentGroupPath,
 
-        [Parameter(Position = 2, Mandatory = $false)]
+        [Parameter(Position = 2)]
         [ValidateNotNullOrEmpty()]
         [String] $GroupName,
 
-        [Parameter(Position = 3, Mandatory = $false)]
+        [Parameter(Position = 3)]
         [Switch] $PassThru,
 
-        [Parameter(Position = 4, Mandatory = $false)]
-        [Switch] $Force
+        [Parameter(Position = 4)]
+        [Switch] $Force,
+
+        [Parameter(Position = 5, Mandatory, ValueFromPipelineByPropertyName)]
+        [ValidateNotNullOrEmpty()]
+        [string] $DatabaseProfileName,
+
+        [Parameter(Position = 6)]
+        [ValidateNotNullOrEmpty()]
+        [string] $IconName,
+
+        [Parameter(Position = 7)]
+        [ValidateNotNullOrEmpty()]
+        [PSobject] $MasterKey
     )
-    dynamicparam
-    {
-        Get-KPDynamicParameters -DBProfilePosition 5 -MasterKeyPosition 6 -PwIconPosition 7
-    }
     begin
     {
-        ## Get a list of all database profiles saved to the config xml.
-        $DatabaseProfileList = (Get-KeePassDatabaseConfiguration).Name
-        ## If no profiles exists do not return the parameter.
-        if($DatabaseProfileList)
-        {
-            $DatabaseProfileName = $PSBoundParameters['DatabaseProfileName']
-            $MasterKey = $PSBoundParameters['MasterKey']
-            $IconName = $PSBoundParameters['IconName']
-            ## Open the database
-            $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
-            ## remove any sensitive data
-            if($MasterKey){Remove-Variable -Name MasterKey}
-        }
-        else
-        {
-            Write-Warning -Message '[BEGIN] There are Currently No Database Configuration Profiles.'
-            Write-Warning -Message '[BEGIN] Please run the New-KeePassDatabaseConfiguration function before you use this function.'
-            Throw 'There are Currently No Database Configuration Profiles.'
-        }
     }
     process
     {
-        if($KeePassParentGroupPath)
+        $KeePassConnectionObject = New-KPConnection -DatabaseProfileName $DatabaseProfileName -MasterKey $MasterKey
+        Remove-Variable -Name MasterKey -ea 0
+
+        if($KeePassParentGroupPath -and $KeePassParentGroupPath -ne $KeePassGroup.FullPath)
         {
-            $KeePassParentGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassParentGroupPath
-            if(-not $KeePassParentGroup)
-            {
-                Write-Warning -Message ('[PROCESS] The Specified KeePass Parent Group Path ({0}) does not exist.' -f $KeePassGroupParentPath)
-                Throw 'The Specified KeePass Parent Group Path ({0}) does not exist.' -f $KeePassGroupParentPath
-            }
+            $KeePassParentGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassParentGroupPath -Stop
         }
 
-        if($KeePassGroup.GetType().Name -eq 'PwGroup')
+        if($Force -or $PSCmdlet.ShouldProcess($KeePassGroup.FullPath))
         {
-            $KeePassGroupFullPath = '{0}' -f $KeePassGroup.GetFullPath('/', $true)
-        }
-        else
-        {
-            $KeePassGroupFullPath = '{0}/{1}' -f $KeePassGroup.FullPath, $KeePassGroup.Name
-        }
-        ## Confirm
-        if($Force -or $PSCmdlet.ShouldProcess($KeePassGroupFullPath))
-        {
-            $KeePassGroupObject = Get-KPGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroupFullPath | Where-Object { $_.CreationTime -eq $KeePassGroup.CreationTime}
+            $KeePassGroupObject = Get-KPGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroup.FullPath | Where-Object { $_.CreationTime -eq $KeePassGroup.CreationTime }
 
             if($KeePassGroupObject.Count -gt 1)
             {
@@ -124,21 +101,19 @@ function Update-KeePassGroup
                 Throw 'Found more than one group with the same path, name and creation time.'
             }
 
-            ## Set Default Icon if not specified.
-            if(-not $IconName)
-            {
-                $IconName = $KeePassGroupObject.IconId
+            $setKPGroupSplat = @{
+                KeePassConnection = $KeePassConnectionObject
+                KeePassGroup      = $KeePassGroupObject
+                PassThru          = $PassThru
+                Force             = $true
+                GroupName         = $GroupName
+                Confirm           = $false
             }
 
-            if($KeePassParentGroup)
-            {
+            if($IconName){ $setKPGroupSplat.IconName = $IconName }
+            if($KeePassParentGroup){ $setKPGroupSplat.KeePassParentGroup = $KeePassParentGroup }
 
-                Set-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroupObject -KeePassParentGroup $KeePassParentGroup -GroupName $GroupName -IconName $IconName -PassThru:$PassThru -Confirm:$false -Force
-            }
-            else
-            {
-                Set-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassGroup $KeePassGroupObject -GroupName $GroupName -IconName $IconName -PassThru:$PassThru -Confirm:$false -Force
-            }
+            Set-KPGroup @setKPGroupSplat
         }
     }
     end

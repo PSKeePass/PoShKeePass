@@ -37,34 +37,34 @@ function New-KeePassDatabaseConfiguration
     [CmdletBinding()]
     param
     (
-        [Parameter(Position = 0, Mandatory = $true)]
+        [Parameter(Position = 0, Mandatory)]
         [ValidateNotNullOrEmpty()]
         [String] $DatabaseProfileName,
 
-        [Parameter(Position = 1, Mandatory = $true, ValueFromPipeline = $false, ParameterSetName = 'Key')]
-        [Parameter(Position = 1, Mandatory = $true, ValueFromPipeline = $false, ParameterSetName = 'Master')]
-        [Parameter(Position = 1, Mandatory = $true, ValueFromPipeline = $false, ParameterSetName = 'Network')]
-        [Parameter(Position = 1, Mandatory = $true, ValueFromPipeline = $false, ParameterSetName = 'KeyAndMaster')]
+        [Parameter(Position = 1, Mandatory, ParameterSetName = 'Key')]
+        [Parameter(Position = 1, Mandatory, ParameterSetName = 'Master')]
+        [Parameter(Position = 1, Mandatory, ParameterSetName = 'Network')]
+        [Parameter(Position = 1, Mandatory, ParameterSetName = 'KeyAndMaster')]
         [ValidateNotNullOrEmpty()]
         [ValidateScript({Test-Path $_})]
         [String] $DatabasePath,
 
-        [Parameter(Position = 2, Mandatory = $true, ValueFromPipeline = $false, ParameterSetName = 'Key')]
-        [Parameter(Position = 2, Mandatory = $true, ValueFromPipeline = $false, ParameterSetName = 'KeyAndMaster')]
+        [Parameter(Position = 2, Mandatory, ParameterSetName = 'Key')]
+        [Parameter(Position = 2, Mandatory, ParameterSetName = 'KeyAndMaster')]
         [ValidateNotNullOrEmpty()]
         [ValidateScript({Test-Path $_})]
         [String] $KeyPath,
 
-        [Parameter(Position = 3, Mandatory = $false, ValueFromPipeline = $false, ParameterSetName = 'Key')]
-        [Parameter(Position = 3, Mandatory = $false, ValueFromPipeline = $false, ParameterSetName = 'Master')]
-        [Parameter(Position = 3, Mandatory = $false, ValueFromPipeline = $false, ParameterSetName = 'Network')]
+        [Parameter(Position = 3, ParameterSetName = 'Key')]
+        [Parameter(Position = 3, ParameterSetName = 'Master')]
+        [Parameter(Position = 3, ParameterSetName = 'Network')]
         [Switch] $UseNetworkAccount,
 
-        [Parameter(Position = 4, Mandatory = $true, ValueFromPipeline = $false, ParameterSetName = 'Master')]
-        [Parameter(Position = 4, Mandatory = $true, ValueFromPipeline = $false, ParameterSetName = 'KeyAndMaster')]
+        [Parameter(Position = 4, Mandatory, ParameterSetName = 'Master')]
+        [Parameter(Position = 4, Mandatory, ParameterSetName = 'KeyAndMaster')]
         [Switch] $UseMasterKey,
 
-        [Parameter(Position = 5, Mandatory = $false)]
+        [Parameter(Position = 5)]
         [Switch] $PassThru
     )
     begin
@@ -130,12 +130,14 @@ function New-KeePassDatabaseConfiguration
 
                 $XML.Save($Global:KeePassConfigurationFile)
 
+                $Script:KeePassProfileNames = (Get-KeePassDatabaseConfiguration).Name
+
                 if($PassThru)
                 {
                     Get-KeePassDatabaseConfiguration -DatabaseProfileName $DatabaseProfileName
                 }
             }
-            catch [Exception]
+            catch
             {
                 Write-Warning -Message ('[PROCESS] An Exception Occured while trying to add a new KeePass database configuration ({0}) to the configuration file.' -f $DatabaseProfileName)
                 Write-Warning -Message ('[PROCESS] {0}' -f $_.Exception.Message)
