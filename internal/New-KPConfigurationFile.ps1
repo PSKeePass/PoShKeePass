@@ -27,7 +27,7 @@ function New-KPConfigurationFile
     )
     process
     {
-        if((Test-Path -Path $PSScriptRoot\..\KeePassConfiguration.xml) -and -not $Force)
+        if((Test-Path -Path $Global:KeePassConfigurationFile) -and -not $Force)
         {
             Write-Warning -Message '[PROCESS] A KeePass Configuration File already exists. Please rerun with -force to overwrite the existing configuration.'
             Write-Error -Message 'A KeePass Configuration File already exists.' -ea Stop
@@ -36,7 +36,7 @@ function New-KPConfigurationFile
         {
             try
             {
-                $Path = '{0}\..\KeePassConfiguration.xml' -f $PSScriptRoot
+                $Path = $Global:KeePassConfigurationFile
 
                 $XML = New-Object System.Xml.XmlTextWriter($Path, $null)
                 $XML.Formatting = 'Indented'
