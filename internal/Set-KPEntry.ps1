@@ -137,8 +137,8 @@ function Set-KPEntry
                 }
 
                 ## Add History Entry
-                $KeePassEntry.LastModificationTime = Get-Date
-                $KeePassEntry.LastAccessTime = Get-Date
+                $KeePassEntry.LastModificationTime = [DateTime]::UtcNow
+                $KeePassEntry.LastAccessTime = [DateTime]::UtcNow
 
                 ## Save for safety
                 $KeePassConnection.Save($null)
