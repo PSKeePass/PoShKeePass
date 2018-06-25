@@ -1,9 +1,9 @@
 Get-Module PoShKeePass | Remove-Module
-# Import-Module "$PSScriptRoot\..\build\2.1.1.7\PoShKeePass\PoShKeePass.psm1" -force -ErrorAction Stop
+# Import-Module "$PSScriptRoot\..\build\2.1.1.8\PoShKeePass\PoShKeePass.psm1" -force -ErrorAction Stop
 Import-Module "$PSScriptRoot\..\PoShKeePass.psm1" -force -ErrorAction Stop
 
-$Global:KPTestBackupDatabaseFile = "$($PSScriptRoot)\Includes\Backup\PSKeePassTestDatabase2.34.kdbx"
-$Global:KPTestDatabaseFile = "$($PSScriptRoot)\Includes\PSKeePassTestDatabase2.34.kdbx"
+$Global:KPTestBackupDatabaseFile = "$($PSScriptRoot)\Includes\Backup\PSKeePassTestDatabase2.39.1.kdbx"
+$Global:KPTestDatabaseFile = "$($PSScriptRoot)\Includes\PSKeePassTestDatabase2.39.1.kdbx"
 $Global:KPTestKeyPath = "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.key"
 
 Copy-Item -Path $Global:KPTestBackupDatabaseFile -Destination $Global:KPTestDatabaseFile -Force
