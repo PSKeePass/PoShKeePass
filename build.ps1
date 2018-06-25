@@ -69,27 +69,30 @@ else
 
 Export-ModuleMember *
 
-Register-ArgumentCompleter -ParameterName 'DatabaseProfileName' -ScriptBlock {
-    param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
+if(Get-Command Register-ArgumentCompleter -ea 0)
+{
+    Register-ArgumentCompleter -ParameterName 'DatabaseProfileName' -ScriptBlock {
+        param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
 
-    Get-KeePassDatabaseConfiguration | Where-Object { $_.Name -ilike "${wordToComplete}*" } | ForEach-Object {
-        New-Object System.Management.Automation.CompletionResult ( $_.Name, $_.Name, 'ParameterValue', $_.Name)
+        Get-KeePassDatabaseConfiguration | Where-Object { $_.Name -ilike "${wordToComplete}*" } | ForEach-Object {
+            New-Object System.Management.Automation.CompletionResult ( $_.Name, $_.Name, 'ParameterValue', $_.Name)
+        }
     }
-}
 
-Register-ArgumentCompleter -ParameterName 'IconName' -ScriptBlock {
-    param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
+    Register-ArgumentCompleter -ParameterName 'IconName' -ScriptBlock {
+        param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
 
-    [KeePassLib.PwIcon].GetEnumValues() | Where-Object { $_ -ilike "${wordToComplete}*" } | ForEach-Object {
-        New-Object System.Management.Automation.CompletionResult ( $_, $_, 'ParameterValue', $_)
+        [KeePassLib.PwIcon].GetEnumValues() | Where-Object { $_ -ilike "${wordToComplete}*" } | ForEach-Object {
+            New-Object System.Management.Automation.CompletionResult ( $_, $_, 'ParameterValue', $_)
+        }
     }
-}
 
-Register-ArgumentCompleter -ParameterName 'PasswordProfileName' -ScriptBlock {
-    param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
+    Register-ArgumentCompleter -ParameterName 'PasswordProfileName' -ScriptBlock {
+        param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
 
-    (Get-KPPasswordProfile).Name | Where-Object { $_ -ilike "${wordToComplete}*" } | ForEach-Object {
-        New-Object System.Management.Automation.CompletionResult ( $_, $_, 'ParameterValue', $_)
+        (Get-KPPasswordProfile).Name | Where-Object { $_ -ilike "${wordToComplete}*" } | ForEach-Object {
+            New-Object System.Management.Automation.CompletionResult ( $_, $_, 'ParameterValue', $_)
+        }
     }
 }
 
