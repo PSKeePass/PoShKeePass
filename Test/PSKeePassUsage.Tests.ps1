@@ -1,8 +1,9 @@
 Get-Module PoShKeePass | Remove-Module
+# Import-Module "$PSScriptRoot\..\build\2.1.1.7\PoShKeePass\PoShKeePass.psm1" -force -ErrorAction Stop
 Import-Module "$PSScriptRoot\..\PoShKeePass.psm1" -force -ErrorAction Stop
 
-$Global:KPTestBackupDatabaseFile = "$($PSScriptRoot)\Includes\Backup\PSKeePassTestDatabase2.39.1.kdbx"
-$Global:KPTestDatabaseFile = "$($PSScriptRoot)\Includes\PSKeePassTestDatabase2.39.1.kdbx"
+$Global:KPTestBackupDatabaseFile = "$($PSScriptRoot)\Includes\Backup\PSKeePassTestDatabase2.34.kdbx"
+$Global:KPTestDatabaseFile = "$($PSScriptRoot)\Includes\PSKeePassTestDatabase2.34.kdbx"
 $Global:KPTestKeyPath = "$($PSScriptRoot)\Includes\PSKeePassTestDatabase.key"
 
 Copy-Item -Path $Global:KPTestBackupDatabaseFile -Destination $Global:KPTestDatabaseFile -Force
@@ -76,12 +77,12 @@ InModuleScope "PoShKeePass" {
         Context "Example 1: Create a new KeePass Database Configuration XML File" {
 
             It "Example 1.1: Creates a New Config File - Valid" {
-                if((Test-Path -Path "$($PSScriptRoot)\..\KeePassConfiguration.xml"))
+                if((Test-Path -Path $Global:KeePassConfigurationFile))
                 {
-                    Remove-Item -Path "$($PSScriptRoot)\..\KeePassConfiguration.xml" -Force
+                    Remove-Item -Path $Global:KeePassConfigurationFile -Force
                 }
                 New-KPConfigurationFile | Should Be $null
-                Test-Path -Path "$($PSScriptRoot)\..\KeePassConfiguration.xml"
+                Test-Path -Path $Global:KeePassConfigurationFile
             }
 
             It "Example 1.2: Creates a New Config File - Invalid" {
@@ -90,7 +91,7 @@ InModuleScope "PoShKeePass" {
 
             It "Example 1.3: Creates a New Config File with OverWrite - Valid" {
                 New-KPConfigurationFile -Force | Should Be $null
-                Test-Path -Path "$($PSScriptRoot)\..\KeePassConfiguration.xml"
+                Test-Path -Path $Global:KeePassConfigurationFile
             }
         }
     }
