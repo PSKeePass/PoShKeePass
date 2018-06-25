@@ -55,6 +55,14 @@ Import-KPLibrary
 if (-not(Test-Path -Path $Global:KeePassConfigurationFile))
 {
     Write-Warning -Message '**IMPORTANT NOTE:** Please always keep an up-to-date backup of your keepass database files and key files if used.'
+
+    $CurrentVersion = ((Get-ChildItem "$PSScriptRoot\..").Name | Sort-Object -Descending | Select-Object -First 2)[0]
+
+    if($CurrentVersion -eq '2.1.1.8')
+    {
+        Write-Warning -Message ('**BREAKING CHANGES:** This new version of the module {0} contains BREAKING CHANGES, please review the changelog or readme for details!' -f $CurrentVersion)
+    }
+
     Write-Warning -Message 'This message will not show again on next import.'
 
     if(-not $(Restore-KPConfigurationFile))
