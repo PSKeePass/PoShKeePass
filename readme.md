@@ -31,9 +31,50 @@ Please check out our [Getting Started](https://github.com/PSKeePass/PoShKeePass/
 
 Please review the [changelog document](https://github.com/PSKeePass/PoShKeePass/blob/master/changelog.md) for a full history.
 
+## v2.1.1.8
+
+### Many fixes, features and improvements, please note the **Breaking Changes** Below
+
+* Fix [#129](https://github.com/PSKeePass/PoShKeePass/issues/129) - Can now pass Credential Object to `-MasterKey` Parameter
+* Fix/Implemented [#69](https://github.com/PSKeePass/PoShKeePass/issues/69) - All primary Functions return a Powershell object rather than a KeePass Object **This Includes Breaking changes!**.
+  * **Breaking:**
+    * Since a powershell object is now returned, in order to access the keepass object a child property has been added to the ps object, `.KPEntry` and `.KPGroup`.
+    * Deprecated the `-AsPlainText` parameter on the `Get-KeePassGroup` function, the call will still work but it will present a warning message. This is being removed as it is no longer necessary.
+  * **Non-Breaking:**
+    * Moved how database profile name was being added to the ps object for better performance on conversion.
+* Implemented [#93](https://github.com/PSKeePass/PoShKeePass/issues/93) - `Get-KeePassEntry` Now supports `-Title` and `-UserName` parameters also via pipeline.
+* Normalized Error handling to remove repetitive code
+* Converted extraneous logic to parameter splatting
+* Code formatting and removed explict parameter attributes where not necessary.
+* Updated Object creation to use the `hashtable` method for performance over the `New-Object` + `Add-Memeber`.
+* Fix [#44](https://github.com/PSKeePass/PoShKeePass/issues/44) - Pipeline now Works for `Remove-KeePassDatabaseConfiguration`.
+* Implemented [#141](https://github.com/PSKeePass/PoShKeePass/issues/141) - Much stronger Pipeline support.
+  * `-DatabaseProfileName` no longer needs to be specified to a KPPSObject pipeline recieving function.
+    * Example: `Get-KeePassEntry -Title 'test' -DatabaseProfileName 'profile' | Remove-KeePassEntry`
+  * All parent and object paths now are recieved by the pipeline which of course can be overridden by specifing the parameter.
+* Fixed [#140](https://github.com/PSKeePass/PoShKeePass/issues/140) and [#138](https://github.com/PSKeePass/PoShKeePass/issues/138) - by removing the `EncodeKeePassLib.ps1` script file as it is no longer in use.
+* Fixed [#144](https://github.com/PSKeePass/PoShKeePass/issues/144) - Removed Faultly logic which allowed for the KeePass Icon to get set to blank while updating an object.
+* Implemented [#143](https://github.com/PSKeePass/PoShKeePass/issues/143) There are no more dynamic parameters! So all of the gitches have left with them. They still support tab completion by using `Register-ArgumentCompleter`.
+  * **Breaking Change** as this is only supported in powershell v5 and up, auto complete will not work in older versions.
+* Implemented [#118](https://github.com/PSKeePass/PoShKeePass/issues/118) - by adding support for keepasslib version `2.39.1`
+  * The new file format version between the previous version of `2.34` and the latest apears to be much slower on some operations.
+  * Testing the new Lib version against the previously suported version `2.34` all worked and appears to be backwards compatible. Also it does not upgrade the file format version.
+  * Version can easily flipped back by modifying the global variable in the `.psm1` file.
+  * This fixes [#131](https://github.com/PSKeePass/PoShKeePass/issues/131).
+* Fix [#145](https://github.com/PSKeePass/PoShKeePass/issues/145) - Updating a KeePass Entry now updates the modification time in UTC.
+  * **Breaking Change** - Renamed the `LastAccessTime` and `LastModificationTime` properties to `LastAccessTimeUtc` and `LastModificationTimeUtc` to reflect that they are in UTC.
+* Addressed [#88](https://github.com/PSKeePass/PoShKeePass/issues/88) - `Get-KeePassEntry`
+  * Since a Ps object is now always returned, all fields but the password are in plaintext. Now specifying the `-AsPlainText` will decode the password to plaintext.
+    * This gives the user better control over when they expose the password as plaintext if need be.
+  * Another improvement is there is now a `-WithCredential` parameter which adds a `.Credential` property to the return Entry PS Object.
+    * This is not done by default as it has overhead.
+    * This gives the user better options and does not require manual creation of the credential.
+    * **Breaking Change** Since this has been implemeneted the `-AsPsCredential` parameter has been removed. The new method is better as it allows for multiple entries to be returned with thier cred objects instead of limiting it to 1 entry.
+* **Breaking Change** - `ConvertTo-KPPSObject` and all returned objects the `.FullPath` property now returns the true full path of the object. The `ParentGroup` property still exists and can be used as an alteranative data source for any lost functionality.
+
 ### v2.0.5.6
 
-* Update-KeePassEntry no longer creates a new entry, Entry history is retained, UUID is never changed, All time modificiation fields are now updated when appropriate. 
+* Update-KeePassEntry no longer creates a new entry, Entry history is retained, UUID is never changed, All time modificiation fields are now updated when appropriate.
   * [#127](https://github.com/PSKeePass/PoShKeePass/issues/127)
   * [#123](https://github.com/PSKeePass/PoShKeePass/issues/123)
   * [#120](https://github.com/PSKeePass/PoShKeePass/issues/120)
@@ -63,18 +104,6 @@ Please review the [changelog document](https://github.com/PSKeePass/PoShKeePass/
 * `-Title` Parameter Added to `Get-KeePassEntry`
 * General bug fixes #115, #116, #120, #123, #127
 * `New-KeePassDatabase` function added
-
-### v2.0.4.3
-
-* [#133](https://github.com/PSKeePass/PoShKeePass/issues/133) Fixed
-
-### v2.0.4.1
-
-* [#132](https://github.com/PSKeePass/PoShKeePass/issues/132) Fixed - Windows Defender identifies PoshKeepass as trojan. Please see the issue for more details.
-
-### v2.0.4.0
-
-* #108 Fixed bug by capturing PSCredential to MasterKey variable.
 
 ## Known Issues
 
