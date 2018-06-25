@@ -63,27 +63,27 @@ function ConvertTo-KPPSObject
                 { $Password = $_keepassItem.Strings.ReadSafe('Password') | ConvertTo-SecureString -AsPlainText -Force -ea SilentlyContinue }
 
                 $KeePassPsObject = New-Object -TypeName PSObject -Property ([ordered]@{
-                        'Uuid'                 = $_keepassItem.Uuid;
-                        'CreationTime'         = $_keepassItem.CreationTime;
-                        'Expires'              = $_keepassItem.Expires;
-                        'ExpireTime'           = $_keepassItem.ExpiryTime;
-                        'LastAccessTime'       = $_keepassItem.LastAccessTime;
-                        'LastModificationTime' = $_keepassItem.LastModificationTime;
-                        'LocationChanged'      = $_keepassItem.LocationChanged;
-                        'Tags'                 = $_keepassItem.Tags;
-                        'Touched'              = $_keepassItem.Touched;
-                        'UsageCount'           = $_keepassItem.UsageCount;
-                        'ParentGroup'          = $_keepassItem.ParentGroup.Name;
-                        'FullPath'             = $_keepassItem.ParentGroup.GetFullPath('/', $true);
-                        'Title'                = $_keepassItem.Strings.ReadSafe('Title');
-                        'UserName'             = $_keepassItem.Strings.ReadSafe('UserName');
-                        'Password'             = $Password
-                        'URL'                  = $_keepassItem.Strings.ReadSafe('URL');
-                        'Notes'                = $_keepassItem.Strings.ReadSafe('Notes');
-                        'IconId'               = $_keepassItem.IconId;
-                        'Credential'           = $Credential;
-                        'DatabaseProfileName'  = $DatabaseProfileName;
-                        'KPEntry'              = $_keepassItem;
+                        'Uuid'                    = $_keepassItem.Uuid;
+                        'CreationTime'            = $_keepassItem.CreationTime;
+                        'Expires'                 = $_keepassItem.Expires;
+                        'ExpireTime'              = $_keepassItem.ExpiryTime;
+                        'LastAccessTimeUtc'       = $_keepassItem.LastAccessTime;
+                        'LastModificationTimeUtc' = $_keepassItem.LastModificationTime;
+                        'LocationChanged'         = $_keepassItem.LocationChanged;
+                        'Tags'                    = $_keepassItem.Tags;
+                        'Touched'                 = $_keepassItem.Touched;
+                        'UsageCount'              = $_keepassItem.UsageCount;
+                        'ParentGroup'             = $_keepassItem.ParentGroup.Name;
+                        'FullPath'                = $_keepassItem.ParentGroup.GetFullPath('/', $true);
+                        'Title'                   = $_keepassItem.Strings.ReadSafe('Title');
+                        'UserName'                = $_keepassItem.Strings.ReadSafe('UserName');
+                        'Password'                = $Password
+                        'URL'                     = $_keepassItem.Strings.ReadSafe('URL');
+                        'Notes'                   = $_keepassItem.Strings.ReadSafe('Notes');
+                        'IconId'                  = $_keepassItem.IconId;
+                        'Credential'              = $Credential;
+                        'DatabaseProfileName'     = $DatabaseProfileName;
+                        'KPEntry'                 = $_keepassItem;
                     })
 
                 ## Custom Object Formatting and Type
@@ -104,23 +104,23 @@ function ConvertTo-KPPSObject
                 { $FullPath = '' }
 
                 $KeePassPsObject = New-Object -TypeName PSObject -Property ([ordered]@{
-                        'Uuid'                 = $_keepassItem.Uuid;
-                        'Name'                 = $_keepassItem.Name;
-                        'CreationTime'         = $_keepassItem.CreationTime;
-                        'Expires'              = $_keepassItem.Expires;
-                        'ExpireTime'           = $_keepassItem.ExpiryTime;
-                        'LastAccessTime'       = $_keepassItem.LastAccessTime;
-                        'LastModificationTime' = $_keepassItem.LastModificationTime;
-                        'LocationChanged'      = $_keepassItem.LocationChanged;
-                        'Touched'              = $_keepassItem.Touched;
-                        'UsageCount'           = $_keepassItem.UsageCount;
-                        'ParentGroup'          = $_keepassItem.ParentGroup.Name;
-                        'FullPath'             = $_keepassItem.GetFullPath('/', $true);
-                        'Groups'               = $_keepassItem.Groups;
-                        'EntryCount'           = $_keepassItem.Entries.Count;
-                        'IconId'               = $_keepassItem.IconId;
-                        'DatabaseProfileName'  = $DatabaseProfileName;
-                        'KPGroup'              = $_keepassItem;
+                        'Uuid'                    = $_keepassItem.Uuid;
+                        'Name'                    = $_keepassItem.Name;
+                        'CreationTime'            = $_keepassItem.CreationTime;
+                        'Expires'                 = $_keepassItem.Expires;
+                        'ExpireTime'              = $_keepassItem.ExpiryTime;
+                        'LastAccessTimeUtc'       = $_keepassItem.LastAccessTime;
+                        'LastModificationTimeUtc' = $_keepassItem.LastModificationTime;
+                        'LocationChanged'         = $_keepassItem.LocationChanged;
+                        'Touched'                 = $_keepassItem.Touched;
+                        'UsageCount'              = $_keepassItem.UsageCount;
+                        'ParentGroup'             = $_keepassItem.ParentGroup.Name;
+                        'FullPath'                = $_keepassItem.GetFullPath('/', $true);
+                        'Groups'                  = $_keepassItem.Groups;
+                        'EntryCount'              = $_keepassItem.Entries.Count;
+                        'IconId'                  = $_keepassItem.IconId;
+                        'DatabaseProfileName'     = $DatabaseProfileName;
+                        'KPGroup'                 = $_keepassItem;
                     })
 
                 ## Custom Object Formatting and Type
