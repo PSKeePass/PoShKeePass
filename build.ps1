@@ -9,7 +9,7 @@ if(-not $BuildPath)
     Write-Verbose -Message 'Setting up Build Path'
     $RawPSD = Get-Content -Path "$($PSScriptRoot)\PoShKeePass.psd1"
     $ModuleVersion = ($RawPSD | Where-Object { $_ -match "^\s+ModuleVersion.+$" }) -replace '.+(\d\.\d\.\d\.\d).$', '$1'
-    $BuildPath = ('{0}\build\{1}\PoShKeePass' -f $PSScriptRoot, $ModuleVersion)
+    $BuildPath = ('{0}\build\PoShKeePass\{1}' -f $PSScriptRoot, $ModuleVersion)
 
     if(Test-Path $BuildPath)
     {
@@ -56,18 +56,20 @@ if (-not(Test-Path -Path $Global:KeePassConfigurationFile))
 {
     Write-Warning -Message '**IMPORTANT NOTE:** Please always keep an up-to-date backup of your keepass database files and key files if used.'
 
-    $CurrentVersion = ((Get-ChildItem "$PSScriptRoot\..").Name | Sort-Object -Descending | Select-Object -First 2)[0]
-
-    if($CurrentVersion -eq '2.1.1.8')
-    {
-        Write-Warning -Message ('**BREAKING CHANGES:** This new version of the module {0} contains BREAKING CHANGES, please review the changelog or readme for details!' -f $CurrentVersion)
-    }
-
-    Write-Warning -Message 'This message will not show again on next import.'
+    $Versions = ((Get-ChildItem "$PSScriptRoot\..").Name | Sort-Object -Descending)
 
     if(-not $(Restore-KPConfigurationFile))
     {
         New-KPConfigurationFile
+
+        $previousVersion = [int]($Versions[1] -replace '\.')
+        $CurrentVersion = $Versions[0]
+        if($previousVersion -lt 2118)
+        {
+            Write-Warning -Message ('**BREAKING CHANGES:** This new version of the module {0} contains BREAKING CHANGES, please review the changelog or readme for details!' -f $CurrentVersion)
+        }
+
+        Write-Warning -Message 'This message will not show again on next import.'
     }
 }
 else

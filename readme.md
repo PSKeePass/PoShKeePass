@@ -31,6 +31,11 @@ Please check out our [Getting Started](https://github.com/PSKeePass/PoShKeePass/
 
 Please review the [changelog document](https://github.com/PSKeePass/PoShKeePass/blob/master/changelog.md) for a full history.
 
+## v.2.1.2.0
+
+* Fix [#148](https://github.com/PSKeePass/PoShKeePass/issues/148) - Can now update an entry multiple times, while retaining history and not through internal lib exception
+* Changes to build script
+
 ## v2.1.1.8
 
 ### Many fixes, features and improvements, please note the **Breaking Changes** Below
