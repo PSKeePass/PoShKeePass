@@ -125,6 +125,7 @@ function Set-KPEntry
                     $KeePassEntry.IconId = $IconName
                 }
 
+                $OldEntry.History.clear()
                 $KeePassEntry.History.Add($OldEntry)
 
                 if($KeePassGroup)
