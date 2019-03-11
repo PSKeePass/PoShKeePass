@@ -70,7 +70,7 @@ function Get-KeePassDatabaseConfiguration
         }
         else
         {
-            Write-Warning 'No KeePass Configuration has been created.'
+            Write-Warning 'The specified KeePass Configuration does not exist.'
         }
     }
 }

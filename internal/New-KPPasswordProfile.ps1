@@ -72,7 +72,7 @@ function New-KPPasswordProfile
         }
         else
         {
-            Write-Output 'No KeePass Configuration has been created. You can create one with Set-KeePassConfiguration'
+            Write-Output 'No KeePass Database Configuration file exists. You can create one with the New-KeePassDatabaseConfiguration function.'
         }
     }
 

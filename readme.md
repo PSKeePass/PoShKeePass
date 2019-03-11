@@ -31,10 +31,11 @@ Please check out our [Getting Started](https://github.com/PSKeePass/PoShKeePass/
 
 Please review the [changelog document](https://github.com/PSKeePass/PoShKeePass/blob/master/changelog.md) for a full history.
 
-## v.2.1.2.2
+## v.2.1.2.3
 
 * Fix [#149](https://github.com/PSKeePass/PoShKeePass/issues/149) - **Breaking Change** New-KeePassGroup and Update-KeePassGroup now return a KeePass PSObject via the ConvertTo-KPPsObject function.
 * Fix [#156](https://github.com/PSKeePass/PoShKeePass/issues/156) - New-KeePassDatabase will now error out if kdbx file already exists, instead of silently overwriting an existing file.
+* Fix [#64](https://github.com/PSKeePass/PoShKeePass/issues/65) - Review Message for grammar, clarified some messages as well.
 
 ## v.2.1.2.0
 

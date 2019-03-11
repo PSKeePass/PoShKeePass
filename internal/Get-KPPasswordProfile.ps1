@@ -44,7 +44,7 @@ function Get-KPPasswordProfile
         }
         else
         {
-            Write-Verbose 'No KeePass Configuration has been created.'
+            Write-Verbose 'No KeePass Configuration files exist, please create one to continue: New-KeePassDatabasConfiguration.'
         }
     }
 }
