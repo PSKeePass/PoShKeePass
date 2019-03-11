@@ -1,5 +1,9 @@
 # Changelog
 
+## v.2.1.2.1
+
+* Fix [#149](https://github.com/PSKeePass/PoShKeePass/issues/149) - **Breaking Change** New-KeePassGroup and Update-KeePassGroup now return a KeePass PSObject via the ConvertTo-KPPsObject function.
+
 ## v.2.1.2.0
 
 * Fix [#148](https://github.com/PSKeePass/PoShKeePass/issues/148) - Can now update an entry multiple times, while retaining history and not through internal lib exception

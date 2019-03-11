@@ -704,8 +704,8 @@ InModuleScope "PoShKeePass" {
 
                 $PassThruResult = New-KeePassGroup -KeePassGroupParentPath 'PSKeePassTestDatabase' -KeePassGroupName 'test2PassThru' -DatabaseProfileName 'SampleProfile' -PassThru
 
-                $PassThruResult | Should BeOfType KeePassLib.PwGroup
-                $PassThruResult.ParentGroup.Name | Should Be 'PSKeePassTestDatabase'
+                $PassThruResult.psobject.TypeNames -icontains 'PSKeePass.Group' | Should Be $true
+                $PassThruResult.ParentGroup | Should Be 'PSKeePassTestDatabase'
                 $PassThruResult.Name | Should Be 'test2PassThru'
             }
 
@@ -717,8 +717,8 @@ InModuleScope "PoShKeePass" {
 
                 $PassThruResult = New-KeePassGroup -KeePassGroupParentPath 'PSKeePassTestDatabase' -KeePassGroupName 'test4PassThru' -DatabaseProfileName 'SampleProfile' -IconName 'Clock' -PassThru
 
-                $PassThruResult | Should BeOfType KeePassLib.PwGroup
-                $PassThruResult.ParentGroup.Name | Should Be 'PSKeePassTestDatabase'
+                $PassThruResult.psobject.TypeNames -icontains 'PSKeePass.Group' | Should Be $true
+                $PassThruResult.ParentGroup | Should Be 'PSKeePassTestDatabase'
                 $PassThruResult.Name | Should Be 'test4PassThru'
                 $PassThruResult.IconId | Should Be 'Clock'
             }
@@ -811,7 +811,8 @@ InModuleScope "PoShKeePass" {
                 $KeePassGroup.Name | Should Be 'test3'
                 $KeePassGroup = Update-KeePassGroup -KeePassGroup $KeePassGroup -GroupName 'Test3Update' -DatabaseProfileName 'SampleProfile' -Force -PassThru
                 $KeePassGroup.Name | Should Be 'Test3Update'
-                $KeePassGroup.ParentGroup.Name | Should be 'PSKeePassTestDatabase'
+                $KeePassGroup.psobject.TypeNames -icontains 'PSKeePass.Group' | Should Be $true
+                $KeePassGroup.ParentGroup | Should be 'PSKeePassTestDatabase'
             }
 
             It "Example 1.5: Updates a KeePass Group - Valid - ParentGroup - Pipeline" {
@@ -837,7 +838,8 @@ InModuleScope "PoShKeePass" {
                 $KeePassGroup = Update-KeePassGroup -KeePassGroup $KeePassGroup -GroupName 'Test6Update' -DatabaseProfileName 'SampleProfile' -IconName 'Clock' -Force -PassThru
                 $KeePassGroup.Name | Should Be 'Test6Update'
                 $KeePassGroup.IconId | Should Be 'Clock'
-                $KeePassGroup.ParentGroup.Name | Should be 'PSKeePassTestDatabase'
+                $KeePassGroup.psobject.TypeNames -icontains 'PSKeePass.Group' | Should Be $true
+                $KeePassGroup.ParentGroup | Should be 'PSKeePassTestDatabase'
             }
         }
 

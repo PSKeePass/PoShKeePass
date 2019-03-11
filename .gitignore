@@ -7,3 +7,4 @@ Test/Includes/MasterKeyWindowsAuth.kdbx
 Test/Includes/NoRecycle.kdbx
 KeePassConfiguration.xml.old
 bin/EncodeKeePassLib\.ps1
+build/

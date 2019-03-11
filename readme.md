@@ -31,6 +31,10 @@ Please check out our [Getting Started](https://github.com/PSKeePass/PoShKeePass/
 
 Please review the [changelog document](https://github.com/PSKeePass/PoShKeePass/blob/master/changelog.md) for a full history.
 
+## v.2.1.2.1
+
+* Fix [#149](https://github.com/PSKeePass/PoShKeePass/issues/149) - **Breaking Change** New-KeePassGroup and Update-KeePassGroup now return a KeePass PSObject via the ConvertTo-KPPsObject function.
+
 ## v.2.1.2.0
 
 * Fix [#148](https://github.com/PSKeePass/PoShKeePass/issues/148) - Can now update an entry multiple times, while retaining history and not through internal lib exception
@@ -96,20 +100,6 @@ Please review the [changelog document](https://github.com/PSKeePass/PoShKeePass/
 * Created a `build.ps1` script to build the module for use and publishing to gallery
 * Updated `New-KPConnection` to prompt for user MasterKey (keepass passsword) via console prompt `Read-host` instead of `$Host.ui.PromptForCredential()`, this is much faster than loading the gui.
 
-### v2.0.4.5
-
-* #135 - Restructured Module to a more modular structure. Single file per function, seperate root folders for exported functions vs internal functions, (functions, internal).
-* Added global variable `$Global:KeePassConfigurationFile` with the path of the config file and updated all references to file.
-* Updated formatting of readme and changelog to abide by md standards.
-
-### v2.0.4.4
-
-* Some Community PR here, great help thank you
-* #53, #117 `-AsPSCredential` Support to `Get-KeePassEntry`
-* `-Title` Parameter Added to `Get-KeePassEntry`
-* General bug fixes #115, #116, #120, #123, #127
-* `New-KeePassDatabase` function added
-
 ## Known Issues
 
 See the [Known-Issue](https://github.com/PSKeePass/PoShKeePass/issues?q=is%3Aissue+is%3Aopen+label%3AKnown-Issue) tag to get a list of known issues and their status.
@@ -122,10 +112,12 @@ See the [Known-Issue](https://github.com/PSKeePass/PoShKeePass/issues?q=is%3Aiss
 ## Shout-Outs
 
 * PSKeePass would like to thank [Jason Fossen](https://github.com/JasonFossen) for his [initial work](https://cyber-defense.sans.org/blog/2015/08/13/powershell-for-keepass-sample-script) with KeePass in PowerShell.
+* PSKeePass would like to thank [Christian Lehrer](https://github.com/chritea) for his powershell keepass work and contributions.
+* PSKeePass would like to thank [Ninjigen](https://github.com/Ninjigen) for his powershell keepass work and contributions.
 * PSKeePass would like to thank [Andrzej Pilacik](http://www.apdba.com/) (aka @cypisek77) for his review and feedback on documentation and over all rubber ducking.
 
 ## License
 
-Copyright (c) [John Klann](https://github.com/jkdba), [Christian Lehrer](https://github.com/chritea). All rights reserved.
+Copyright (c) [John Klann](https://github.com/jkdba). All rights reserved.
 
 Licensed under the [MIT](https://github.com/PSKeePass/PoShKeePass/blob/master/license) License.

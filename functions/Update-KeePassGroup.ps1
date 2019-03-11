@@ -113,7 +113,7 @@ function Update-KeePassGroup
             if($IconName){ $setKPGroupSplat.IconName = $IconName }
             if($KeePassParentGroup){ $setKPGroupSplat.KeePassParentGroup = $KeePassParentGroup }
 
-            Set-KPGroup @setKPGroupSplat
+            Set-KPGroup @setKPGroupSplat | ConvertTo-KpPsObject -DatabaseProfileName $DatabaseProfileName
         }
     }
     end
