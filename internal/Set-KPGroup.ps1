@@ -48,9 +48,15 @@ function Set-KPGroup
         [KeePassLib.PwIcon] $IconName,
 
         [Parameter(Position = 5)]
-        [Switch] $PassThru,
+        [bool] $Expires,
 
         [Parameter(Position = 6)]
+        [DateTime] $ExpiryTime,
+
+        [Parameter(Position = 7)]
+        [Switch] $PassThru,
+
+        [Parameter(Position = 8)]
         [Switch] $Force
     )
     process
@@ -67,6 +73,16 @@ function Set-KPGroup
                 if($IconName -and $IconName -ne $KeePassGroup.IconId)
                 {
                     $KeePassGroup.IconId = $IconName
+                }
+
+                if(Test-Bound -ParameterName 'Expires')
+                {
+                    $KeePassGroup.Expires = $Expires
+                }
+
+                if($ExpiryTime)
+                {
+                    $KeePassGroup.ExpiryTime = $ExpiryTime.ToUniversalTime()
                 }
 
                 if($KeePassParentGroup)

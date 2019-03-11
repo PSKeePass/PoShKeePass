@@ -68,9 +68,15 @@ function Set-KPEntry
         [KeePassLib.PwIcon] $IconName,
 
         [Parameter(Position = 9)]
-        [Switch] $PassThru,
+        [bool] $Expires,
 
         [Parameter(Position = 10)]
+        [DateTime] $ExpiryTime,
+
+        [Parameter(Position = 11)]
+        [Switch] $PassThru,
+
+        [Parameter(Position = 12)]
         [Switch] $Force
     )
     process
@@ -123,6 +129,16 @@ function Set-KPEntry
                 if($IconName -and $IconName -ne $KeePassEntry.IconId)
                 {
                     $KeePassEntry.IconId = $IconName
+                }
+
+                if(Test-Bound -ParameterName 'Expires')
+                {
+                    $KeePassEntry.Expires = $Expires
+                }
+
+                if($ExpiryTime)
+                {
+                    $KeePassEntry.ExpiryTime = $ExpiryTime.ToUniversalTime()
                 }
 
                 $OldEntry.History.clear()

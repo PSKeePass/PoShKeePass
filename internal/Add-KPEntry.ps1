@@ -60,6 +60,12 @@ function Add-KPEntry
         [KeePassLib.PwIcon] $IconName,
 
         [Parameter(Position = 8)]
+        [bool] $Expires,
+
+        [Parameter(Position = 9)]
+        [DateTime] $ExpiryTime,
+
+        [Parameter(Position = 10)]
         [Switch] $PassThru
     )
     begin
@@ -125,6 +131,16 @@ function Add-KPEntry
             if($IconName -and $IconName -ne $KeePassEntry.IconId)
             {
                 $KeePassEntry.IconId = $IconName
+            }
+
+            if(Test-Bound -ParameterName 'Expires')
+            {
+                $KeePassEntry.Expires = $Expires
+            }
+
+            if($ExpiryTime)
+            {
+                $KeePassEntry.ExpiryTime = $ExpiryTime.ToUniversalTime()
             }
 
             $KeePassGroup.AddEntry($KeePassEntry, $true)

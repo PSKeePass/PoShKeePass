@@ -1,10 +1,14 @@
 # Changelog
 
-## v.2.1.2.3
+## v.2.1.2.4
 
-* Fix [#149](https://github.com/PSKeePass/PoShKeePass/issues/149) - **Breaking Change** New-KeePassGroup and Update-KeePassGroup now return a KeePass PSObject via the ConvertTo-KPPsObject function.
-* Fix [#156](https://github.com/PSKeePass/PoShKeePass/issues/156) - New-KeePassDatabase will now error out if kdbx file already exists, instead of silently overwriting an existing file.
-* Fix [#64](https://github.com/PSKeePass/PoShKeePass/issues/65) - Review Message for grammar, clarified some messages as well.
+* Added Feature [#29](https://github.com/PSKeePass/PoShKeePass/issues/29) - Can now manage the Expiration Time/Enabled State of groups and entry.
+
+* v.2.1.2.3 - Fix [#64](https://github.com/PSKeePass/PoShKeePass/issues/65) - Review Message for grammar, clarified some messages as well.
+
+* v.2.1.2.2 - Fix [#156](https://github.com/PSKeePass/PoShKeePass/issues/156) - New-KeePassDatabase will now error out if kdbx file already exists, instead of silently overwriting an existing file.
+
+* v.2.1.2.1 - Fix [#149](https://github.com/PSKeePass/PoShKeePass/issues/149) - **Breaking Change** New-KeePassGroup and Update-KeePassGroup now return a KeePass PSObject via the ConvertTo-KPPsObject function.
 
 ## v.2.1.2.0
 

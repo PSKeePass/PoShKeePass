@@ -79,19 +79,25 @@ function New-KeePassEntry
         [String] $URL,
 
         [Parameter(Position = 6)]
-        [Switch] $PassThru,
-
-        [Parameter(Position = 7, Mandatory, ValueFromPipelineByPropertyName)]
-        [ValidateNotNullOrEmpty()]
-        [string] $DatabaseProfileName,
-
-        [Parameter(Position = 8)]
         [ValidateNotNullOrEmpty()]
         [string] $IconName = 'Key',
 
-        [Parameter(Position = 9)]
+        [Parameter(Position = 7)]
+        [switch] $Expires,
+
+        [Parameter(Position = 8)]
+        [DateTime] $ExpiryTime,
+
+        [Parameter(Position = 9, Mandatory, ValueFromPipelineByPropertyName)]
         [ValidateNotNullOrEmpty()]
-        [PSobject] $MasterKey
+        [string] $DatabaseProfileName,
+
+        [Parameter(Position = 10)]
+        [ValidateNotNullOrEmpty()]
+        [PSobject] $MasterKey,
+
+        [Parameter(Position = 11)]
+        [Switch] $PassThru
     )
     begin
     {
@@ -116,6 +122,9 @@ function New-KeePassEntry
                 KeePassConnection = $KeePassConnectionObject
                 Notes             = $Notes
             }
+
+            if(Test-Bound -ParameterName 'Expires'){ $addKpEntrySplat.Expires = $Expires }
+            if($ExpiryTime){ $addKpEntrySplat.ExpiryTime = $ExpiryTime }
 
             Add-KpEntry @addKpEntrySplat | ConvertTo-KPPSObject -DatabaseProfileName $DatabaseProfileName
         }

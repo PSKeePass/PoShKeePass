@@ -43,6 +43,12 @@ function Add-KPGroup
         [KeePassLib.PwIcon] $IconName,
 
         [Parameter(Position = 4)]
+        [bool] $Expires,
+
+        [Parameter(Position = 5)]
+        [DateTime] $ExpiryTime,
+
+        [Parameter(Position = 6)]
         [Switch] $PassThru
     )
     begin
@@ -66,6 +72,16 @@ function Add-KPGroup
             if($IconName -and $IconName -ne $KeePassGroup.IconId)
             {
                 $KeePassGroup.IconId = $IconName
+            }
+
+            if(Test-Bound -ParameterName 'Expires')
+            {
+                $KeePassGroup.Expires = $Expires
+            }
+
+            if($ExpiryTime)
+            {
+                $KeePassGroup.ExpiryTime = $ExpiryTime.ToUniversalTime()
             }
 
             $KeePassParentGroup.AddGroup($KeePassGroup, $true)

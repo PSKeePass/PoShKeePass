@@ -467,6 +467,7 @@ InModuleScope "PoShKeePass" {
                 $PassThruResult.KPEntry.Strings.ReadSafe('UserName') | Should Be 'testuser'
                 $PassThruResult.KPEntry.Strings.ReadSafe('Notes') | Should Be 'testnotes'
                 $PassThruResult.KPEntry.Strings.ReadSafe('URL') | Should be 'http://url.test.com'
+                $PassThruResult.Expires | Should be $false
             }
 
             It "Example 1.4: Creates a New KeePass Entry - Invalid - Group Path does not Exist" {
@@ -494,6 +495,22 @@ InModuleScope "PoShKeePass" {
                 $PassThruResult.KPEntry.Strings.ReadSafe('Notes') | Should Be 'testnotes'
                 $PassThruResult.KPEntry.Strings.ReadSafe('URL') | Should Be 'http://url.test.com'
                 $PassThruResult.KPEntry.IconId | Should Be 'Apple'
+            }
+
+            It "Example 1.8: Creates a New KeePass Entry - Valid - PassThru - Expires" {
+
+                $expiryTime = Get-date
+                $PassThruResult = New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'testPassThruExpiry' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' -IconName Apple -Expires -ExpiryTime $expiryTime -PassThru
+
+                $PassThruResult.KPEntry | Should BeOfType KeePassLib.PwEntry
+                $PassThruResult.KPEntry.ParentGroup.Name | Should BeLike 'PSKeePassTestDatabase'
+                $PassThruResult.KPEntry.Strings.ReadSafe('Title') | Should Be 'testPassThruExpiry'
+                $PassThruResult.KPEntry.Strings.ReadSafe('UserName') | Should Be 'testuser'
+                $PassThruResult.KPEntry.Strings.ReadSafe('Notes') | Should Be 'testnotes'
+                $PassThruResult.KPEntry.Strings.ReadSafe('URL') | Should Be 'http://url.test.com'
+                $PassThruResult.KPEntry.IconId | Should Be 'Apple'
+                $PassThruResult.Expires | Should be $true
+                $PassThruResult.ExpireTime | Should be $expiryTime.ToUniversalTime()
             }
         }
 
@@ -630,6 +647,23 @@ InModuleScope "PoShKeePass" {
                 $UpdatePassThruResult.KPEntry.Strings.ReadSafe('URL') | Should Be 'http://UpdateURL.Test.com'
                 $UpdatePassThruResult.IconId | Should Be 'Apple'
             }
+
+            It "Example 1.8: Update a KeePass Entry - Valid - Properties - PassThru - Expires" {
+
+                $expiryTime = Get-Date
+                New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'test7' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' -DatabaseProfileName 'SampleProfile' | Should Be $null
+                $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -DatabaseProfileName 'SampleProfile' | Where-Object { $_.Title -eq 'test7' }
+                $UpdatePassThruResult = Update-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -KeePassEntry $KeePassEntry -title 'UpdateTest7' -UserName 'UpdateTestUser' -Notes 'UpdateTestNotes' -URL 'http://UpdateURL.Test.com' -DatabaseProfileName 'SampleProfile' -IconName Apple -Expires -ExpiryTime $expiryTime -PassThru -Force
+
+                $UpdatePassThruResult.KPEntry | Should BeOfType KeePassLib.PwEntry
+                $UpdatePassThruResult.KPEntry.Strings.ReadSafe('Title') | Should Be 'UpdateTest7'
+                $UpdatePassThruResult.KPEntry.Strings.ReadSafe('UserName') | Should Be 'UpdateTestUser'
+                $UpdatePassThruResult.KPEntry.Strings.ReadSafe('Notes') | Should Be 'UpdateTestNotes'
+                $UpdatePassThruResult.KPEntry.Strings.ReadSafe('URL') | Should Be 'http://UpdateURL.Test.com'
+                $UpdatePassThruResult.IconId | Should Be 'Apple'
+                $UpdatePassThruResult.Expires | Should be $true
+                $UpdatePassThruResult.ExpireTime | should be $expiryTime.ToUniversalTime()
+            }
         }
         New-KPConfigurationFile -Force
     }
@@ -721,6 +755,19 @@ InModuleScope "PoShKeePass" {
                 $PassThruResult.ParentGroup | Should Be 'PSKeePassTestDatabase'
                 $PassThruResult.Name | Should Be 'test4PassThru'
                 $PassThruResult.IconId | Should Be 'Clock'
+            }
+
+            It "Example 1.6: Creates a New KeePass Group - Valid - PassThru - Expires" {
+
+                $expiryTime = Get-Date
+                $PassThruResult = New-KeePassGroup -KeePassGroupParentPath 'PSKeePassTestDatabase' -KeePassGroupName 'test5PassThru' -DatabaseProfileName 'SampleProfile' -IconName 'Clock' -Expires -ExpiryTime $expiryTime -PassThru
+
+                $PassThruResult.psobject.TypeNames -icontains 'PSKeePass.Group' | Should Be $true
+                $PassThruResult.ParentGroup | Should Be 'PSKeePassTestDatabase'
+                $PassThruResult.Name | Should Be 'test5PassThru'
+                $PassThruResult.IconId | Should Be 'Clock'
+                $PassThruResult.Expires | Should Be $true
+                $PassThruResult.ExpireTime | Should Be $expiryTime.ToUniversalTime()
             }
         }
         New-KPConfigurationFile -Force
@@ -840,6 +887,22 @@ InModuleScope "PoShKeePass" {
                 $KeePassGroup.IconId | Should Be 'Clock'
                 $KeePassGroup.psobject.TypeNames -icontains 'PSKeePass.Group' | Should Be $true
                 $KeePassGroup.ParentGroup | Should be 'PSKeePassTestDatabase'
+            }
+
+            It "Example 1.8: Updates a KeePass Group - Valid - Name - PassThru - Expires" {
+                $expiryTime = Get-Date
+
+                New-KeePassGroup -KeePassGroupParentPath 'PSKeePassTestDatabase' -KeePassGroupName 'test7' -DatabaseProfileName 'SampleProfile' | Should Be $null
+                $KeePassGroup = Get-KeePassGroup -DatabaseProfileName SampleProfile -KeePassGroupPath 'PSKeePassTestDatabase/test7'
+                $KeePassGroup.Name | Should Be 'test7'
+                $KeePassGroup.IconId | Should Be 'Folder'
+                $KeePassGroup = Update-KeePassGroup -KeePassGroup $KeePassGroup -GroupName 'Test7Update' -DatabaseProfileName 'SampleProfile' -IconName 'Clock' -Expires -ExpiryTime $expiryTime -Force -PassThru
+                $KeePassGroup.Name | Should Be 'Test7Update'
+                $KeePassGroup.IconId | Should Be 'Clock'
+                $KeePassGroup.psobject.TypeNames -icontains 'PSKeePass.Group' | Should Be $true
+                $KeePassGroup.ParentGroup | Should be 'PSKeePassTestDatabase'
+                $KeePassGroup.Expires | Should be $true
+                $KeePassGroup.ExpireTime | Should be $expiryTime.ToUniversalTime()
             }
         }
 

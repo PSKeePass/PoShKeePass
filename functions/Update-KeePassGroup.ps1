@@ -50,20 +50,24 @@ function Update-KeePassGroup
         [ValidateNotNullOrEmpty()]
         [PSObject] $KeePassGroup,
 
-        [Parameter(Position = 1, ValueFromPipelineByPropertyName)]
+        [Parameter(Position = 0, ValueFromPipelineByPropertyName)]
         [ValidateNotNullOrEmpty()]
         [Alias('FullPath')]
         [String] $KeePassParentGroupPath,
 
-        [Parameter(Position = 2)]
+        [Parameter(Position = 1)]
         [ValidateNotNullOrEmpty()]
         [String] $GroupName,
 
+        [Parameter(Position = 2)]
+        [ValidateNotNullOrEmpty()]
+        [string] $IconName,
+
         [Parameter(Position = 3)]
-        [Switch] $PassThru,
+        [switch] $Expires,
 
         [Parameter(Position = 4)]
-        [Switch] $Force,
+        [DateTime] $ExpiryTime,
 
         [Parameter(Position = 5, Mandatory, ValueFromPipelineByPropertyName)]
         [ValidateNotNullOrEmpty()]
@@ -71,11 +75,13 @@ function Update-KeePassGroup
 
         [Parameter(Position = 6)]
         [ValidateNotNullOrEmpty()]
-        [string] $IconName,
+        [PSobject] $MasterKey,
 
         [Parameter(Position = 7)]
-        [ValidateNotNullOrEmpty()]
-        [PSobject] $MasterKey
+        [Switch] $PassThru,
+
+        [Parameter(Position = 8)]
+        [Switch] $Force
     )
     begin
     {
@@ -112,6 +118,8 @@ function Update-KeePassGroup
 
             if($IconName){ $setKPGroupSplat.IconName = $IconName }
             if($KeePassParentGroup){ $setKPGroupSplat.KeePassParentGroup = $KeePassParentGroup }
+            if(Test-Bound -ParameterName 'Expires'){ $setKPGroupSplat.Expires = $Expires }
+            if($ExpiryTime){ $setKPGroupSplat.ExpiryTime = $ExpiryTime }
 
             Set-KPGroup @setKPGroupSplat | ConvertTo-KpPsObject -DatabaseProfileName $DatabaseProfileName
         }

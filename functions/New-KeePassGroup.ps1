@@ -43,19 +43,25 @@ function New-KeePassGroup
         [String] $KeePassGroupName,
 
         [Parameter(Position = 2)]
-        [Switch] $PassThru,
-
-        [Parameter(Position = 3, Mandatory, ValueFromPipelineByPropertyName)]
-        [ValidateNotNullOrEmpty()]
-        [string] $DatabaseProfileName,
-
-        [Parameter(Position = 4)]
         [ValidateNotNullOrEmpty()]
         [string] $IconName = 'Folder',
 
-        [Parameter(Position = 5)]
+        [Parameter(Position = 3)]
+        [switch] $Expires,
+
+        [Parameter(Position = 4)]
+        [DateTime] $ExpiryTime,
+
+        [Parameter(Position = 5, Mandatory, ValueFromPipelineByPropertyName)]
         [ValidateNotNullOrEmpty()]
-        [PSobject] $MasterKey
+        [string] $DatabaseProfileName,
+
+        [Parameter(Position = 6)]
+        [ValidateNotNullOrEmpty()]
+        [PSobject] $MasterKey,
+
+        [Parameter(Position = 7)]
+        [Switch] $PassThru
     )
     begin
     {
@@ -67,7 +73,18 @@ function New-KeePassGroup
 
         $KeePassParentGroup = Get-KpGroup -KeePassConnection $KeePassConnectionObject -FullPath $KeePassGroupParentPath -Stop
 
-        Add-KPGroup -KeePassConnection $KeePassConnectionObject -KeePassParentGroup $KeePassParentGroup -GroupName $KeePassGroupName -IconName $IconName -PassThru:$PassThru | ConvertTo-KpPsObject -DatabaseProfileName $DatabaseProfileName
+        $addKPGroupSplat = @{
+            KeePassConnection  = $KeePassConnectionObject
+            GroupName          = $KeePassGroupName
+            IconName           = $IconName
+            PassThru           = $PassThru
+            KeePassParentGroup = $KeePassParentGroup
+        }
+
+        if(Test-Bound -ParameterName 'Expires'){ $addKPGroupSplat.Expires = $Expires }
+        if($ExpiryTime){ $addKPGroupSplat.ExpiryTime = $ExpiryTime }
+
+        Add-KPGroup @addKPGroupSplat | ConvertTo-KpPsObject -DatabaseProfileName $DatabaseProfileName
     }
     end
     {
