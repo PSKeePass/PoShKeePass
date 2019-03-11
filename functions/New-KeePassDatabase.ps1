@@ -26,22 +26,21 @@ function New-KeePassDatabase
         [ValidateNotNullOrEmpty()]
         [String] $DatabasePath,
 
-        [Parameter(Position = 1, Mandatory = $true, ParameterSetName = 'Key')]
-        [Parameter(Position = 1, Mandatory = $true, ParameterSetName = 'KeyAndMaster')]
+        [Parameter(Position = 1, Mandatory, ParameterSetName = 'Key')]
+        [Parameter(Position = 1, Mandatory, ParameterSetName = 'KeyAndMaster')]
         [ValidateNotNullOrEmpty()]
         [ValidateScript({Test-Path $_})]
         [String] $KeyPath,
 
         [Parameter(Position = 2, ParameterSetName = 'Key')]
         [Parameter(Position = 2, ParameterSetName = 'Master')]
-        [Parameter(Position = 2, Mandatory = $true, ParameterSetName = 'Network')]
+        [Parameter(Position = 2, Mandatory, ParameterSetName = 'Network')]
         [Switch] $UseNetworkAccount,
 
-        [Parameter(Position = 3, Mandatory = $true, ParameterSetName = 'Master')]
-        [Parameter(Position = 3, Mandatory = $true, ParameterSetName = 'KeyAndMaster')]
+        [Parameter(Position = 3, Mandatory, ParameterSetName = 'Master')]
+        [Parameter(Position = 3, Mandatory, ParameterSetName = 'KeyAndMaster')]
         [PSCredential] $MasterKey
     )
-
     begin
     {
         if($KeyPath)
@@ -49,35 +48,42 @@ function New-KeePassDatabase
     }
     process
     {
-        try
+        if(Test-Path -Path $DatabasePath)
         {
-            $DatabaseObject = New-Object -TypeName KeepassLib.PWDatabase -ErrorAction Stop
+            throw ('The specified Database Path already exists: {0}.' -f $DatabasePath)
         }
-        catch
+        else
         {
-            Import-KPLibrary
-            $DatabaseObject = New-Object -TypeName KeepassLib.PWDatabase -ErrorAction Stop
+            try
+            {
+                $DatabaseObject = New-Object -TypeName KeepassLib.PWDatabase -ErrorAction Stop
+            }
+            catch
+            {
+                Import-KPLibrary
+                $DatabaseObject = New-Object -TypeName KeepassLib.PWDatabase -ErrorAction Stop
+            }
+
+            $CompositeKey = New-Object -TypeName KeepassLib.Keys.CompositeKey
+
+            if($MasterKey)
+            {
+                $KcpPassword = New-Object -TypeName KeePassLib.Keys.KcpPassword($MasterKey.GetNetworkCredential().Password)
+                $CompositeKey.AddUserKey($KcpPassword)
+            }
+
+            if($UseNetworkAccount)
+            {
+                $CompositeKey.AddUserKey((New-Object KeepassLib.Keys.KcpUserAccount))
+            }
+
+            $IOInfo = New-Object KeepassLib.Serialization.IOConnectionInfo
+            $IOInfo.Path = $DatabasePath
+
+            $IStatusLogger = New-Object KeePassLib.Interfaces.NullStatusLogger
+
+            $DatabaseObject.New($IOInfo, $CompositeKey) | Out-Null
+            $DatabaseObject.Save($IStatusLogger)
         }
-
-        $CompositeKey = New-Object -TypeName KeepassLib.Keys.CompositeKey
-
-        if($MasterKey)
-        {
-            $KcpPassword = New-Object -TypeName KeePassLib.Keys.KcpPassword($MasterKey.GetNetworkCredential().Password)
-            $CompositeKey.AddUserKey($KcpPassword)
-        }
-
-        if($UseNetworkAccount)
-        {
-            $CompositeKey.AddUserKey((New-Object KeepassLib.Keys.KcpUserAccount))
-        }
-
-        $IOInfo = New-Object KeepassLib.Serialization.IOConnectionInfo
-        $IOInfo.Path = $DatabasePath
-
-        $IStatusLogger = New-Object KeePassLib.Interfaces.NullStatusLogger
-
-        $DatabaseObject.New($IOInfo, $CompositeKey) | Out-Null
-        $DatabaseObject.Save($IStatusLogger)
     }
 }
