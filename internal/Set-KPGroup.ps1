@@ -23,6 +23,10 @@ function Set-KPGroup
             Specify to return the updated group object.
         .PARAMETER Force
             Specify to force updating the group.
+        .PARAMETER Expires
+            Specify if you want the KeePass Object to Expire, default is to not expire.
+        .PARAMETER ExpiryTime
+            Datetime expiration Time value.
         .NOTES
             This Cmdlet Does AutoSave on exit.
     #>

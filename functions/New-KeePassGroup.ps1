@@ -21,6 +21,10 @@ function New-KeePassGroup
             This parameter was created with scripting in mind.
         .PARAMETER IconName
             Specify the Name of the Icon for the Group to display in the KeePass UI.
+        .PARAMETER Expires
+            Specify if you want the KeePass Object to Expire, default is to not expire.
+        .PARAMETER ExpiryTime
+            Datetime expiration Time value.
         .EXAMPLE
             PS> New-KeePassGroup -DatabaseProfileName TEST -KeePassParentGroupPath 'General/TestAccounts' -KeePassGroupName 'TestGroup'
 

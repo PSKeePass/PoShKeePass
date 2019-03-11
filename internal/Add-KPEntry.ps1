@@ -27,6 +27,10 @@ function Add-KPEntry
             Returns the New KeePass Entry after creation.
         .PARAMETER IconName
             Specify the Name of the Icon for the Entry to display in the KeePass UI.
+        .PARAMETER Expires
+            Specify if you want the KeePass Object to Expire, default is to not expire.
+        .PARAMETER ExpiryTime
+            Datetime expiration Time value.
         .NOTES
             This Cmdlet will autosave on exit
     #>

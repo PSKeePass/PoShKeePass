@@ -21,6 +21,10 @@ function Add-KPGroup
             Specify the Name of the Icon for the Group to display in the KeePass UI.
         .PARAMETER PassThru
             Specify to return the new keepass group object.
+        .PARAMETER Expires
+            Specify if you want the KeePass Object to Expire, default is to not expire.
+        .PARAMETER ExpiryTime
+            Datetime expiration Time value.
         .NOTES
             This Cmdlet Does AutoSave on exit.
     #>

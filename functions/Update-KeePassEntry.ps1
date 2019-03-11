@@ -35,6 +35,10 @@ function Update-KeePassEntry
             This parameter was created with scripting in mind.
         .PARAMETER IconName
             Specify the Name of the Icon for the Entry to display in the KeePass UI.
+        .PARAMETER Expires
+            Specify if you want the KeePass Object to Expire, default is to not expire.
+        .PARAMETER ExpiryTime
+            Datetime expiration Time value.
         .EXAMPLE
             PS> Update-KeePassEntry -KeePassEntry $KeePassEntryObject -DatabaseProfileName TEST -KeePassEntryGroupPath 'General/TestAccounts' -Title 'Test Title' -UserName 'Domain\svcAccount' -KeePassPassword $(New-KeePassPassword -upper -lower -digits -length 20)
 
