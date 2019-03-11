@@ -64,7 +64,7 @@ if (-not(Test-Path -Path $Global:KeePassConfigurationFile))
 
         $previousVersion = [int]($Versions[1] -replace '\.')
         $CurrentVersion = $Versions[0]
-        if($previousVersion -lt 2118)
+        if($previousVersion -lt 2124)
         {
             Write-Warning -Message ('**BREAKING CHANGES:** This new version of the module {0} contains BREAKING CHANGES, please review the changelog or readme for details!' -f $CurrentVersion)
         }
