@@ -118,6 +118,6 @@ See the [Known-Issue](https://github.com/PSKeePass/PoShKeePass/issues?q=is%3Aiss
 
 ## License
 
-Copyright (c) [John Klann](https://github.com/jkdba). All rights reserved.
+Copyright (c) 2019 [John Klann](https://github.com/jkdba). All rights reserved.
 
 Licensed under the [MIT](https://github.com/PSKeePass/PoShKeePass/blob/master/license) License.
