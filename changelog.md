@@ -1,5 +1,9 @@
 # Changelog
 
+## v.2.1.2.5
+
+* [#157](https://github.com/PSKeePass/PoShKeePass/issues/157) - Set New-KPConnection function back to internal function and no longer exports.
+
 ## v.2.1.2.4
 
 * Added Feature [#29](https://github.com/PSKeePass/PoShKeePass/issues/29) - Can now manage the Expiration Time/Enabled State of groups and entry.
