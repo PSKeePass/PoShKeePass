@@ -62,7 +62,7 @@
 
 ## v2.0.5.6
 
-* Update-KeePassEntry no longer creates a new entry, Entry history is retained, UUID is never changed, All time modificiation fields are now updated when appropriate. 
+* Update-KeePassEntry no longer creates a new entry, Entry history is retained, UUID is never changed, All time modificiation fields are now updated when appropriate.
   * [#127](https://github.com/PSKeePass/PoShKeePass/issues/127)
   * [#123](https://github.com/PSKeePass/PoShKeePass/issues/123)
   * [#120](https://github.com/PSKeePass/PoShKeePass/issues/120)
@@ -110,7 +110,7 @@
 1. #92 Added PowerShell Format XML File for creating PowerShell Object views.
 2. #90 Updated default properties returned for KeePass Entries to Include the Notes Property. Did this via the new format XML file.
 3. #67 Consolidated KeePass database connection and authentication functions. Thanks @Ninjigen for your help on this.
-4. #67 Now supports authentication using all three methods as a combination: MasterKey, KeyFile, WindowsAccount. 
+4. #67 Now supports authentication using all three methods as a combination: MasterKey, KeyFile, WindowsAccount.
 5. #100 Fixed bug when using the `-MasterKey` options on and of the functions. The proper variable is now removed.
 6. #95 Added internal function `Restore-KPConfigurationFile`. This is implemented to restore your configuration file from a previous version of the module, when updating from PSGallery.
 7. Moved exported functions to the Module Manifest.
@@ -168,7 +168,7 @@ Internally created a function that builds the commonly used Dynamic Parameters.
 
 `Get-KPDynamicParameter`
 
-## Simplfied Building an Automatic Database Connection 
+## Simplfied Building an Automatic Database Connection
 
 Internally created a function that builds the Database connection based off of the Database Configuration Profile Specified.
 
