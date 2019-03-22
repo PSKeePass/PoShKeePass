@@ -19,6 +19,8 @@ function Set-KPGroup
             Sepcify the KeePassParentGroup(s) for the new Group(s).
         .PARAMETER IconName
             Specify the Name of the Icon for the Entry to display in the KeePass UI.
+        .PARAMETER Notes
+            Specify group notes
         .PARAMETER PassThru
             Specify to return the updated group object.
         .PARAMETER Force
@@ -52,15 +54,18 @@ function Set-KPGroup
         [KeePassLib.PwIcon] $IconName,
 
         [Parameter(Position = 5)]
-        [bool] $Expires,
+        [String] $Notes,
 
         [Parameter(Position = 6)]
-        [DateTime] $ExpiryTime,
+        [bool] $Expires,
 
         [Parameter(Position = 7)]
-        [Switch] $PassThru,
+        [DateTime] $ExpiryTime,
 
         [Parameter(Position = 8)]
+        [Switch] $PassThru,
+
+        [Parameter(Position = 9)]
         [Switch] $Force
     )
     process
@@ -77,6 +82,11 @@ function Set-KPGroup
                 if($IconName -and $IconName -ne $KeePassGroup.IconId)
                 {
                     $KeePassGroup.IconId = $IconName
+                }
+
+                if($Notes)
+                {
+                    $KeePassGroup.Notes = $Notes
                 }
 
                 if(Test-Bound -ParameterName 'Expires')
@@ -102,6 +112,7 @@ function Set-KPGroup
                         $KeePassGroup = $UpdatedKeePassGroup
                     }
                 }
+
                 $KeePassConnection.Save($null)
 
                 if($PassThru)

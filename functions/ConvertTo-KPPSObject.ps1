@@ -112,6 +112,7 @@ function ConvertTo-KPPSObject
                         'LastAccessTimeUtc'       = $_keepassItem.LastAccessTime;
                         'LastModificationTimeUtc' = $_keepassItem.LastModificationTime;
                         'LocationChanged'         = $_keepassItem.LocationChanged;
+                        'Notes'                   = $_keepassItem.Notes;
                         'Touched'                 = $_keepassItem.Touched;
                         'UsageCount'              = $_keepassItem.UsageCount;
                         'ParentGroup'             = $_keepassItem.ParentGroup.Name;

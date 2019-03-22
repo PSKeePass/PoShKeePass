@@ -25,6 +25,8 @@ function Update-KeePassGroup
             This parameter was created with scripting in mind.
         .PARAMETER IconName
             Specify the Name of the Icon for the Group to display in the KeePass UI.
+        .PARAMETER Notes
+            Specify group notes
         .PARAMETER Expires
             Specify if you want the KeePass Object to Expire, default is to not expire.
         .PARAMETER ExpiryTime
@@ -66,6 +68,10 @@ function Update-KeePassGroup
         [Parameter(Position = 2)]
         [ValidateNotNullOrEmpty()]
         [string] $IconName,
+
+        [Parameter(Position = 5)]
+        [ValidateNotNullOrEmpty()]
+        [String] $Notes,
 
         [Parameter(Position = 3)]
         [switch] $Expires,
@@ -118,6 +124,7 @@ function Update-KeePassGroup
                 Force             = $true
                 GroupName         = $GroupName
                 Confirm           = $false
+                Notes             = $Notes
             }
 
             if($IconName){ $setKPGroupSplat.IconName = $IconName }

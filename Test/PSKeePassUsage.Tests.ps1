@@ -758,11 +758,12 @@ InModuleScope "PoShKeePass" {
 
             It "Example 1.3: Creates a New KeePass Group - Valid - PassThru" {
 
-                $PassThruResult = New-KeePassGroup -KeePassGroupParentPath 'PSKeePassTestDatabase' -KeePassGroupName 'test2PassThru' -DatabaseProfileName 'SampleProfile' -PassThru
+                $PassThruResult = New-KeePassGroup -KeePassGroupParentPath 'PSKeePassTestDatabase' -KeePassGroupName 'test2PassThru' -DatabaseProfileName 'SampleProfile' -Notes 'testnotes' -PassThru
 
                 $PassThruResult.psobject.TypeNames -icontains 'PSKeePass.Group' | Should Be $true
                 $PassThruResult.ParentGroup | Should Be 'PSKeePassTestDatabase'
                 $PassThruResult.Name | Should Be 'test2PassThru'
+                $PassThruResult.Notes | Should Be 'testnotes'
             }
 
             It "Example 1.4: Creates a New KeePass Entry - Invalid - Group Path does not Exist" {
@@ -925,6 +926,30 @@ InModuleScope "PoShKeePass" {
                 $KeePassGroup.ParentGroup | Should be 'PSKeePassTestDatabase'
                 $KeePassGroup.Expires | Should be $true
                 $KeePassGroup.ExpireTime | Should be $expiryTime.ToUniversalTime()
+            }
+
+            It "Example 1.9: Updates a KeePass Group - Valid - Notes" {
+                New-KeePassGroup -KeePassGroupParentPath 'PSKeePassTestDatabase' -KeePassGroupName 'test8' -DatabaseProfileName 'SampleProfile' -Notes 'meh' | Should Be $null
+                $KeePassGroup = Get-KeePassGroup -DatabaseProfileName SampleProfile -KeePassGroupPath 'PSKeePassTestDatabase/test8'
+                $KeePassGroup.Name | Should Be 'test8'
+                $KeePassGroup.Notes | Should Be 'meh'
+                $KeePassGroup = Update-KeePassGroup -KeePassGroup $KeePassGroup -GroupName 'Test8Update' -DatabaseProfileName 'SampleProfile' -Notes 'bye' -Force -PassThru
+                $KeePassGroup.Name | Should Be 'Test8Update'
+                $KeePassGroup.psobject.TypeNames -icontains 'PSKeePass.Group' | Should Be $true
+                $KeePassGroup.ParentGroup | Should be 'PSKeePassTestDatabase'
+                $KeePassGroup.Notes | Should Be 'bye'
+            }
+
+            It "Example 2.0: Updates a KeePass Group - Valid - Notes Not Passed" {
+                New-KeePassGroup -KeePassGroupParentPath 'PSKeePassTestDatabase' -KeePassGroupName 'test9' -DatabaseProfileName 'SampleProfile' -Notes 'meh' | Should Be $null
+                $KeePassGroup = Get-KeePassGroup -DatabaseProfileName SampleProfile -KeePassGroupPath 'PSKeePassTestDatabase/test9'
+                $KeePassGroup.Name | Should Be 'test9'
+                $KeePassGroup.Notes | Should Be 'meh'
+                $KeePassGroup = Update-KeePassGroup -KeePassGroup $KeePassGroup -GroupName 'Test9Update' -DatabaseProfileName 'SampleProfile' -Force -PassThru
+                $KeePassGroup.Name | Should Be 'Test9Update'
+                $KeePassGroup.psobject.TypeNames -icontains 'PSKeePass.Group' | Should Be $true
+                $KeePassGroup.ParentGroup | Should be 'PSKeePassTestDatabase'
+                $KeePassGroup.Notes | Should Be 'meh'
             }
         }
 

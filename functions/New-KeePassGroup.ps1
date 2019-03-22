@@ -21,6 +21,8 @@ function New-KeePassGroup
             This parameter was created with scripting in mind.
         .PARAMETER IconName
             Specify the Name of the Icon for the Group to display in the KeePass UI.
+        .PARAMETER Notes
+            Specify group notes
         .PARAMETER Expires
             Specify if you want the KeePass Object to Expire, default is to not expire.
         .PARAMETER ExpiryTime
@@ -51,20 +53,24 @@ function New-KeePassGroup
         [string] $IconName = 'Folder',
 
         [Parameter(Position = 3)]
-        [switch] $Expires,
+        [ValidateNotNullOrEmpty()]
+        [String] $Notes,
 
         [Parameter(Position = 4)]
+        [switch] $Expires,
+
+        [Parameter(Position = 5)]
         [DateTime] $ExpiryTime,
 
-        [Parameter(Position = 5, Mandatory, ValueFromPipelineByPropertyName)]
+        [Parameter(Position = 6, Mandatory, ValueFromPipelineByPropertyName)]
         [ValidateNotNullOrEmpty()]
         [string] $DatabaseProfileName,
 
-        [Parameter(Position = 6)]
+        [Parameter(Position = 7)]
         [ValidateNotNullOrEmpty()]
         [PSobject] $MasterKey,
 
-        [Parameter(Position = 7)]
+        [Parameter(Position = 8)]
         [Switch] $PassThru
     )
     begin
@@ -83,8 +89,10 @@ function New-KeePassGroup
             IconName           = $IconName
             PassThru           = $PassThru
             KeePassParentGroup = $KeePassParentGroup
+            Notes              = $Notes
         }
 
+        # if($Notes){ $addKPGroupSplat.Notes = $Notes }
         if(Test-Bound -ParameterName 'Expires'){ $addKPGroupSplat.Expires = $Expires }
         if($ExpiryTime){ $addKPGroupSplat.ExpiryTime = $ExpiryTime }
 
