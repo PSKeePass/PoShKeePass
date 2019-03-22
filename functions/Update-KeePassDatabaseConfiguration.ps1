@@ -34,7 +34,7 @@ function Update-KeePassDatabaseConfiguration
         .OUTPUTS
             $null
     #>
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = '_none')]
     param
     (
         [Parameter(Position = 0, Mandatory)]
@@ -43,7 +43,7 @@ function Update-KeePassDatabaseConfiguration
 
         [Parameter(Position = 1)]
         [ValidateNotNullOrEmpty()]
-        [String] $NewDatabaseProfileName,
+        [String] $NewDatabaseProfileName = $DatabaseProfileName,
 
         [Parameter(Position = 2, ParameterSetName = 'Key')]
         [Parameter(Position = 2, ParameterSetName = 'Master')]
@@ -76,13 +76,13 @@ function Update-KeePassDatabaseConfiguration
         if($PSCmdlet.ParameterSetName -eq 'Network' -and -not $UseNetworkAccount)
         {
             Write-Warning -Message '[BEGIN] Please Specify a valid Credential Combination.'
-            Write-Warning -Message '[BEGIN] You can not have a only a database file with no authentication options.'
-            Throw 'Please Specify a valid Credential Combination.'
+            Write-Warning -Message '[BEGIN] You can not have only a database file with no authentication options.'
+            throw 'Please Specify a valid Credential Combination.'
         }
     }
     process
     {
-        throw 'Update-KeePassDatabaseConfiguration not yet implemented.'
+        # throw 'Update-KeePassDatabaseConfiguration not yet implemented.'
 
         if (-not (Test-Path -Path $Global:KeePassConfigurationFile))
         {
@@ -94,10 +94,10 @@ function Update-KeePassDatabaseConfiguration
             $CheckIfProfileExists = Get-KeePassDatabaseConfiguration -DatabaseProfileName $DatabaseProfileName
         }
 
-        if($CheckIfProfileExists)
+        if(-not $CheckIfProfileExists)
         {
-            Write-Warning -Message ('[PROCESS] A KeePass Database Configuration Profile Already exists with the specified name: {0}.' -f $DatabaseProfileName)
-            Throw '[PROCESS] A KeePass Database Configuration Profile Already exists with the specified name: {0}.' -f $DatabaseProfileName
+            Write-Warning -Message ('[PROCESS] A KeePass Database Configuration Profile does not exists with the specified name: {0}.' -f $DatabaseProfileName)
+            throw '[PROCESS] A KeePass Database Configuration Profile does not exists with the specified name: {0}.' -f $DatabaseProfileName
         }
         else
         {
@@ -105,34 +105,44 @@ function Update-KeePassDatabaseConfiguration
             {
                 [Xml] $XML = New-Object -TypeName System.Xml.XmlDocument
                 $XML.Load($Global:KeePassConfigurationFile)
+
+                $OldProfile = $XML.SelectNodes('/Settings/DatabaseProfiles/Profile') | Where-Object { $_.Name -eq $DatabaseProfileName }
+                if(-not $DatabasePath){ $_DatabasePath = $OldProfile.DatabasePath }
+                if(Test-Bound -ParameterName 'UseMasterKey' -Not){ $_UseMasterKey = [bool]::Parse($OldProfile.UseMasterKey) }
+                if(-not $KeyPath){ $_KeyPath = $OldProfile.KeyPath}
+                if(Test-Bound -ParameterName 'UseNetworkAccount' -Not){ $_UseNetworkAccount = [bool]::Parse($OldProfile.UseNetworkAccount) }
+
+                if($PSCmdlet.ParameterSetName -eq '_none'){ $_AuthenticationType = $OldProfile.AuthenticationType }
+                else{ $_AuthenticationType = $PSCmdlet.ParameterSetName}
+
                 ## Create New Profile Element with Name of the new profile
                 $DatabaseProfile = $XML.CreateElement('Profile')
                 $DatabaseProfileAtribute = $XML.CreateAttribute('Name')
-                $DatabaseProfileAtribute.Value = $DatabaseProfileName
+                $DatabaseProfileAtribute.Value = $NewDatabaseProfileName
                 $DatabaseProfile.Attributes.Append($DatabaseProfileAtribute) | Out-Null
 
                 ## Build and Add Element Nodes
                 $DatabasePathNode = $XML.CreateNode('element', 'DatabasePath', '')
-                $DatabasePathNode.InnerText = $DatabasePath
+                $DatabasePathNode.InnerText = $_DatabasePath
                 $DatabaseProfile.AppendChild($DatabasePathNode) | Out-Null
 
                 $KeyPathNode = $XML.CreateNode('element', 'KeyPath', '')
-                $KeyPathNode.InnerText = $KeyPath
+                $KeyPathNode.InnerText = $_KeyPath
                 $DatabaseProfile.AppendChild($KeyPathNode) | Out-Null
 
                 $UseNetworkAccountNode = $XML.CreateNode('element', 'UseNetworkAccount', '')
-                $UseNetworkAccountNode.InnerText = $UseNetworkAccount
+                $UseNetworkAccountNode.InnerText = $_UseNetworkAccount
                 $DatabaseProfile.AppendChild($UseNetworkAccountNode) | Out-Null
 
                 $UseMasterKeyNode = $XML.CreateNode('element', 'UseMasterKey', '')
-                $UseMasterKeyNode.InnerText = $UseMasterKey
+                $UseMasterKeyNode.InnerText = $_UseMasterKey
                 $DatabaseProfile.AppendChild($UseMasterKeyNode) | Out-Null
 
                 $AuthenticationTypeNode = $XML.CreateNode('element', 'AuthenticationType', '')
-                $AuthenticationTypeNode.InnerText = $PSCmdlet.ParameterSetName
+                $AuthenticationTypeNode.InnerText = $_AuthenticationType
                 $DatabaseProfile.AppendChild($AuthenticationTypeNode) | Out-Null
 
-                $XML.SelectSingleNode('/Settings/DatabaseProfiles').AppendChild($DatabaseProfile) | Out-Null
+                $XML.SelectSingleNode('/Settings/DatabaseProfiles').ReplaceChild($DatabaseProfile, $OldProfile) | Out-Null
 
                 $XML.Save($Global:KeePassConfigurationFile)
 
@@ -140,12 +150,12 @@ function Update-KeePassDatabaseConfiguration
 
                 if($PassThru)
                 {
-                    Get-KeePassDatabaseConfiguration -DatabaseProfileName $DatabaseProfileName
+                    Get-KeePassDatabaseConfiguration -DatabaseProfileName $NewDatabaseProfileName
                 }
             }
             catch
             {
-                Write-Warning -Message ('[PROCESS] An Exception Occured while trying to add a new KeePass database configuration ({0}) to the configuration file.' -f $DatabaseProfileName)
+                Write-Warning -Message ('[PROCESS] An Exception Occured while trying to add a new KeePass database configuration ({0}) to the configuration file.' -f $NewDatabaseProfileName)
                 Write-Warning -Message ('[PROCESS] {0}' -f $_.Exception.Message)
                 Throw $_
             }

@@ -233,6 +233,28 @@ InModuleScope "PoShKeePass" {
         New-KPConfigurationFile -Force
     }
 
+    Describe "Update-KeePassDatabaseConfiguration - UnitTest" -Tag UnitTest {
+        New-KPConfigurationFile -Force
+
+        Context "Example 1: Update a KeePass Database Configuration Profile" {
+
+            It "Example 1.1: Update Database Configuration Profile - Valid - By Name" {
+                New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount | Should Be $null
+
+                $DatabaseConfiguration = Update-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -NewDatabaseProfileName 'Updated' -PassThru
+
+                $DatabaseConfiguration.Name | Should Be 'Updated'
+                $DatabaseConfiguration.DatabasePath | Should Be "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx"
+                $DatabaseConfiguration.KeyPath | Should Be ''
+                $DatabaseConfiguration.UseNetworkAccount | Should Be 'True'
+                $DatabaseConfiguration.UseMasterKey | Should Be 'False'
+                $DatabaseConfiguration.AuthenticationType | Should Be 'Network'
+            }
+        }
+
+        New-KPConfigurationFile -Force
+    }
+
     Describe "Remove-KeePassDatabaseConfiguration - UnitTest" -Tag UnitTest {
         New-KPConfigurationFile -Force
 

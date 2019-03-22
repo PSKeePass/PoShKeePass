@@ -31,9 +31,11 @@ Please check out our [Getting Started](https://github.com/PSKeePass/PoShKeePass/
 
 Please review the [changelog document](https://github.com/PSKeePass/PoShKeePass/blob/master/changelog.md) for a full history.
 
-## v.2.1.2.5
+## v.2.1.2.6
 
-* [#157](https://github.com/PSKeePass/PoShKeePass/issues/157) - Set New-KPConnection function back to internal function and no longer exports.
+* [#158](https://github.com/PSKeePass/PoShKeePass/issues/158) - Added Update-KeePassDatabaseConfiguration function and tests.
+
+* v.2.1.2.5 - Fix - [#157](https://github.com/PSKeePass/PoShKeePass/issues/157) - Set New-KPConnection function back to internal function and no longer exports.
 
 ## v.2.1.2.4
 
