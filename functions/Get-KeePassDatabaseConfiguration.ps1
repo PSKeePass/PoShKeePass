@@ -20,14 +20,18 @@ function Get-KeePassDatabaseConfiguration
         .OUTPUTS
             PSObject
     #>
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = '__None')]
     param
     (
-        [Parameter(Position = 0)]
+        [Parameter(Position = 0, ParameterSetName = '__Profile')]
         [ValidateNotNullOrEmpty()]
         [String] $DatabaseProfileName,
 
-        [Parameter(Position = 1)]
+        [Parameter(Position = 1, ParameterSetName = '__DefaultDB')]
+        [ValidateNotNullOrEmpty()]
+        [Switch] $Default,
+
+        [Parameter(Position = 2)]
         [Switch] $Stop
     )
     process
@@ -40,6 +44,10 @@ function Get-KeePassDatabaseConfiguration
             if($DatabaseProfileName)
             {
                 $ProfileResults = $XML.Settings.DatabaseProfiles.Profile | Where-Object { $_.Name -ilike $DatabaseProfileName }
+            }
+            elseif($Default)
+            {
+                $ProfileResults = $XML.Settings.DatabaseProfiles.Profile | Where-Object { $_.Default -ieq 'true' }
             }
             else
             {
@@ -55,6 +63,7 @@ function Get-KeePassDatabaseConfiguration
             {
                 $UseNetworkAccount = if($ProfileResult.UseNetworkAccount -eq 'True'){$true}else{$false}
                 $UseMasterKey = if($ProfileResult.UseMasterKey -eq 'True'){$true}else{$false}
+                $ProfileDefault = if($ProfileResult.Default -eq 'True'){$true}else{$false}
 
                 [hashtable] $ProfileObject = [ordered]@{
                     'Name'               = $ProfileResult.Name;
@@ -63,6 +72,7 @@ function Get-KeePassDatabaseConfiguration
                     'UseMasterKey'       = $UseMasterKey;
                     'UseNetworkAccount'  = $UseNetworkAccount;
                     'AuthenticationType' = $ProfileResult.AuthenticationType;
+                    'Default'            = $ProfileDefault;
                 }
 
                 New-Object -TypeName PSObject -Property $ProfileObject

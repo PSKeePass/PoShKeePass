@@ -119,8 +119,8 @@ InModuleScope "PoShKeePass" {
                 $DatabaseConfiguration.UseNetworkAccount | Should Be $false
                 $DatabaseConfiguration.UseMasterKey | Should Be $false
                 $DatabaseConfiguration.AuthenticationType | Should Be 'Key'
+                $DatabaseConfiguration.Default | Should Be $false
             }
-            break
         }
 
         Context "Example 2: Create a new KeePass Database Configuration Profile - MasterKey" {
@@ -198,6 +198,28 @@ InModuleScope "PoShKeePass" {
                 $DatabaseConfiguration.AuthenticationType | Should Be 'Network'
             }
         }
+
+        Context "Example 5: Create a new KeePass Database Configuration Profile - Default DB" {
+
+            New-KPConfigurationFile -Force
+
+            It "Example 5.1: Database Configuration Profile - Default - Valid with PassThru" {
+                $DatabaseConfiguration = New-KeePassDatabaseConfiguration -DatabaseProfileName 'DefaultTestPassThru' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount -Default -PassThru
+
+                $DatabaseConfiguration.Name | Should Be 'DefaultTestPassThru'
+                $DatabaseConfiguration.DatabasePath | Should Be "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx"
+                $DatabaseConfiguration.KeyPath | Should Be ''
+                $DatabaseConfiguration.UseNetworkAccount | Should Be $True
+                $DatabaseConfiguration.UseMasterKey | Should Be $false
+                $DatabaseConfiguration.AuthenticationType | Should Be 'Network'
+                $DatabaseConfiguration.Default | Should Be $true
+            }
+
+            It "Example 5.2: Database Configuration Profile - Default - Invalid Already Default" {
+                {New-KeePassDatabaseConfiguration -DatabaseProfileName 'DefaultTestFailPassThru' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount -Default -PassThru } | should Throw
+                # $Error[0].exception.message -ilike 'DefaultTestPassThru profile is already set to the default*' | should be $true
+            }
+        }
     }
 
     Describe "Get-KeePassDatabaseConfiguration - UnitTest" -Tag UnitTest {
@@ -228,6 +250,20 @@ InModuleScope "PoShKeePass" {
                 $DatabaseConfiguration.UseMasterKey | Should Be 'False'
                 $DatabaseConfiguration.AuthenticationType | Should Be 'Network'
             }
+
+            It "Example 1.3: Get Database Configuration Profile - Valid - By Default" {
+                New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile1' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount -Default | Should Be $null
+
+                $DatabaseConfiguration = Get-KeePassDatabaseConfiguration -Default
+
+                $DatabaseConfiguration.Name | Should Be 'SampleProfile1'
+                $DatabaseConfiguration.DatabasePath | Should Be "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx"
+                $DatabaseConfiguration.KeyPath | Should Be ''
+                $DatabaseConfiguration.UseNetworkAccount | Should Be 'True'
+                $DatabaseConfiguration.UseMasterKey | Should Be 'False'
+                $DatabaseConfiguration.AuthenticationType | Should Be 'Network'
+                $DatabaseConfiguration.Default | Should Be $true
+            }
         }
 
         New-KPConfigurationFile -Force
@@ -249,6 +285,30 @@ InModuleScope "PoShKeePass" {
                 $DatabaseConfiguration.UseNetworkAccount | Should Be 'True'
                 $DatabaseConfiguration.UseMasterKey | Should Be 'False'
                 $DatabaseConfiguration.AuthenticationType | Should Be 'Network'
+            }
+        }
+
+        Context "Example 2: Update a KeePass Database Configuration Profile - Default DB" {
+
+            New-KPConfigurationFile -Force
+
+            It "Example 2.1: Update Database Configuration Profile - Valid - DefaultDB" {
+                New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount | Should Be $null
+
+                $DatabaseConfiguration = Update-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -NewDatabaseProfileName 'Updated' -Default -PassThru
+
+                $DatabaseConfiguration.Name | Should Be 'Updated'
+                $DatabaseConfiguration.DatabasePath | Should Be "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx"
+                $DatabaseConfiguration.KeyPath | Should Be ''
+                $DatabaseConfiguration.UseNetworkAccount | Should Be 'True'
+                $DatabaseConfiguration.UseMasterKey | Should Be 'False'
+                $DatabaseConfiguration.AuthenticationType | Should Be 'Network'
+                $DatabaseConfiguration.Default | Should Be $true
+            }
+
+            It "Example 2.2: Update Database Configuration Profile - Valid - Invalid Already Default" {
+                {New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile1' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount -Default -PassThru } | should Throw
+                # $Error[0].exception.message -ilike 'DefaultTestPassThru profile is already set to the default*' | should be $true
             }
         }
 
