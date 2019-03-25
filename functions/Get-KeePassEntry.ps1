@@ -57,7 +57,7 @@ function Get-KeePassEntry
         [Alias('AsPSCredential')]
         [Switch] $WithCredential,
 
-        [Parameter(Position = 5, Mandatory, ValueFromPipelineByPropertyName)]
+        [Parameter(Position = 5, ValueFromPipelineByPropertyName)]
         [ValidateNotNullOrEmpty()]
         [string] $DatabaseProfileName,
 

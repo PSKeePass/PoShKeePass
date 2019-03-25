@@ -31,6 +31,28 @@ Please check out our [Getting Started](https://github.com/PSKeePass/PoShKeePass/
 
 Please review the [changelog document](https://github.com/PSKeePass/PoShKeePass/blob/master/changelog.md) for a full history.
 
+## v.2.1.3.0
+
+* Added [#160](https://github.com/PSKeePass/PoShKeePass/issues/160) - Default Database Configuration Profile.
+  * When set, the `-DatabaseProfileName` parameter is optional, and if not passed it will grab the default profile from the config.
+  * To Set it up on an existing profile simply use the update command:
+
+  ```powershell
+    Update-KeePassDatabaseConfigurationProfile -DatabaseProfileName 'name' -Default
+  ```
+
+  * To Create a new profile as default use the new command:
+
+  ```powershell
+    New-KeePassDatabaseConfigurationProfile -DatabaseProfileName 'name' -Default -DatabasePath '' other options
+  ```
+
+  * This allows for calls to the main module functions without the `-DatabaseProfileName` parameter such as:
+
+  ```powershell
+    Get-KeePassEntry -UserName 'aUser'
+  ```
+
 ## v.2.1.2.8
 
 * Added - [#84](https://github.com/PSKeePass/PoShKeePass/issues/84) - Manage Notes properties on KPGroup Objects.
@@ -94,25 +116,6 @@ Please review the [changelog document](https://github.com/PSKeePass/PoShKeePass/
     * This gives the user better options and does not require manual creation of the credential.
     * **Breaking Change** Since this has been implemeneted the `-AsPsCredential` parameter has been removed. The new method is better as it allows for multiple entries to be returned with thier cred objects instead of limiting it to 1 entry.
 * **Breaking Change** - `ConvertTo-KPPSObject` and all returned objects the `.FullPath` property now returns the true full path of the object. The `ParentGroup` property still exists and can be used as an alteranative data source for any lost functionality.
-
-### v2.0.5.6
-
-* Update-KeePassEntry no longer creates a new entry, Entry history is retained, UUID is never changed, All time modificiation fields are now updated when appropriate.
-  * [#127](https://github.com/PSKeePass/PoShKeePass/issues/127)
-  * [#123](https://github.com/PSKeePass/PoShKeePass/issues/123)
-  * [#120](https://github.com/PSKeePass/PoShKeePass/issues/120)
-* Code clean up in the internal functions
-  * Removed unecessary comments.
-  * Simplified parameter attributes, and formatting.
-  * Updated error handling to use write-error and simplified handling.
-* Normalized repetative checks to their own `Test-X` functions and moved error\null handling inside.
-  * Test-KPConnection - Checks to see if connection exists and and is open.
-  * Test-KPPasswordValue - Correctly checks for supported types and moved error handling inside.
-* Fixed Dev Tool AutoVersioning Script, now updates psd1 version again.
-* Simplified `Import-KPLibrary` function.
-* Updated `ConvertTo-KPPSObject` to be construct PSObject differently and gained 86% speed performance improvement.
-* Created a `build.ps1` script to build the module for use and publishing to gallery
-* Updated `New-KPConnection` to prompt for user MasterKey (keepass passsword) via console prompt `Read-host` instead of `$Host.ui.PromptForCredential()`, this is much faster than loading the gui.
 
 ## Known Issues
 

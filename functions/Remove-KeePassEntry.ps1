@@ -35,7 +35,7 @@ function Remove-KeePassEntry
         [Parameter(Position = 2)]
         [Switch] $Force,
 
-        [Parameter(Position = 3, Mandatory, ValueFromPipelineByPropertyName)]
+        [Parameter(Position = 3, ValueFromPipelineByPropertyName)]
         [ValidateNotNullOrEmpty()]
         [string] $DatabaseProfileName,
 

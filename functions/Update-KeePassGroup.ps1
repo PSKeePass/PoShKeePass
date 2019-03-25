@@ -79,7 +79,7 @@ function Update-KeePassGroup
         [Parameter(Position = 4)]
         [DateTime] $ExpiryTime,
 
-        [Parameter(Position = 5, Mandatory, ValueFromPipelineByPropertyName)]
+        [Parameter(Position = 5, ValueFromPipelineByPropertyName)]
         [ValidateNotNullOrEmpty()]
         [string] $DatabaseProfileName,
 

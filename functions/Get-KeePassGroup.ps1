@@ -41,7 +41,7 @@ function Get-KeePassGroup
         [Parameter(Position = 1)]
         [Switch] $AsPlainText,
 
-        [Parameter(Position = 2, Mandatory, ValueFromPipelineByPropertyName)]
+        [Parameter(Position = 2, ValueFromPipelineByPropertyName)]
         [ValidateNotNullOrEmpty()]
         [string] $DatabaseProfileName,
 

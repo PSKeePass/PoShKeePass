@@ -48,6 +48,11 @@ function Get-KeePassDatabaseConfiguration
             elseif($Default)
             {
                 $ProfileResults = $XML.Settings.DatabaseProfiles.Profile | Where-Object { $_.Default -ieq 'true' }
+
+                if($Stop -and -not $ProfileResults)
+                {
+                    throw 'Unable to find a default KeePass Configuration, please specify a database profile name or set a default profile.'
+                }
             }
             else
             {
