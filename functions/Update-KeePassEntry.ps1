@@ -100,7 +100,7 @@ function Update-KeePassEntry
         [Parameter(Position = 9)]
         [DateTime] $ExpiryTime,
 
-        [Parameter(Position = 10, Mandatory, ValueFromPipelineByPropertyName)]
+        [Parameter(Position = 10, ValueFromPipelineByPropertyName)]
         [ValidateNotNullOrEmpty()]
         [string] $DatabaseProfileName,
 

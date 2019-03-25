@@ -16,11 +16,11 @@ function New-KPConnection
         .PARAMETER UseWindowsAccount
             Use the current windows account as an authentication method
     #>
-    [CmdletBinding(DefaultParameterSetName = 'Profile')]
+    [CmdletBinding(DefaultParameterSetName = '__None')]
     param
     (
-        [Parameter(Position = 0, Mandatory, ParameterSetName = 'Profile')]
-        [ValidateNotNullOrEmpty()]
+        [Parameter(Position = 0, ParameterSetName = 'Profile')]
+        [AllowNull()]
         [String] $DatabaseProfileName,
 
         [Parameter(Position = 0, Mandatory, ParameterSetName = 'CompositeKey')]
@@ -57,9 +57,14 @@ function New-KPConnection
             Write-Error -Message ('[PROCESS] The MasterKey of type: ({0}). Is not Supported Please supply a MasterKey of Types (SecureString or PSCredential).' -f $($MasterKey.GetType().Name)) -Category InvalidType -TargetObject $MasterKey -RecommendedAction 'Provide a MasterKey of Type PSCredential or SecureString'
         }
 
-        if($PSCmdlet.ParameterSetName -eq 'Profile')
+        if($PSCmdlet.ParameterSetName -eq 'Profile' -or $PSCmdlet.ParameterSetName -eq '__None')
         {
-            $KeepassConfigurationObject = Get-KeePassDatabaseConfiguration -DatabaseProfileName $DatabaseProfileName -Stop
+            ## if not passing a profile name, attempt to get the default db
+            $getKeePassDatabaseConfigurationSplat = @{ Stop = $true }
+            if($DatabaseProfileName){ $getKeePassDatabaseConfigurationSplat.DatabaseProfileName = $DatabaseProfileName }
+            else{ $getKeePassDatabaseConfigurationSplat.Default = $true }
+
+            $KeepassConfigurationObject = Get-KeePassDatabaseConfiguration @getKeePassDatabaseConfigurationSplat
 
             $Database = $KeepassConfigurationObject.DatabasePath
             if(-not [string]::IsNullOrEmpty($KeepassConfigurationObject.KeyPath)){ $KeyPath = $KeepassConfigurationObject.KeyPath }

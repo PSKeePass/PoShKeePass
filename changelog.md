@@ -1,5 +1,27 @@
 # Changelog
 
+## v.2.1.3.0
+
+* Added [#160](https://github.com/PSKeePass/PoShKeePass/issues/160) - Default Database Configuration Profile.
+  * When set, the `-DatabaseProfileName` parameter is optional, and if not passed it will grab the default profile from the config.
+  * To Set it up on an existing profile simply use the update command:
+
+  ```powershell
+    Update-KeePassDatabaseConfigurationProfile -DatabaseProfileName 'name' -Default
+  ```
+
+  * To Create a new profile as default use the new command:
+
+  ```powershell
+    New-KeePassDatabaseConfigurationProfile -DatabaseProfileName 'name' -Default -DatabasePath '' other options
+  ```
+
+  * This allows for calls to the main module functions without the `-DatabaseProfileName` parameter such as:
+
+  ```powershell
+    Get-KeePassEntry -UserName 'aUser'
+  ```
+
 ## v.2.1.2.8
 
 * Added - [#84](https://github.com/PSKeePass/PoShKeePass/issues/84) - Manage Notes properties on KPGroup Objects.

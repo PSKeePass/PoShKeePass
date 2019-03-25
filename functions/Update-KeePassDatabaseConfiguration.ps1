@@ -69,6 +69,9 @@ function Update-KeePassDatabaseConfiguration
         [Switch] $UseMasterKey,
 
         [Parameter(Position = 6)]
+        [Switch] $Default,
+
+        [Parameter(Position = 7)]
         [Switch] $PassThru
     )
     begin
@@ -101,6 +104,16 @@ function Update-KeePassDatabaseConfiguration
         }
         else
         {
+            if($Default)
+            {
+                $defaultProfile = Get-KeePassDatabaseConfiguration -Default
+
+                if($defaultProfile -and $defaultProfile.Name -ine $DatabaseProfileName)
+                {
+                    throw ('{0} profile is already set to the default, if you would like to overwrite it as the default please use the Update-KeePassDatabaseConfiguration function and remove the default flag.' -f $defaultProfile.Name)
+                }
+            }
+
             try
             {
                 [Xml] $XML = New-Object -TypeName System.Xml.XmlDocument
@@ -141,6 +154,10 @@ function Update-KeePassDatabaseConfiguration
                 $AuthenticationTypeNode = $XML.CreateNode('element', 'AuthenticationType', '')
                 $AuthenticationTypeNode.InnerText = $_AuthenticationType
                 $DatabaseProfile.AppendChild($AuthenticationTypeNode) | Out-Null
+
+                $DefaultNode = $XML.CreateNode('element', 'Default', '')
+                $DefaultNode.InnerText = $Default
+                $DatabaseProfile.AppendChild($DefaultNode) | Out-Null
 
                 $XML.SelectSingleNode('/Settings/DatabaseProfiles').ReplaceChild($DatabaseProfile, $OldProfile) | Out-Null
 

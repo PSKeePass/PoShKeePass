@@ -56,6 +56,27 @@ InModuleScope "PoShKeePass" {
             }
         }
 
+        Context "Example 4: Open with PSKeePass Credential Object - KeyFile - Default Profile" {
+            New-KPConfigurationFile -Force
+
+            It "Example 4.1: Get KeePass Database Connection with KeyFile using Default Profile - Valid" {
+                New-KeePassDatabaseConfiguration -DatabaseProfileName 'KeyFileTest' -DatabasePath "$PSScriptRoot\Includes\AuthenticationDatabases\KeyFile.kdbx" -KeyPath "$PSScriptRoot\Includes\AuthenticationDatabases\KeyFile.key" -Default | Should Be $null
+
+                $KeePassConnection = New-KPConnection -DatabaseProfileName '' -MasterKey ''
+                $KeePassConnection | Should BeOfType 'KeePassLib.PwDatabase'
+                $KeePassConnection.IsOpen | Should Be $true
+                $KeePassConnection.RootGroup.Name | Should Be 'KeyFile'
+                $KeePassConnection.Close() | Should Be $null
+                $KeePassConnection.IsOpen | Should Be $false
+            }
+
+            It "Example 4.2: Get KeePass Database Connection with KeyFile using Default Profile - Invalid" {
+                Update-KeePassDatabaseConfiguration -DatabaseProfileName 'KeyFileTest' -Default:$false | Should Be $null
+
+                {New-KPConnection -DatabaseProfileName '' -MasterKey ''} | Should Throw
+            }
+        }
+
         ## Holding off on Network Account Testing until I can script the creation of a database.
     }
 
@@ -119,8 +140,8 @@ InModuleScope "PoShKeePass" {
                 $DatabaseConfiguration.UseNetworkAccount | Should Be $false
                 $DatabaseConfiguration.UseMasterKey | Should Be $false
                 $DatabaseConfiguration.AuthenticationType | Should Be 'Key'
+                $DatabaseConfiguration.Default | Should Be $false
             }
-            break
         }
 
         Context "Example 2: Create a new KeePass Database Configuration Profile - MasterKey" {
@@ -198,6 +219,28 @@ InModuleScope "PoShKeePass" {
                 $DatabaseConfiguration.AuthenticationType | Should Be 'Network'
             }
         }
+
+        Context "Example 5: Create a new KeePass Database Configuration Profile - Default DB" {
+
+            New-KPConfigurationFile -Force
+
+            It "Example 5.1: Database Configuration Profile - Default - Valid with PassThru" {
+                $DatabaseConfiguration = New-KeePassDatabaseConfiguration -DatabaseProfileName 'DefaultTestPassThru' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount -Default -PassThru
+
+                $DatabaseConfiguration.Name | Should Be 'DefaultTestPassThru'
+                $DatabaseConfiguration.DatabasePath | Should Be "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx"
+                $DatabaseConfiguration.KeyPath | Should Be ''
+                $DatabaseConfiguration.UseNetworkAccount | Should Be $True
+                $DatabaseConfiguration.UseMasterKey | Should Be $false
+                $DatabaseConfiguration.AuthenticationType | Should Be 'Network'
+                $DatabaseConfiguration.Default | Should Be $true
+            }
+
+            It "Example 5.2: Database Configuration Profile - Default - Invalid Already Default" {
+                {New-KeePassDatabaseConfiguration -DatabaseProfileName 'DefaultTestFailPassThru' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount -Default -PassThru } | should Throw
+                # $Error[0].exception.message -ilike 'DefaultTestPassThru profile is already set to the default*' | should be $true
+            }
+        }
     }
 
     Describe "Get-KeePassDatabaseConfiguration - UnitTest" -Tag UnitTest {
@@ -228,6 +271,20 @@ InModuleScope "PoShKeePass" {
                 $DatabaseConfiguration.UseMasterKey | Should Be 'False'
                 $DatabaseConfiguration.AuthenticationType | Should Be 'Network'
             }
+
+            It "Example 1.3: Get Database Configuration Profile - Valid - By Default" {
+                New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile1' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount -Default | Should Be $null
+
+                $DatabaseConfiguration = Get-KeePassDatabaseConfiguration -Default
+
+                $DatabaseConfiguration.Name | Should Be 'SampleProfile1'
+                $DatabaseConfiguration.DatabasePath | Should Be "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx"
+                $DatabaseConfiguration.KeyPath | Should Be ''
+                $DatabaseConfiguration.UseNetworkAccount | Should Be 'True'
+                $DatabaseConfiguration.UseMasterKey | Should Be 'False'
+                $DatabaseConfiguration.AuthenticationType | Should Be 'Network'
+                $DatabaseConfiguration.Default | Should Be $true
+            }
         }
 
         New-KPConfigurationFile -Force
@@ -249,6 +306,30 @@ InModuleScope "PoShKeePass" {
                 $DatabaseConfiguration.UseNetworkAccount | Should Be 'True'
                 $DatabaseConfiguration.UseMasterKey | Should Be 'False'
                 $DatabaseConfiguration.AuthenticationType | Should Be 'Network'
+            }
+        }
+
+        Context "Example 2: Update a KeePass Database Configuration Profile - Default DB" {
+
+            New-KPConfigurationFile -Force
+
+            It "Example 2.1: Update Database Configuration Profile - Valid - DefaultDB" {
+                New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount | Should Be $null
+
+                $DatabaseConfiguration = Update-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -NewDatabaseProfileName 'Updated' -Default -PassThru
+
+                $DatabaseConfiguration.Name | Should Be 'Updated'
+                $DatabaseConfiguration.DatabasePath | Should Be "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx"
+                $DatabaseConfiguration.KeyPath | Should Be ''
+                $DatabaseConfiguration.UseNetworkAccount | Should Be 'True'
+                $DatabaseConfiguration.UseMasterKey | Should Be 'False'
+                $DatabaseConfiguration.AuthenticationType | Should Be 'Network'
+                $DatabaseConfiguration.Default | Should Be $true
+            }
+
+            It "Example 2.2: Update Database Configuration Profile - Valid - Invalid Already Default" {
+                {New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile1' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount -Default -PassThru } | should Throw
+                # $Error[0].exception.message -ilike 'DefaultTestPassThru profile is already set to the default*' | should be $true
             }
         }
 
@@ -463,10 +544,9 @@ InModuleScope "PoShKeePass" {
 
             New-KPConfigurationFile -Force
 
-            # It "Example 1.1: Creates a New KeePass Entry - Invalid - No Profile" {
-            #     # New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath "$($PSScriptRoot)\Includes\AuthenticationDatabases\MasterKey.kdbx" -UseNetworkAccount | Should Be $null
-            #     { New-KeePassEntry -KeePassEntryGroupPath 'database' -Title 'test' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' } | Should Throw 'InvalidKeePassConfiguration : No KeePass Configuration has been created.'
-            # }
+            It "Example 1.1: Creates a New KeePass Entry - Invalid - No Profile/Default" {
+                { New-KeePassEntry -KeePassEntryGroupPath 'database' -Title 'test' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' } | Should Throw 'Unable to find a default KeePass Configuration, please specify a database profile name or set a default profile.'
+            }
 
             ## Create Profile
             New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath $Global:KPTestDatabaseFile -KeyPath $Global:KPTestKeyPath
@@ -534,6 +614,21 @@ InModuleScope "PoShKeePass" {
                 $PassThruResult.Expires | Should be $true
                 $PassThruResult.ExpireTime | Should be $expiryTime.ToUniversalTime()
             }
+
+            Update-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -Default
+
+            It "Example 1.9: Creates a New KeePass Entry - Valid - PassThru using Default Profile" {
+
+                $PassThruResult = New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'testPassThru1' -UserName 'testuser1' -Notes 'testnotes' -URL 'http://url.test.com' -PassThru
+
+                $PassThruResult.KPEntry | Should BeOfType KeePassLib.PwEntry
+                $PassThruResult.KPEntry.ParentGroup.Name | Should BeLike 'PSKeePassTestDatabase'
+                $PassThruResult.KPEntry.Strings.ReadSafe('Title') | Should Be 'testPassThru1'
+                $PassThruResult.KPEntry.Strings.ReadSafe('UserName') | Should Be 'testuser1'
+                $PassThruResult.KPEntry.Strings.ReadSafe('Notes') | Should Be 'testnotes'
+                $PassThruResult.KPEntry.Strings.ReadSafe('URL') | Should be 'http://url.test.com'
+                $PassThruResult.Expires | Should be $false
+            }
         }
 
         New-KPConfigurationFile -Force
@@ -545,10 +640,10 @@ InModuleScope "PoShKeePass" {
 
             New-KPConfigurationFile -Force
 
-            # It "Example 1.1: Gets All KeePass Entries - Invalid - No Database Configuration Profiles." {
+            It "Example 1.1: Gets All KeePass Entries - Invalid - No Database Configuration Profiles." {
 
-            #     { Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase/BadPath' } | Should Throw 'InvalidKeePassConfiguration : No KeePass Configuration has been created.'
-            # }
+                { Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase/BadPath' } | Should Throw 'Unable to find a default KeePass Configuration, please specify a database profile name or set a default profile.'
+            }
 
             ## Create Profile
             New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath $Global:KPTestDatabaseFile -KeyPath $Global:KPTestKeyPath
@@ -588,6 +683,12 @@ InModuleScope "PoShKeePass" {
                 { Get-KeePassEntry -DatabaseProfileName SampleProfile -KeePassEntryGroupPath 'PSKeePassTestDatabase/BadPath' } | Should Throw
             }
 
+            Update-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -Default
+
+            It "Example 1.6 Gets All KeePass Entries - Valid - default profile" {
+                $ResultEntries = Get-KeePassEntry
+                $ResultEntries.Count | Should Be 3
+            }
         }
 
         New-KPConfigurationFile -Force
@@ -599,9 +700,9 @@ InModuleScope "PoShKeePass" {
 
             New-KPConfigurationFile -Force
 
-            # It "Example 1.1: Creates a New KeePass Entry - Invalid - No Profile" {
-            #     { Update-KeePassEntry -KeePassEntry $( New-Object KeePassLib.PwEntry($true, $true)) -KeePassEntryGroupPath 'database' -Title 'test' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' }| Should Throw 'InvalidKeePassConfiguration : No KeePass Configuration has been created.'
-            # }
+            It "Example 1.1: Creates a New KeePass Entry - Invalid - No Profile" {
+                { Update-KeePassEntry -KeePassEntry $( New-Object KeePassLib.PwEntry($true, $true)) -KeePassEntryGroupPath 'database' -Title 'test' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' } | Should Throw 'Unable to find a default KeePass Configuration, please specify a database profile name or set a default profile.'
+            }
 
             ## Create Profile
             New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath $Global:KPTestDatabaseFile -KeyPath $Global:KPTestKeyPath
@@ -686,6 +787,14 @@ InModuleScope "PoShKeePass" {
                 $UpdatePassThruResult.Expires | Should be $true
                 $UpdatePassThruResult.ExpireTime | should be $expiryTime.ToUniversalTime()
             }
+
+            Update-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -Default
+
+            It "Example 1.9: Updates a KeePass Entry - Valid - Properties - Default Profile" {
+                New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'test1' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com'| Should Be $null
+                $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' | Where-Object { $_.Title -eq 'test1' }
+                Update-KeePassEntry -KeePassEntry $KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -title 'UpdateTest1' -UserName 'UpdateTestUser' -Notes 'UpdateTestNotes' -URL 'http://UpdateURL.Test.com' -Force | Should Be $null
+            }
         }
         New-KPConfigurationFile -Force
     }
@@ -695,9 +804,9 @@ InModuleScope "PoShKeePass" {
 
         Context "Example 1: Remove a KeePass Entry" {
 
-            # It "Example 1.1: Removes a KeePass Entry - Invalid - No Profile" {
-            #     { Remove-KeePassEntry -KeePassEntry $( New-Object KeePassLib.PwEntry($true, $true)) }| Should Throw 'InvalidKeePassConfiguration : No KeePass Configuration has been created.'
-            # }
+            It "Example 1.1: Removes a KeePass Entry - Invalid - No Profile" {
+                { Remove-KeePassEntry -KeePassEntry $( New-Object KeePassLib.PwEntry($true, $true)) }| Should Throw 'Unable to find a default KeePass Configuration, please specify a database profile name or set a default profile.'
+            }
 
             ## Create Profile
             New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath $Global:KPTestDatabaseFile -KeyPath $Global:KPTestKeyPath
@@ -730,6 +839,14 @@ InModuleScope "PoShKeePass" {
                 $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -DatabaseProfileName 'SampleProfile' | Where-Object { $_.KPEntry.Strings.ReadSafe('Title') -eq 'test4' }
                 $KeePassEntry | Remove-KeePassEntry -Force | Should Be $null
             }
+
+            Update-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -Default
+
+            It "Example 1.6: Removes a KeePass Entry - Valid - Default Profile " {
+                New-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' -Title 'test1' -UserName 'testuser' -Notes 'testnotes' -URL 'http://url.test.com' | Should Be $null
+                $KeePassEntry = Get-KeePassEntry -KeePassEntryGroupPath 'PSKeePassTestDatabase' | Where-Object { $_.Title -eq 'test1' }
+                Remove-KeePassEntry -KeePassEntry $KeePassEntry -Force | Should Be $null
+            }
         }
 
         New-KPConfigurationFile -Force
@@ -741,9 +858,9 @@ InModuleScope "PoShKeePass" {
 
             New-KPConfigurationFile -Force
 
-            # It "Example 1.1: Creates a New KeePass Group - Invalid - No Profile" {
-            #     { New-KeePassGroup -KeePassGroupParentPath 'database' -KeePassGroupName 'test' } | Should Throw 'InvalidKeePassConfiguration : No KeePass Configuration has been created.'
-            # }
+            It "Example 1.1: Creates a New KeePass Group - Invalid - No Profile" {
+                { New-KeePassGroup -KeePassGroupParentPath 'database' -KeePassGroupName 'test' } | Should Throw 'Unable to find a default KeePass Configuration, please specify a database profile name or set a default profile.'
+            }
 
             ## Create Profile
             New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath $Global:KPTestDatabaseFile -KeyPath $Global:KPTestKeyPath
@@ -792,6 +909,12 @@ InModuleScope "PoShKeePass" {
                 $PassThruResult.Expires | Should Be $true
                 $PassThruResult.ExpireTime | Should Be $expiryTime.ToUniversalTime()
             }
+
+            Update-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -Default
+
+            It "Example 1.7: Creates a New KeePass Group - Valid - Default Profile" {
+                New-KeePassGroup -KeePassGroupParentPath 'PSKeePassTestDatabase' -KeePassGroupName 'test1' | Should Be $null
+            }
         }
         New-KPConfigurationFile -Force
     }
@@ -802,10 +925,10 @@ InModuleScope "PoShKeePass" {
 
             New-KPConfigurationFile -Force
 
-            # It "Example 1.1: Gets All KeePass Groups - Invalid - No Database Configuration Profiles." {
+            It "Example 1.1: Gets All KeePass Groups - Invalid - No Database Configuration Profiles." {
 
-            #     { Get-KeePassGroup -KeePassGroupPath 'PSKeePassTestDatabase/BadPath' } | Should Throw 'InvalidKeePassConfiguration : No KeePass Configuration has been created.'
-            # }
+                { Get-KeePassGroup -KeePassGroupPath 'PSKeePassTestDatabase/BadPath' } | Should Throw 'Unable to find a default KeePass Configuration, please specify a database profile name or set a default profile.'
+            }
 
             ## Create Profile
             New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath $Global:KPTestDatabaseFile -KeyPath $Global:KPTestKeyPath
@@ -836,6 +959,12 @@ InModuleScope "PoShKeePass" {
                 { Get-KeePassEntry -DatabaseProfileName SampleProfile -KeePassEntryGroupPath 'PSKeePassTestDatabase/BadPath' } | Should Throw
             }
 
+            Update-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -Default
+
+            It "Example 1.6 Gets All KeePass Groups - Valid - Default Profile" {
+                $ResultGroups = Get-KeePassGroup
+                $ResultGroups.Count | Should Be 7
+            }
         }
 
         New-KPConfigurationFile -Force
@@ -847,9 +976,9 @@ InModuleScope "PoShKeePass" {
 
             New-KPConfigurationFile -Force
 
-            # It "Example 1.1: Updates a KeePass Group - Invalid - No Profile" {
-            #     { Update-KeePassGroup -KeePassGroup $( New-Object KeePassLib.PwGroup($true, $true)) -Force } | Should Throw 'InvalidKeePassConfiguration : No KeePass Configuration has been created.'
-            # }
+            It "Example 1.1: Updates a KeePass Group - Invalid - No Profile" {
+                { Update-KeePassGroup -KeePassGroup $( New-Object KeePassLib.PwGroup($true, $true)) -Force } | Should Throw 'Unable to find a default KeePass Configuration, please specify a database profile name or set a default profile.'
+            }
 
             ## Create Profile
             New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath $Global:KPTestDatabaseFile -KeyPath $Global:KPTestKeyPath
@@ -951,6 +1080,17 @@ InModuleScope "PoShKeePass" {
                 $KeePassGroup.ParentGroup | Should be 'PSKeePassTestDatabase'
                 $KeePassGroup.Notes | Should Be 'meh'
             }
+
+            Update-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -Default
+
+            It "Example 2.1: Updates a KeePass Group - Valid - Name - Default Profile" {
+                New-KeePassGroup -KeePassGroupParentPath 'PSKeePassTestDatabase' -KeePassGroupName 'test1' | Should Be $null
+                $KeePassGroup = Get-KeePassGroup -KeePassGroupPath 'PSKeePassTestDatabase/test1'
+                $KeePassGroup.Name | Should Be 'test1'
+                Update-KeePassGroup -KeePassGroup $KeePassGroup -GroupName 'Test1Update' -Force | Should Be $null
+                $KeePassGroup = Get-KeePassGroup -KeePassGroupPath 'PSKeePassTestDatabase/Test1Update'
+                $KeePassGroup.Name | Should Be 'Test1Update'
+            }
         }
 
         New-KPConfigurationFile -Force
@@ -961,9 +1101,9 @@ InModuleScope "PoShKeePass" {
 
         Context "Example 1: Remove a KeePass Group" {
 
-            # It "Example 1.1: Removes a KeePass Group - Invalid - No Profile" {
-            #     { Remove-KeePassGroup -KeePassGroup $( New-Object KeePassLib.PwGroup($true, $true)) }| Should Throw 'InvalidKeePassConfiguration : No KeePass Configuration has been created.'
-            # }
+            It "Example 1.1: Removes a KeePass Group - Invalid - No Profile" {
+                { Remove-KeePassGroup -KeePassGroup $( New-Object KeePassLib.PwGroup($true, $true)) }| Should Throw 'Unable to find a default KeePass Configuration, please specify a database profile name or set a default profile.'
+            }
 
             ## Create Profile
             New-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -DatabasePath $Global:KPTestDatabaseFile -KeyPath $Global:KPTestKeyPath
@@ -1005,6 +1145,17 @@ InModuleScope "PoShKeePass" {
                 $KeePassGroup.Name | Should Be 'test4'
                 $KeePassGroup | Remove-KeePassGroup -Force | Should Be $null
                 Get-KeePassGroup -DatabaseProfileName SampleProfile -KeePassGroupPath 'PSKeePassTestDatabase/RecycleBin/test4' | Should Not Be $null
+            }
+
+            Update-KeePassDatabaseConfiguration -DatabaseProfileName 'SampleProfile' -Default
+
+            It "Example 1.5: Removes a KeePass Group - Valid - Default Profile" {
+                New-KeePassGroup -KeePassGroupParentPath 'PSKeePassTestDatabase' -KeePassGroupName 'test1' | Should Be $null
+                $KeePassGroup = Get-KeePassGroup -KeePassGroupPath 'PSKeePassTestDatabase/test1'
+                $KeePassGroup.Name | Should Be 'test1'
+                Remove-KeePassGroup -KeePassGroup $KeePassGroup -Force | Should Be $null
+                $Check = Get-KeePassGroup -KeePassGroupPath 'PSKeePassTestDatabase/RecycleBin/test1'
+                $Check.Name | Should Be 'test1'
             }
         }
 
