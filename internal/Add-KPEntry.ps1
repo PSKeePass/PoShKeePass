@@ -23,6 +23,8 @@ function Add-KPEntry
             This is the Notes of the New KeePass Entry.
         .PARAMETER URL
             This is the URL of the New KeePass Entry.
+        .PARAMETER Tags
+            Specify the Tags of the new KeePass Database Entry.
         .PARAMETER PassThru
             Returns the New KeePass Entry after creation.
         .PARAMETER IconName
@@ -70,6 +72,9 @@ function Add-KPEntry
         [DateTime] $ExpiryTime,
 
         [Parameter(Position = 10)]
+        [String[]] $Tags,
+
+        [Parameter(Position = 11)]
         [Switch] $PassThru
     )
     begin
@@ -145,6 +150,11 @@ function Add-KPEntry
             if($ExpiryTime)
             {
                 $KeePassEntry.ExpiryTime = $ExpiryTime.ToUniversalTime()
+            }
+
+            if($Tags)
+            {
+                $Tags | % { $null = $KeePassEntry.AddTag($_) }
             }
 
             $KeePassGroup.AddEntry($KeePassEntry, $true)

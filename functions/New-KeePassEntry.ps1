@@ -23,6 +23,8 @@ function New-KeePassEntry
             Specify the Notes of the new KeePass Database Entry.
         .PARAMETER URL
             Specify the URL of the new KeePass Database Entry.
+        .PARAMETER Tags
+            Specify the Tags of the new KeePass Database Entry.
         .PARAMETER PassThru
             Specify to return the newly created keepass database entry.
         .PARAMETER MasterKey
@@ -92,15 +94,19 @@ function New-KeePassEntry
         [Parameter(Position = 8)]
         [DateTime] $ExpiryTime,
 
-        [Parameter(Position = 9, ValueFromPipelineByPropertyName)]
+        [Parameter(Position = 9)]
+        [ValidateNotNullOrEmpty()]
+        [String[]] $Tags,
+
+        [Parameter(Position = 10, ValueFromPipelineByPropertyName)]
         [ValidateNotNullOrEmpty()]
         [string] $DatabaseProfileName,
 
-        [Parameter(Position = 10)]
+        [Parameter(Position = 11)]
         [ValidateNotNullOrEmpty()]
         [PSobject] $MasterKey,
 
-        [Parameter(Position = 11)]
+        [Parameter(Position = 12)]
         [Switch] $PassThru
     )
     begin
@@ -125,6 +131,7 @@ function New-KeePassEntry
                 Title             = $Title
                 KeePassConnection = $KeePassConnectionObject
                 Notes             = $Notes
+                Tags              = $Tags
             }
 
             if(Test-Bound -ParameterName 'Expires'){ $addKpEntrySplat.Expires = $Expires }
