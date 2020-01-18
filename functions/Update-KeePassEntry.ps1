@@ -25,6 +25,8 @@ function Update-KeePassEntry
             Specify the Notes of the new KeePass Database Entry.
         .PARAMETER URL
             Specify the URL of the new KeePass Database Entry.
+        .PARAMETER Tags
+            Specify the Tags of the new KeePass Database Entry.
         .PARAMETER PassThru
             Specify to return the modified object.
         .PARAMETER Force
@@ -100,18 +102,22 @@ function Update-KeePassEntry
         [Parameter(Position = 9)]
         [DateTime] $ExpiryTime,
 
-        [Parameter(Position = 10, ValueFromPipelineByPropertyName)]
+        [Parameter(Position = 9)]
+        [ValidateNotNullOrEmpty()]
+        [String[]] $Tags,
+
+        [Parameter(Position = 11, ValueFromPipelineByPropertyName)]
         [ValidateNotNullOrEmpty()]
         [string] $DatabaseProfileName,
 
-        [Parameter(Position = 11)]
+        [Parameter(Position = 12)]
         [ValidateNotNullOrEmpty()]
         [PSobject] $MasterKey,
 
-        [Parameter(Position = 12)]
+        [Parameter(Position = 13)]
         [Switch] $PassThru,
 
-        [Parameter(Position = 13)]
+        [Parameter(Position = 14)]
         [Switch] $Force
     )
     begin
@@ -143,6 +149,7 @@ function Update-KeePassEntry
                 PassThru          = $PassThru
                 Force             = $true
                 Title             = $Title
+                Tags              = $Tags
                 KeePassConnection = $KeePassConnectionObject
             }
 

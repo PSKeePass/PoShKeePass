@@ -25,6 +25,8 @@ function Set-KPEntry
             This is the Notes to update/set.
         .PARAMETER URL
             This is the URL to update/set.
+        .PARAMETER Tags
+            Specify the Tags of the new KeePass Database Entry.
         .PARAMETER PassThru
             Returns the updated KeePass Entry after updating.
         .PARAMETER Force
@@ -78,9 +80,12 @@ function Set-KPEntry
         [DateTime] $ExpiryTime,
 
         [Parameter(Position = 11)]
-        [Switch] $PassThru,
+        [String[]] $Tags,
 
         [Parameter(Position = 12)]
+        [Switch] $PassThru,
+
+        [Parameter(Position = 13)]
         [Switch] $Force
     )
     process
@@ -143,6 +148,11 @@ function Set-KPEntry
                 if($ExpiryTime)
                 {
                     $KeePassEntry.ExpiryTime = $ExpiryTime.ToUniversalTime()
+                }
+
+                if($Tags)
+                {
+                    $Tags | % { $null = $KeePassEntry.AddTag($_) }
                 }
 
                 $OldEntry.History.clear()
