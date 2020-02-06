@@ -46,6 +46,38 @@ Write-Verbose -Message 'Adding tail to module file.'
 @'
 
 [String] $Global:KeePassConfigurationFile = '{0}\KeePassConfiguration.xml' -f $PSScriptRoot
+# Check, if configuration file is writeable, otherwise use %APPDATA%\PoShKeePass\KeePassConfiguration.xml
+try
+{
+    [IO.File]::OpenWrite($Global:KeePassConfigurationFile).close()
+    # The OpenWrite may have created the configuration file, so an empty file will be deleted
+    If((Get-Content $Global:KeePassConfigurationFile).Length -eq 0)
+    {
+        Remove-Item $Global:KeePassConfigurationFile
+    }
+
+}
+catch
+{
+    if(-not (Test-Path ("{0}\PoShKeePass" -f $env:APPDATA)))
+    {
+        New-Item -ItemType Directory ("{0}\PoShKeePass" -f $env:APPDATA)
+    }
+    $Global:KeePassConfigurationFile = "$env:APPDATA\PoShKeePass\KeePassConfiguration.xml"
+}
+#If the configuration file does not exist, create a new one
+if(-not (Test-Path $Global:KeePassConfigurationFile))
+{
+    [xml]$newData = New-Object System.Xml.XmlDocument
+    $newData.AppendChild($newData.CreateXmlDeclaration("1.0", $null, $null))
+    $newData.AppendChild($newData.CreateProcessingInstruction("xml-stylesheet", "type='text/xsl' href='style.xsl'"))
+    $newRoot = $newData.CreateNode("element", "Settings", $null)
+    $newRoot.AppendChild($newData.CreateNode("element", "DatabaseProfiles", $null))
+    $newRoot.AppendChild($newData.CreateNode("element", "PasswordProfiles", $null))
+    $newData.AppendChild($newRoot)
+    $newData.Save($Global:KeePassConfigurationFile)
+}
+
 [String] $Global:KeePassLibraryPath = '{0}\bin\KeePassLib_2.39.1.dll' -f $PSScriptRoot
 
 ## Source KpLib
